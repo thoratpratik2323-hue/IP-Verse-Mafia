@@ -3,6 +3,46 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+import os
+import urllib.parse
+import threading
+import re
+
+CONTACTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'contacts.json')
+
+def load_contacts() -> dict:
+    if not os.path.exists(CONTACTS_FILE):
+        return {}
+    try:
+        with open(CONTACTS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_contact(name: str, num: str) -> str:
+    contacts = load_contacts()
+    name_l = name.lower().strip()
+    num_c = re.sub(r'[^0-9+]', '', num)
+    if len(num_c) == 10 and not num_c.startswith('+'):
+        num_c = '+91' + num_c
+    contacts[name_l] = num_c
+    try:
+        with open(CONTACTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(contacts, f, indent=4)
+        return f"Contact {name} saved as {num_c}."
+    except Exception as e:
+        return f"Failed to save contact: {e}"
+
+def resolve_contact(target: str) -> str:
+    contacts = load_contacts()
+    target_l = target.lower().strip()
+    if target_l in contacts:
+        return contacts[target_l]
+    # If target already looks like a phone number, return it
+    if re.match(r'^[\d+\-\s()]+$', target):
+        return target
+    return target
+
 
 try:
     import pyautogui
@@ -150,7 +190,29 @@ def _desktop_send(app_name: str, receiver: str, message: str) -> str:
     return f"Message sent to {receiver} via {app_name}."
 
 def _send_whatsapp(receiver: str, message: str) -> str:
-    return _desktop_send("WhatsApp", receiver, message)
+    phone = resolve_contact(receiver)
+    phone_c = re.sub(r'[^0-9+]', '', phone)
+    if len(phone_c) == 10 and not phone_c.startswith('+'):
+        phone_c = '+91' + phone_c
+    
+    encoded_msg = urllib.parse.quote(message)
+    url = f"https://web.whatsapp.com/send?phone={phone_c}&text={encoded_msg}"
+    
+    def worker():
+        try:
+            if _get_os() == "windows":
+                subprocess.Popen(['firefox', url])
+                time.sleep(10)
+                ps_script = '$wshell = New-Object -ComObject wscript.shell; $wshell.AppActivate("Firefox")'
+                subprocess.run(["powershell", "-Command", ps_script], creationflags=subprocess.CREATE_NO_WINDOW)
+                time.sleep(1.0)
+                if _PYAUTOGUI:
+                    pyautogui.press('enter')
+        except Exception as e:
+            print(f"[WhatsApp Web ERR] {e}")
+
+    threading.Thread(target=worker, daemon=True).start()
+    return f"Sending WhatsApp message to {receiver} via WhatsApp Web, Sir."
 
 def _send_telegram(receiver: str, message: str) -> str:
     return _desktop_send("Telegram", receiver, message)
@@ -213,7 +275,7 @@ def _send_messenger(receiver: str, message: str) -> str:
     return f"Message sent to {receiver} via Messenger."
 
 _PLATFORM_MAP = [
-    ({"whatsapp", "wp", "wapp"},              _send_whatsapp),
+    ({"whatsapp", "wp", "wapp", "whatsapp_web"},              _send_whatsapp),
     ({"telegram", "tg"},                      _send_telegram),
     ({"instagram", "ig", "insta"},            _send_instagram),
     ({"signal"},                               _send_signal),
@@ -241,11 +303,14 @@ def send_message(
     message_text = params.get("message_text", "").strip()
     platform     = params.get("platform", "whatsapp").strip()
 
+    if platform == "save_contact":
+        return save_contact(receiver, message_text)
+
     if not receiver:
         return "Please specify a recipient."
     if not message_text:
         return "Please specify the message content."
-    if not _PYAUTOGUI:
+    if not _PYAUTOGUI and platform != "save_contact":
         return "PyAutoGUI is not installed — cannot control the desktop."
 
     preview = message_text[:50] + ("…" if len(message_text) > 50 else "")

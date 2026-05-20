@@ -5,6 +5,8 @@ import sys
 import time
 import subprocess
 import platform
+import threading
+import random
 from pathlib import Path
 
 try:
@@ -49,6 +51,230 @@ def _get_macos_wifi_interface() -> str:
     except Exception:
         pass
     return "en0" 
+
+def get_open_windows() -> str:
+    try:
+        import pygetwindow as gw
+        windows = gw.getAllWindows()
+        titles = []
+        for w in windows:
+            if w.title and w.title.strip():
+                try:
+                    if w.width > 0 and w.height > 0:
+                        titles.append(w.title.strip())
+                except Exception:
+                    pass
+        seen = set()
+        dedup = []
+        for t in titles:
+            if t not in seen:
+                seen.add(t)
+                dedup.append(t)
+        if not dedup:
+            return "No active, visible windows found."
+        return "Active Windows:\n" + "\n".join(f"- {title}" for title in dedup)
+    except Exception as e:
+        return f"Failed to list open windows: {e}"
+
+def focus_window_by_title(title: str) -> str:
+    if not title:
+        return "Please specify a window title to focus."
+    try:
+        import pygetwindow as gw
+        import ctypes
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        hwnd = best_match._hWnd
+        try:
+            if best_match.isMinimized:
+                ctypes.windll.user32.ShowWindow(hwnd, 9) # SW_RESTORE
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+            return f"Focused window: '{best_match.title}'."
+        except Exception:
+            try:
+                best_match.activate()
+                return f"Focused window: '{best_match.title}'."
+            except Exception as e2:
+                return f"Found '{best_match.title}' but failed to focus: {e2}"
+    except Exception as e:
+        return f"Failed to focus window: {e}"
+
+def resize_window_by_title(title: str, width: int, height: int) -> str:
+    if not title:
+        return "Please specify a window title to resize."
+    try:
+        import pygetwindow as gw
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        best_match.resizeTo(width, height)
+        return f"Resized window '{best_match.title}' to {width}x{height}."
+    except Exception as e:
+        return f"Failed to resize window: {e}"
+
+def move_window_by_title(title: str, x: int, y: int) -> str:
+    if not title:
+        return "Please specify a window title to move."
+    try:
+        import pygetwindow as gw
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        best_match.moveTo(x, y)
+        return f"Moved window '{best_match.title}' to ({x}, {y})."
+    except Exception as e:
+        return f"Failed to move window: {e}"
+
+def minimize_window_by_title(title: str) -> str:
+    if not title:
+        return "Please specify a window title to minimize."
+    try:
+        import pygetwindow as gw
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        best_match.minimize()
+        return f"Minimized window '{best_match.title}'."
+    except Exception as e:
+        return f"Failed to minimize window: {e}"
+
+def maximize_window_by_title(title: str) -> str:
+    if not title:
+        return "Please specify a window title to maximize."
+    try:
+        import pygetwindow as gw
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        best_match.maximize()
+        return f"Maximized window '{best_match.title}'."
+    except Exception as e:
+        return f"Failed to maximize window: {e}"
+
+def close_window_by_title(title: str) -> str:
+    if not title:
+        return "Please specify a window title to close."
+    try:
+        import pygetwindow as gw
+        query = title.lower().strip()
+        windows = gw.getAllWindows()
+        best_match = None
+        for w in windows:
+            if w.title and query in w.title.lower():
+                best_match = w
+                break
+        if not best_match:
+            return f"Could not find any window matching '{title}'."
+        
+        best_match.close()
+        return f"Closed window '{best_match.title}'."
+    except Exception as e:
+        return f"Failed to close window: {e}"
+
+def get_clipboard() -> str:
+    if not _PYPERCLIP:
+        return "pyperclip is not installed."
+    try:
+        val = pyperclip.paste()
+        if not val:
+            return "Clipboard is empty."
+        return f"Clipboard Content:\n{val}"
+    except Exception as e:
+        return f"Failed to read clipboard: {e}"
+
+def set_clipboard(text: str) -> str:
+    if not _PYPERCLIP:
+        return "pyperclip is not installed."
+    try:
+        pyperclip.copy(text)
+        return "Text copied to clipboard successfully."
+    except Exception as e:
+        return f"Failed to copy to clipboard: {e}"
+
+def type_clipboard() -> str:
+    if not _PYAUTOGUI:
+        return "pyautogui is not installed."
+    try:
+        pyautogui.hotkey("ctrl", "v")
+        return "Clipboard content pasted/typed on screen."
+    except Exception as e:
+        return f"Failed to type clipboard content: {e}"
+
+def _notes_file() -> Path:
+    d = Path.home() / ".ipray"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / "notes.txt"
+
+def add_note(note_text: str) -> str:
+    if not note_text:
+        return "No note text provided."
+    from datetime import datetime
+    file = _notes_file()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    formatted = f"[{timestamp}] {note_text}\n"
+    try:
+        with open(file, "a", encoding="utf-8") as f:
+            f.write(formatted)
+        return "Note added successfully."
+    except Exception as e:
+        return f"Failed to write note: {e}"
+
+def read_notes() -> str:
+    file = _notes_file()
+    if not file.exists() or file.stat().st_size == 0:
+        return "You have no notes saved yet."
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return f"Your Saved Notes:\n{content}"
+    except Exception as e:
+        return f"Failed to read notes: {e}"
+
+def clear_notes() -> str:
+    file = _notes_file()
+    if not file.exists():
+        return "No notes to clear."
+    try:
+        file.unlink(missing_ok=True)
+        return "All notes cleared successfully."
+    except Exception as e:
+        return f"Failed to clear notes: {e}" 
 
 def volume_up():
     if _OS == "Windows":
@@ -502,6 +728,310 @@ def shutdown_computer():
     else:
         subprocess.run(["systemctl", "poweroff"], capture_output=True)
 
+def switch_app(name: str) -> str:
+    """Activate an open application window by name using robust Win32 APIs via PowerShell."""
+    if not name or name.strip() in ("", "None"):
+        return "Which application should I switch to, Sir?"
+    name_l = name.lower().strip()
+    PROCESS_NAMES = {
+        "chrome": "chrome", "browser": "chrome", "firefox": "firefox",
+        "notepad": "notepad", "vs code": "code", "code": "code",
+        "spotify": "spotify", "calculator": "calculator", "calc": "calculator",
+        "paint": "mspaint", "word": "winword", "excel": "excel", "powerpoint": "powerpnt",
+    }
+    proc_name = PROCESS_NAMES.get(name_l, name_l)
+    if _OS == "Windows":
+        def worker():
+            try:
+                ps_script = (
+                    "add-type -TypeDefinition 'using System; using System.Runtime.InteropServices; "
+                    "public class Win32 { [DllImport(\\\"user32.dll\\\")] public static extern bool SetForegroundWindow(IntPtr hWnd); "
+                    "[DllImport(\\\"user32.dll\\\")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow); }';"
+                    f"$proc = Get-Process | Where-Object {{ $_.ProcessName -eq '{proc_name}' -or $_.MainWindowTitle -like '*{name_l}*' -or $_.ProcessName -like '*{name_l}*' }} | Where-Object {{ $_.MainWindowHandle -ne 0 }} | Select-Object -First 1;"
+                    "if ($proc) { [Win32]::ShowWindowAsync($proc.MainWindowHandle, 9) | Out-Null; [Win32]::SetForegroundWindow($proc.MainWindowHandle) | Out-Null; Write-Output 'Success' } else { Write-Output 'NotFound' }"
+                )
+                subprocess.run(["powershell", "-Command", ps_script], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            except Exception as e:
+                print(f"[SWITCH APP ERR] {e}")
+        threading.Thread(target=worker, daemon=True).start()
+        return random.choice([f"Switching to {name} now, Sir.", f"Bringing {name} to full focus, Sir.", f"Switched focus to {name}."])
+    return "Window switching is only supported on Windows, Sir."
+
+
+def automate_youtube(action: str) -> str:
+    """Execute YouTube control shortcuts in the active browser."""
+    if _OS != "Windows":
+        return "YouTube controls are only supported on Windows, Sir."
+    action_l = action.lower().strip()
+    def worker():
+        try:
+            ps_script = '$wshell = New-Object -ComObject wscript.shell; Get-Process | Where-Object {$_.MainWindowTitle -like "*YouTube*"} | ForEach-Object { $wshell.AppActivate($_.Id) }'
+            subprocess.run(["powershell", "-Command", ps_script], creationflags=subprocess.CREATE_NO_WINDOW)
+            time.sleep(0.3)
+            if "pause" in action_l or "play" in action_l or "resume" in action_l:
+                pyautogui.press('k')
+            elif "mute" in action_l or "unmute" in action_l:
+                pyautogui.press('m')
+            elif "volume up" in action_l or "sound up" in action_l:
+                pyautogui.press('up')
+            elif "volume down" in action_l or "sound down" in action_l:
+                pyautogui.press('down')
+            elif "forward" in action_l or "skip forward" in action_l:
+                pyautogui.press('l')
+            elif "rewind" in action_l or "skip backward" in action_l:
+                pyautogui.press('j')
+            elif "next video" in action_l or "skip video" in action_l:
+                pyautogui.hotkey('shift', 'n')
+            elif "full screen" in action_l or "fullscreen" in action_l:
+                pyautogui.press('f')
+            elif "theater" in action_l:
+                pyautogui.press('t')
+            elif "subtitle" in action_l or "captions" in action_l:
+                pyautogui.press('c')
+        except Exception as e:
+            print(f"[YOUTUBE ERR] {e}")
+    threading.Thread(target=worker, daemon=True).start()
+    responses = {
+        "pause": "Toggled play/pause on YouTube, Sir.", "play": "Toggled play/pause on YouTube, Sir.",
+        "resume": "Toggled play/pause on YouTube, Sir.", "mute": "Toggled mute on YouTube, Sir.",
+        "unmute": "Toggled mute on YouTube, Sir.", "volume up": "Volume increased on YouTube, Sir.",
+        "sound up": "Volume increased on YouTube, Sir.", "volume down": "Volume decreased on YouTube, Sir.",
+        "sound down": "Volume decreased on YouTube, Sir.", "forward": "Skipped forward 10 seconds, Sir.",
+        "skip forward": "Skipped forward 10 seconds, Sir.", "rewind": "Rewound 10 seconds, Sir.",
+        "skip backward": "Rewound 10 seconds, Sir.", "next video": "Skipped to next video, Sir.",
+        "skip video": "Skipped to next video, Sir.", "full screen": "Toggled fullscreen on YouTube, Sir.",
+        "fullscreen": "Toggled fullscreen on YouTube, Sir.", "theater": "Toggled theater mode, Sir.",
+        "subtitle": "Toggled captions on YouTube, Sir.", "captions": "Toggled captions on YouTube, Sir.",
+    }
+    for key, resp in responses.items():
+        if key in action_l:
+            return resp
+    return "YouTube action not recognized, Sir."
+
+
+def automate_browser(browser: str, action: str) -> str:
+    """Execute browser shortcut automations in Chrome or Firefox."""
+    if _OS != "Windows":
+        return "Browser shortcuts are only supported on Windows, Sir."
+    browser_l = browser.lower().strip()
+    browser_title = "Chrome" if "chrome" in browser_l else "Firefox"
+    action_l = action.lower().strip()
+    def worker():
+        try:
+            ps_script = f'$wshell = New-Object -ComObject wscript.shell; $s = $wshell.AppActivate("{browser_title}"); Write-Output $s'
+            res = subprocess.run(["powershell", "-Command", ps_script], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            if res.stdout.strip().lower() != "true":
+                ps_fallback = f'Get-Process | Where-Object {{$_.MainWindowTitle -like "*{browser_title.lower()}*"}} | ForEach-Object {{ $wshell = New-Object -ComObject wscript.shell; $wshell.AppActivate($_.Id) }}'
+                subprocess.run(["powershell", "-Command", ps_fallback], creationflags=subprocess.CREATE_NO_WINDOW)
+                time.sleep(0.3)
+            if "new tab" in action_l or "open tab" in action_l:
+                pyautogui.hotkey('ctrl', 't')
+            elif "close tab" in action_l:
+                pyautogui.hotkey('ctrl', 'w')
+            elif "next tab" in action_l or "switch tab" in action_l:
+                pyautogui.hotkey('ctrl', 'tab')
+            elif "prev tab" in action_l or "previous tab" in action_l:
+                pyautogui.hotkey('ctrl', 'shift', 'tab')
+            elif "scroll down" in action_l:
+                pyautogui.press('pagedown')
+            elif "scroll up" in action_l:
+                pyautogui.press('pageup')
+            elif "zoom in" in action_l:
+                pyautogui.hotkey('ctrl', '=')
+            elif "zoom out" in action_l:
+                pyautogui.hotkey('ctrl', '-')
+            elif "back" in action_l:
+                pyautogui.hotkey('alt', 'left')
+            elif "forward" in action_l:
+                pyautogui.hotkey('alt', 'right')
+            elif "private" in action_l or "incognito" in action_l:
+                if browser_title == "Chrome":
+                    pyautogui.hotkey('ctrl', 'shift', 'n')
+                else:
+                    pyautogui.hotkey('ctrl', 'shift', 'p')
+        except Exception as e:
+            print(f"[BROWSER CTRL ERR] {e}")
+    threading.Thread(target=worker, daemon=True).start()
+    if "new tab" in action_l or "open tab" in action_l:
+        return f"Opened a new tab in {browser_title}, Sir."
+    elif "close tab" in action_l:
+        return f"Closed the active tab in {browser_title}, Sir."
+    elif "next tab" in action_l or "switch tab" in action_l:
+        return "Switched to the next tab, Sir."
+    elif "prev tab" in action_l or "previous tab" in action_l:
+        return "Switched to the previous tab, Sir."
+    elif "scroll down" in action_l:
+        return f"Scrolling down on {browser_title}, Sir."
+    elif "scroll up" in action_l:
+        return f"Scrolling up on {browser_title}, Sir."
+    elif "zoom in" in action_l:
+        return f"Zoomed in {browser_title}, Sir."
+    elif "zoom out" in action_l:
+        return f"Zoomed out {browser_title}, Sir."
+    elif "back" in action_l:
+        return "Navigated back, Sir."
+    elif "forward" in action_l:
+        return "Navigated forward, Sir."
+    elif "private" in action_l or "incognito" in action_l:
+        return f"Opened a private window in {browser_title}, Sir."
+    return f"Action not recognized for {browser_title}, Sir."
+
+
+def automate_multitasking(action: str) -> str:
+    """Execute multitasking and workspace window management controls."""
+    if _OS != "Windows":
+        return "Multitasking controls are only supported on Windows, Sir."
+    action_l = action.lower().strip()
+    def worker():
+        try:
+            if "minimize all" in action_l or "show desktop" in action_l or "clear screen" in action_l:
+                pyautogui.hotkey('win', 'd')
+            elif "restore all" in action_l or "undo minimize" in action_l:
+                pyautogui.hotkey('win', 'shift', 'm')
+            elif "snap left" in action_l:
+                pyautogui.hotkey('win', 'left')
+            elif "snap right" in action_l:
+                pyautogui.hotkey('win', 'right')
+            elif "snap up" in action_l or "maximize window" in action_l:
+                pyautogui.hotkey('win', 'up')
+            elif "snap down" in action_l or "minimize window" in action_l:
+                pyautogui.hotkey('win', 'down')
+            elif "new desktop" in action_l or "create virtual desktop" in action_l:
+                pyautogui.hotkey('win', 'ctrl', 'd')
+            elif "next desktop" in action_l or "switch right desktop" in action_l:
+                pyautogui.hotkey('win', 'ctrl', 'right')
+            elif "previous desktop" in action_l or "switch left desktop" in action_l:
+                pyautogui.hotkey('win', 'ctrl', 'left')
+            elif "close desktop" in action_l or "delete desktop" in action_l:
+                pyautogui.hotkey('win', 'ctrl', 'f4')
+            elif "task view" in action_l or "show apps" in action_l:
+                pyautogui.hotkey('win', 'tab')
+            elif "switch app" in action_l or "alt tab" in action_l:
+                pyautogui.hotkey('alt', 'tab')
+        except Exception as e:
+            print(f"[MULTITASKING ERR] {e}")
+    threading.Thread(target=worker, daemon=True).start()
+    if "minimize all" in action_l or "show desktop" in action_l or "clear screen" in action_l:
+        return "Minimizing all windows, Sir."
+    elif "restore all" in action_l or "undo minimize" in action_l:
+        return "Restoring all minimized windows, Sir."
+    elif "snap left" in action_l:
+        return "Snapping active window to the left, Sir."
+    elif "snap right" in action_l:
+        return "Snapping active window to the right, Sir."
+    elif "snap up" in action_l or "maximize window" in action_l:
+        return "Maximizing the active window, Sir."
+    elif "snap down" in action_l or "minimize window" in action_l:
+        return "Minimizing the active window, Sir."
+    elif "new desktop" in action_l or "create virtual desktop" in action_l:
+        return "Created a new Virtual Desktop, Sir."
+    elif "next desktop" in action_l or "switch right desktop" in action_l:
+        return "Switched to the next Virtual Desktop, Sir."
+    elif "previous desktop" in action_l or "switch left desktop" in action_l:
+        return "Switched to the previous Virtual Desktop, Sir."
+    elif "close desktop" in action_l or "delete desktop" in action_l:
+        return "Closed the current Virtual Desktop, Sir."
+    elif "task view" in action_l or "show apps" in action_l:
+        return "Opening Task View, Sir."
+    elif "switch app" in action_l or "alt tab" in action_l:
+        return "Toggled the active application, Sir."
+    return "Multitasking action not recognized, Sir."
+
+
+def system_diagnostics() -> str:
+    """Gathers comprehensive OS telemetry, heavy processes, and returns a detailed diagnostics report."""
+    import psutil
+    import shutil
+    import platform
+    import sys
+    import re
+
+    report = []
+    report.append("=== IP RAY HARDWARE & SYSTEM TELEMETRY ===")
+
+    # 1. OS & Platform Info
+    report.append(f"OS: {platform.system()} {platform.release()} ({platform.architecture()[0]})")
+    report.append(f"Python Version: {sys.version.split()[0]}")
+
+    # 2. CPU Telemetry
+    cpu_pct = psutil.cpu_percent(interval=0.2)
+    cpu_cores = psutil.cpu_count(logical=True)
+    cpu_freq = psutil.cpu_freq()
+    freq_str = f" @ {cpu_freq.current:.0f}MHz" if cpu_freq else ""
+    report.append(f"CPU Load: {cpu_pct}% ({cpu_cores} Logical Cores{freq_str})")
+
+    # 3. Memory Telemetry
+    mem = psutil.virtual_memory()
+    mem_total = mem.total / (1024**3)
+    mem_avail = mem.available / (1024**3)
+    mem_used = mem.used / (1024**3)
+    report.append(f"Memory: {mem.percent}% used ({mem_used:.2f} GB used / {mem_total:.2f} GB total, {mem_avail:.2f} GB available)")
+
+    # 4. Storage / Disk Capacity
+    report.append("\nDisk Partitions:")
+    for part in psutil.disk_partitions(all=False):
+        if 'cdrom' in part.opts or not part.device:
+            continue
+        try:
+            usage = shutil.disk_usage(part.mountpoint)
+            total_gb = usage.total / (1024**3)
+            used_gb = usage.used / (1024**3)
+            free_gb = usage.free / (1024**3)
+            pct = (usage.used / usage.total) * 100
+            report.append(f"  - [{part.device}] Mount: {part.mountpoint} | {pct:.1f}% used ({used_gb:.1f} GB used, {free_gb:.1f} GB free of {total_gb:.1f} GB)")
+        except PermissionError:
+            continue
+        except Exception:
+            continue
+
+    # 5. Heavy Processes
+    report.append("\nTop 5 Heavy Processes by CPU:")
+    cpu_procs = []
+    for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+        try:
+            cpu_procs.append(proc.info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
+    cpu_procs_sorted = sorted(cpu_procs, key=lambda x: x['cpu_percent'] or 0.0, reverse=True)[:5]
+    for p in cpu_procs_sorted:
+        report.append(f"  - PID {p['pid']}: {p['name']} | CPU: {p['cpu_percent']:.1f}% | MEM: {p['memory_percent']:.1f}%")
+
+    report.append("\nTop 5 Heavy Processes by Memory:")
+    mem_procs_sorted = sorted(cpu_procs, key=lambda x: x['memory_percent'] or 0.0, reverse=True)[:5]
+    for p in mem_procs_sorted:
+        try:
+            full_proc = psutil.Process(p['pid'])
+            rss = full_proc.memory_info().rss / (1024*1024)
+        except Exception:
+            rss = 0.0
+        report.append(f"  - PID {p['pid']}: {p['name']} | Memory: {rss:.1f} MB ({p['memory_percent']:.1f}%) | CPU: {p['cpu_percent']:.1f}%")
+
+    # 6. Suggestions
+    report.append("\n=== DIAGNOSTICS & SYSTEM OPTIMIZATION SUGGESTIONS ===")
+    has_issues = False
+    if cpu_pct > 80:
+        report.append("⚠️ [HIGH CPU LOAD]: Your CPU utilization is extremely high. Consider terminating heavy background processes or closing idle tabs.")
+        has_issues = True
+    if mem.percent > 85:
+        report.append("⚠️ [HIGH MEMORY USAGE]: RAM is heavily saturated. Closing memory-hogging web browser processes or dev tools will improve system response times.")
+        has_issues = True
+    for part in psutil.disk_partitions(all=False):
+        try:
+            usage = shutil.disk_usage(part.mountpoint)
+            pct = (usage.used / usage.total) * 100
+            if pct > 90:
+                report.append(f"⚠️ [LOW DISK SPACE]: Drive {part.device} is {pct:.1f}% full. Consider running Disk Cleanup or moving large files to an external drive.")
+                has_issues = True
+        except Exception:
+            pass
+
+    if not has_issues:
+        report.append("✅ [SYSTEM HEALTHY]: Telemetry indicates all systems are operating within optimal parameters. No performance bottlenecks detected, Sir!")
+
+    return "\n".join(report)
+
+
 ACTION_MAP: dict[str, callable] = {
     "volume_up":           volume_up,
     "volume_down":         volume_down,
@@ -562,6 +1092,24 @@ ACTION_MAP: dict[str, callable] = {
     "toggle_wifi":         toggle_wifi,
     "restart":             restart_computer,
     "shutdown":            shutdown_computer,
+    "list_windows":        get_open_windows,
+    "focus_window":        focus_window_by_title,
+    "resize_window":       resize_window_by_title,
+    "move_window":         move_window_by_title,
+    "minimize_window_by_title": minimize_window_by_title,
+    "maximize_window_by_title": maximize_window_by_title,
+    "close_window_by_title": close_window_by_title,
+    "get_clipboard":       get_clipboard,
+    "set_clipboard":       set_clipboard,
+    "type_clipboard":      type_clipboard,
+    "add_note":            add_note,
+    "read_notes":          read_notes,
+    "clear_notes":         clear_notes,
+    "switch_app":          switch_app,
+    "youtube_control":     automate_youtube,
+    "browser_shortcut":    automate_browser,
+    "multitasking":        automate_multitasking,
+    "system_diagnostics":  system_diagnostics,
 }
 
 _DANGEROUS_ACTIONS = {"restart", "shutdown"}
@@ -572,7 +1120,7 @@ def _detect_action(description: str) -> dict:
 
     import google.generativeai as genai
     genai.configure(api_key=_get_api_key())
-    model = genai.GenerativeModel("gemini-2.5-flash-lite")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     available = ", ".join(sorted(ACTION_MAP.keys())) + \
                 ", volume_set, type_text, press_key, reload_n"
@@ -677,12 +1225,88 @@ def computer_settings(
         scroll_down(int(value or 500))
         return "Scrolled down."
 
+    if action == "focus_window":
+        title = str(value or params.get("value", "") or params.get("title", "")).strip()
+        return focus_window_by_title(title)
+
+    if action == "resize_window":
+        val_str = str(value or params.get("value", "")).strip()
+        parts = [p.strip() for p in val_str.split(",")]
+        if len(parts) >= 3:
+            title = parts[0]
+            try:
+                w = int(parts[1])
+                h = int(parts[2])
+                return resize_window_by_title(title, w, h)
+            except ValueError:
+                return "Width and Height must be integers."
+        else:
+            return "Please provide value in format: 'title,width,height'."
+
+    if action == "move_window":
+        val_str = str(value or params.get("value", "")).strip()
+        parts = [p.strip() for p in val_str.split(",")]
+        if len(parts) >= 3:
+            title = parts[0]
+            try:
+                x = int(parts[1])
+                y = int(parts[2])
+                return move_window_by_title(title, x, y)
+            except ValueError:
+                return "Coordinates x and y must be integers."
+        else:
+            return "Please provide value in format: 'title,x,y'."
+
+    if action == "minimize_window_by_title":
+        title = str(value or params.get("value", "") or params.get("title", "")).strip()
+        return minimize_window_by_title(title)
+
+    if action == "maximize_window_by_title":
+        title = str(value or params.get("value", "") or params.get("title", "")).strip()
+        return maximize_window_by_title(title)
+
+    if action == "close_window_by_title":
+        title = str(value or params.get("value", "") or params.get("title", "")).strip()
+        return close_window_by_title(title)
+
+    if action == "set_clipboard":
+        text = str(value or params.get("value", "") or params.get("text", "")).strip()
+        return set_clipboard(text)
+
+    if action == "add_note":
+        note_text = str(value or params.get("value", "") or params.get("note", "")).strip()
+        return add_note(note_text)
+
+    if action == "switch_app":
+        app = str(value or params.get("value", "") or params.get("title", "")).strip()
+        return switch_app(app)
+
+    if action == "youtube_control":
+        yt_action = str(value or params.get("value", "") or description).strip()
+        return automate_youtube(yt_action)
+
+    if action in ("browser_shortcut", "browser_control_shortcut"):
+        val_str = str(value or params.get("value", "")).strip()
+        parts = [p.strip() for p in val_str.split(",", 1)]
+        if len(parts) >= 2:
+            return automate_browser(parts[0], parts[1])
+        return automate_browser("firefox", val_str)
+
+    if action == "multitasking":
+        mt_action = str(value or params.get("value", "") or description).strip()
+        return automate_multitasking(mt_action)
+
+    if action == "system_diagnostics":
+        return system_diagnostics()
+
     func = ACTION_MAP.get(action)
     if not func:
         return f"Unknown action: '{raw_action}'."
 
     try:
-        func()
+        res = func()
+        if isinstance(res, str):
+            return res
         return f"Done: {action}."
     except Exception as e:
         print(f"[Settings] Action failed ({action}): {e}")
