@@ -67,7 +67,7 @@ def _load_system_prompt() -> str:
         return PROMPT_PATH.read_text(encoding="utf-8")
     except Exception:
         return (
-            "You are IP Ray, an advanced personal AI assistant. Your owner is Pratik Thorat. "
+            "You are IP Prime, an advanced personal AI assistant. Your owner is Pratik Thorat. "
             "Be concise, direct, and always use the provided tools to complete tasks. "
             "Never simulate or guess results — always call the appropriate tool."
         )
@@ -617,7 +617,7 @@ class IPRayLive:
         name = fc.name
         args = dict(fc.args or {})
 
-        print(f"[IP RAY] 🔧 {name}  {args}")
+        print(f"[IP PRIME] 🔧 {name}  {args}")
         self.ui.set_state("THINKING")
 
         if name == "save_memory":
@@ -742,7 +742,7 @@ class IPRayLive:
         if not self.ui.muted:
             self.ui.set_state("LISTENING")
 
-        print(f"[IP RAY] 📤 {name} → {str(result)[:80]}")
+        print(f"[IP PRIME] 📤 {name} → {str(result)[:80]}")
         return types.FunctionResponse(
             id=fc.id, name=name,
             response={"result": result}
@@ -754,7 +754,7 @@ class IPRayLive:
             await self.session.send_realtime_input(media=msg)
 
     async def _listen_audio(self):
-        print("[IP RAY] 🎤 Mic started")
+        print("[IP PRIME] 🎤 Mic started")
         loop = asyncio.get_event_loop()
 
         def callback(indata, frames, time_info, status):
@@ -777,15 +777,15 @@ class IPRayLive:
                 blocksize=CHUNK_SIZE,
                 callback=callback,
             ):
-                print("[IP RAY] 🎤 Mic stream open")
+                print("[IP PRIME] 🎤 Mic stream open")
                 while True:
                     await asyncio.sleep(0.1)
         except Exception as e:
-            print(f"[IP RAY] ❌ Mic: {e}")
+            print(f"[IP PRIME] ❌ Mic: {e}")
             raise
 
     async def _receive_audio(self):
-        print("[IP RAY] 👂 Recv started")
+        print("[IP PRIME] 👂 Recv started")
         out_buf, in_buf = [], []
 
         try:
@@ -810,7 +810,7 @@ class IPRayLive:
                             if txt:
                                 in_buf.append(txt)
                                 txt_l = txt.lower()
-                                # Any user speech automatically wakes or keeps IP Ray active!
+                                # Any user speech automatically wakes or keeps IP Prime active!
                                 self._wake_active = True
                                 self._wake_timer = time.time()
 
@@ -836,7 +836,7 @@ class IPRayLive:
 
                             full_out = " ".join(out_buf).strip()
                             if full_out:
-                                self.ui.write_log(f"IP Ray: {full_out}")
+                                self.ui.write_log(f"IP Prime: {full_out}")
                             out_buf = []
 
                     if response.tool_call:
@@ -850,26 +850,26 @@ class IPRayLive:
                                 fn_responses.append({
                                     "id": fc.id,
                                     "name": fc.name,
-                                    "response": {"result": "Ignored, IP Ray is asleep."}
+                                    "response": {"result": "Ignored, IP Prime is asleep."}
                                 })
                             await self.session.send_tool_response(function_responses=fn_responses)
                             continue
 
                         fn_responses = []
                         for fc in response.tool_call.function_calls:
-                            print(f"[IP RAY] 📞 {fc.name}")
+                            print(f"[IP PRIME] 📞 {fc.name}")
                             fr = await self._execute_tool(fc)
                             fn_responses.append(fr)
                         await self.session.send_tool_response(
                             function_responses=fn_responses
                         )
         except Exception as e:
-            print(f"[IP RAY] ❌ Recv: {e}")
+            print(f"[IP PRIME] ❌ Recv: {e}")
             traceback.print_exc()
             raise
 
     async def _play_audio(self):
-        print("[IP RAY] 🔊 Play started")
+        print("[IP PRIME] 🔊 Play started")
 
         stream = sd.RawOutputStream(
             samplerate=RECEIVE_SAMPLE_RATE,
@@ -896,7 +896,7 @@ class IPRayLive:
                         self._turn_done_event.clear()
                     continue
                 
-                # Model speaking automatically wakes/keeps IP Ray awake and active
+                # Model speaking automatically wakes/keeps IP Prime awake and active
                 self._wake_active = True
                 self._wake_timer = time.time()
 
@@ -909,11 +909,11 @@ class IPRayLive:
                     amplified_data = np.clip(audio_data.astype(np.float32) * 3.0, -32768, 32767).astype(np.int16)
                     chunk = amplified_data.tobytes()
                 except Exception as amp_err:
-                    print(f"[IP RAY] ⚠️ Volume scale error: {amp_err}")
+                    print(f"[IP PRIME] ⚠️ Volume scale error: {amp_err}")
 
                 await asyncio.to_thread(stream.write, chunk)
         except Exception as e:
-            print(f"[IP RAY] ❌ Play: {e}")
+            print(f"[IP PRIME] ❌ Play: {e}")
             raise
         finally:
             self.set_speaking(False)
@@ -928,7 +928,7 @@ class IPRayLive:
 
         while True:
             try:
-                print("[IP RAY] 🔌 Connecting...")
+                print("[IP PRIME] 🔌 Connecting...")
                 self.ui.set_state("THINKING")
                 config = self._build_config()
 
@@ -942,9 +942,9 @@ class IPRayLive:
                     self.out_queue      = asyncio.Queue(maxsize=10)
                     self._turn_done_event = asyncio.Event()
 
-                    print("[IP RAY] ✅ Connected.")
+                    print("[IP PRIME] ✅ Connected.")
                     self.ui.set_state("LISTENING")
-                    self.ui.write_log("SYS: IP RAY online.")
+                    self.ui.write_log("SYS: IP PRIME online.")
 
                     async def send_welcome():
                         await asyncio.sleep(0.5)
@@ -957,11 +957,11 @@ class IPRayLive:
                     tg.create_task(send_welcome())
 
             except Exception as e:
-                print(f"[IP RAY] ⚠️ {e}")
+                print(f"[IP PRIME] ⚠️ {e}")
                 traceback.print_exc()
             self.set_speaking(False)
             self.ui.set_state("THINKING")
-            print("[IP RAY] 🔄 Reconnecting in 3s...")
+            print("[IP PRIME] 🔄 Reconnecting in 3s...")
             await asyncio.sleep(3)
 
 def main():

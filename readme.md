@@ -1,4 +1,4 @@
-# 🤖 IP Ray
+# 🤖 IP Prime
 ### The Ultimate Cross-Platform Personal AI Assistant — Custom-Built for Pratik Thorat
 
 > 📺 **[Watch the full setup video on YouTube](https://youtu.be/ej1f5OE3SNQ?si=lCxDhJix9ungq1Ry)**
@@ -9,7 +9,7 @@ A real-time voice AI that can hear, see, understand, and control your computer �
 
 ## ✨ Overview
 
-**IP Ray** (Intelligent Partner Ray) represents the pinnacle of personal AI desktop assistants, bridging the gap between the operating system and human intent. Owned by **Pratik Thorat**, IP Ray features an advanced generative protocol. On every session launch, IP Ray dynamically greets Pratik with custom, futuristic welcome messages. Through natural dialogue, IP Ray analyzes your screen, processes uploaded documents, and executes complex workflows with a brand-new, adaptive interface.
+**IP Prime** (Intelligent Partner Ray) represents the pinnacle of personal AI desktop assistants, bridging the gap between the operating system and human intent. Owned by **Pratik Thorat**, IP Prime features an advanced generative protocol. On every session launch, IP Prime dynamically greets Pratik with custom, futuristic welcome messages. Through natural dialogue, IP Prime analyzes your screen, processes uploaded documents, and executes complex workflows with a brand-new, adaptive interface.
 
 It's not just an assistant — it's an extension of your digital life.
 
@@ -29,7 +29,7 @@ It's not just an assistant — it's an extension of your digital life.
 
 ---
 
-## 🆕 What's New in IP Ray
+## 🆕 What's New in IP Prime
 
 - 📂 **Advanced File Handling** — New support for direct file uploads. Drop PDFs, source code, or images into the assistant to have them analyzed, summarized, or edited instantly.
 - 🎨 **Adaptive & Flexible UI** — A complete overhaul of the interface. The new UI is fully resizable and responsive, featuring transparency controls and customizable layouts to fit your workspace perfectly.

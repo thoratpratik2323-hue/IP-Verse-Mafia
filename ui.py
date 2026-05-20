@@ -790,7 +790,7 @@ class ChatBubble(QFrame):
         self.pos = 0
         
         self.clean_text = text
-        prefixes = ["you:", "ip ray:", "ipray:", "sys:", "file:"]
+        prefixes = ["you:", "ip prime:", "ipprime:", "sys:", "file:"]
         for prefix in prefixes:
             if text.lower().startswith(prefix):
                 self.clean_text = text[len(prefix):].strip()
@@ -965,7 +965,7 @@ class LogWidget(QScrollArea):
         
         tl = self._text.lower()
         if   tl.startswith("you:"):    self._tag = "you"
-        elif tl.startswith("ip ray:") or tl.startswith("ipray:"): self._tag = "ai"
+        elif tl.startswith("ip prime:") or tl.startswith("ipprime:"): self._tag = "ai"
         elif tl.startswith("file:"):   self._tag = "file"
         elif "err" in tl:              self._tag = "err"
         else:                          self._tag = "sys"
@@ -1084,7 +1084,7 @@ class FileDropZone(QWidget):
 
     def _browse(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "Select a file for IP RAY", str(Path.home()),
+            self, "Select a file for IP PRIME", str(Path.home()),
             "All Files (*.*);;"
             "Images (*.jpg *.jpeg *.png *.gif *.webp *.bmp *.svg);;"
             "Documents (*.pdf *.docx *.txt *.md *.pptx);;"
@@ -1239,7 +1239,7 @@ class SetupOverlay(QWidget):
             return w
 
         layout.addWidget(_lbl("◈  INITIALISATION REQUIRED", 13, True))
-        layout.addWidget(_lbl("Configure IP RAY before first boot.", 9, color=C.PRI_DIM))
+        layout.addWidget(_lbl("Configure IP PRIME before first boot.", 9, color=C.PRI_DIM))
         layout.addSpacing(6)
 
         sep = QFrame(); sep.setFrameShape(QFrame.Shape.HLine)
@@ -1342,7 +1342,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, face_path: str):
         super().__init__()
-        self.setWindowTitle("IP Ray")
+        self.setWindowTitle("IP Prime")
         self.setMinimumSize(_MIN_W, _MIN_H)
         self.resize(_DEFAULT_W, _DEFAULT_H)
 
@@ -1519,7 +1519,7 @@ class MainWindow(QMainWindow):
         lay.addStretch()
 
         mid = QVBoxLayout(); mid.setSpacing(1)
-        self._title_lbl = QLabel("IP RAY")
+        self._title_lbl = QLabel("IP PRIME")
         self._title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._title_lbl.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
         self._title_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 2px;")
@@ -1805,7 +1805,7 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._theme_btn)
         
         lay.addStretch()
-        lay.addWidget(_fl("IP Verse Industries  ·  IP RAY  ·  CLASSIFIED"))
+        lay.addWidget(_fl("IP Verse Industries  ·  IP PRIME  ·  CLASSIFIED"))
         lay.addStretch()
         
         self._footer_copyright_lbl = QLabel("© IP VERSE")
@@ -2041,7 +2041,7 @@ class MainWindow(QMainWindow):
         cat  = _file_category(p)
         icon, _ = _FILE_ICONS.get(cat, _FILE_ICONS["unknown"])
         size = _fmt_size(p.stat().st_size)
-        self._file_hint.setText(f"{icon}  {p.name}  ·  {size}  ·  Tell IP RAY what to do with it")
+        self._file_hint.setText(f"{icon}  {p.name}  ·  {size}  ·  Tell IP PRIME what to do with it")
         self._log.append_log(f"FILE: {p.name} ({size}) loaded")
         if self.on_text_command:
             msg = (
@@ -2201,7 +2201,7 @@ class MainWindow(QMainWindow):
             self._overlay.hide()
             self._overlay = None
         self._apply_state("LISTENING")
-        self._log.append_log(f"SYS: Initialised. OS={os_name.upper()}. IP RAY online.")
+        self._log.append_log(f"SYS: Initialised. OS={os_name.upper()}. IP PRIME online.")
 
 class _RootShim:
     def __init__(self, app: QApplication):

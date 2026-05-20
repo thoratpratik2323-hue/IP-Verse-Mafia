@@ -22,7 +22,7 @@ class ErrorDecision(Enum):
     ABORT       = "abort"    
 
 
-ERROR_ANALYST_PROMPT = """You are the error recovery module of IP Ray AI assistant. Your owner is Pratik Thorat.
+ERROR_ANALYST_PROMPT = """You are the error recovery module of IP Prime AI assistant. Your owner is Pratik Thorat.
 
 A task step has failed. Analyze the error and decide what to do.
 

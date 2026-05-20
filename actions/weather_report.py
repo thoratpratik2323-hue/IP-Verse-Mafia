@@ -46,6 +46,6 @@ def _log(message: str, player=None) -> None:
     print(f"[Weather] {message}")
     if player:
         try:
-            player.write_log(f"IP RAY: {message}")
+            player.write_log(f"IP PRIME: {message}")
         except Exception:
             pass

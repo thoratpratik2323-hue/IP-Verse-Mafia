@@ -237,7 +237,7 @@ def type_clipboard() -> str:
         return f"Failed to type clipboard content: {e}"
 
 def _notes_file() -> Path:
-    d = Path.home() / ".ipray"
+    d = Path.home() / ".ipprime"
     d.mkdir(parents=True, exist_ok=True)
     return d / "notes.txt"
 
@@ -947,7 +947,7 @@ def system_diagnostics() -> str:
     import re
 
     report = []
-    report.append("=== IP RAY HARDWARE & SYSTEM TELEMETRY ===")
+    report.append("=== IP PRIME HARDWARE & SYSTEM TELEMETRY ===")
 
     # 1. OS & Platform Info
     report.append(f"OS: {platform.system()} {platform.release()} ({platform.architecture()[0]})")

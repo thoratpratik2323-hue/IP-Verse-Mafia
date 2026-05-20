@@ -1,5 +1,5 @@
 """
-file_processor.py — IP RAY Universal File Processor
+file_processor.py — IP PRIME Universal File Processor
 
 Supported types:
   image   → describe, ocr, resize, convert, compress, crop

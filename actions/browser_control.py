@@ -439,7 +439,7 @@ class _BrowserSession:
             try:
                 self._context = await engine_obj.launch_persistent_context(profile, **kwargs)
             except Exception as e:
-                print(f"[Browser] Firefox real profile failed ({e}), using IP RAY profile")
+                print(f"[Browser] Firefox real profile failed ({e}), using IP PRIME profile")
                 ip_ray = str(Path.home() / ".ip_ray_profiles" / "firefox_ip_ray")
                 Path(ip_ray).mkdir(parents=True, exist_ok=True)
                 self._context = await engine_obj.launch_persistent_context(ip_ray, **kwargs)
@@ -502,13 +502,13 @@ class _BrowserSession:
 
         ip_ray_profile = str(Path.home() / ".ip_ray_profiles" / self.browser_name)
         Path(ip_ray_profile).mkdir(parents=True, exist_ok=True)
-        print(f"[Browser] Retrying with IP RAY profile: {ip_ray_profile}")
+        print(f"[Browser] Retrying with IP PRIME profile: {ip_ray_profile}")
 
         try:
             self._context = await engine_obj.launch_persistent_context(ip_ray_profile, **kwargs)
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
-            print(f"[Browser] ✅ Launched [{label}] with IP RAY profile")
+            print(f"[Browser] ✅ Launched [{label}] with IP PRIME profile")
         except Exception as e2:
             raise RuntimeError(f"Could not launch {self.browser_name}: {e2}") from e2
 
@@ -700,7 +700,7 @@ class _BrowserSession:
     async def screenshot(self, path: str = None) -> str:
         page = await self._get_page()
         try:
-            save_path = path or str(Path.home() / "Desktop" / "ipray_screenshot.png")
+            save_path = path or str(Path.home() / "Desktop" / "ipprime_screenshot.png")
             await page.screenshot(path=save_path, full_page=False)
             return f"Screenshot saved: {save_path}"
         except Exception as e:

@@ -14,7 +14,7 @@ BASE_DIR        = get_base_dir()
 API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 
 
-PLANNER_PROMPT = """You are the planning module of IP Ray, a personal AI assistant. Your owner is Pratik Thorat.
+PLANNER_PROMPT = """You are the planning module of IP Prime, a personal AI assistant. Your owner is Pratik Thorat.
 Your job: break any user goal into a sequence of steps using ONLY the tools listed below.
 
 ABSOLUTE RULES:
