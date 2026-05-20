@@ -947,8 +947,8 @@ class IPRayLive:
                     self.ui.write_log("SYS: IP PRIME online.")
 
                     async def send_welcome():
-                        await asyncio.sleep(0.5)
-                        self.speak("[SYSTEM_EVENT] Connection established. Greet your owner, Pratik Thorat, with a very cool, brief, and randomized welcome message (1-2 sentences). Keep it fresh, futuristic, and awesome!")
+                        await asyncio.sleep(1) # Give audio time to initialize
+                        self.speak("[SYSTEM_EVENT] System online. Greet your creator, Pratik Thorat, with an exceptionally crazy, high-energy, and completely random welcome message. It must be wildly different every time, full of futuristic vibes, swagger, and absolute awesomeness (1-2 sentences max).")
 
                     tg.create_task(self._send_realtime())
                     tg.create_task(self._listen_audio())
