@@ -822,7 +822,7 @@ class IPRayLive:
                                     self.ui.write_log("SYS: Vocal exit fullscreen trigger detected.")
                                     self.ui.set_fullscreen(False)
 
-                                if "ray" in txt_l or "rey" in txt_l or "re" in txt_l or "hey" in txt_l:
+                                if "prime" in txt_l or "hey" in txt_l:
                                     self.ui.write_log("SYS: Wake word detected. Active for 5 minutes.")
 
                         if sc.turn_complete:

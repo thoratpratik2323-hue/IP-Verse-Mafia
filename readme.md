@@ -9,7 +9,7 @@ A real-time voice AI that can hear, see, understand, and control your computer �
 
 ## ✨ Overview
 
-**IP Prime** (Intelligent Partner Ray) represents the pinnacle of personal AI desktop assistants, bridging the gap between the operating system and human intent. Owned by **Pratik Thorat**, IP Prime features an advanced generative protocol. On every session launch, IP Prime dynamically greets Pratik with custom, futuristic welcome messages. Through natural dialogue, IP Prime analyzes your screen, processes uploaded documents, and executes complex workflows with a brand-new, adaptive interface.
+**IP Prime** (Intelligent Partner Prime) represents the pinnacle of personal AI desktop assistants, bridging the gap between the operating system and human intent. Owned by **Pratik Thorat**, IP Prime features an advanced generative protocol. On every session launch, IP Prime dynamically greets Pratik with custom, futuristic welcome messages. Through natural dialogue, IP Prime analyzes your screen, processes uploaded documents, and executes complex workflows with a brand-new, adaptive interface.
 
 It's not just an assistant — it's an extension of your digital life.
 
@@ -42,8 +42,8 @@ It's not just an assistant — it's an extension of your digital life.
 ## ⚡ Quick Start
 
 ```bash
-git clone https://github.com/thoratpratik2323-hue/ip-ray.git
-cd ip-ray
+git clone https://github.com/thoratpratik2323-hue/ip-prime.git
+cd ip-prime
 python setup.py
 python main.exe.py
 ```

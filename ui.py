@@ -1524,7 +1524,7 @@ class MainWindow(QMainWindow):
         self._title_lbl.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
         self._title_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 2px;")
         mid.addWidget(self._title_lbl)
-        self._sub_lbl = QLabel("Intelligent Partner Ray")
+        self._sub_lbl = QLabel("Intelligent Partner Prime")
         self._sub_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._sub_lbl.setFont(QFont("Segoe UI", 8))
         self._sub_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
