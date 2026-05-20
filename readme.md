@@ -1,8 +1,6 @@
 # 🤖 IP Prime
 ### The Ultimate Cross-Platform Personal AI Assistant — Custom-Built for Pratik Thorat
 
-> 📺 **[Watch the full setup video on YouTube](https://youtu.be/ej1f5OE3SNQ?si=lCxDhJix9ungq1Ry)**
-
 A real-time voice AI that can hear, see, understand, and control your computer — on any OS. Supporting Windows, macOS, and Linux. Local execution. Zero subscriptions. Engineered for total autonomy.
 
 ---
