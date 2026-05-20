@@ -42,8 +42,8 @@ It's not just an assistant — it's an extension of your digital life.
 ## ⚡ Quick Start
 
 ```bash
-git clone https://github.com/FatihMakes/Mark-XXXIX.git
-cd Mark-XXXIX
+git clone https://github.com/thoratpratik2323-hue/ip-ray.git
+cd ip-ray
 python setup.py
 python main.exe.py
 ```
@@ -61,21 +61,4 @@ python main.exe.py
 | **Microphone** | Required for voice interaction |
 | **API Key** | Free Gemini API key |
 
----
 
-## ⚠️ License
-
-Personal and non-commercial use only.
-Licensed under **[Creative Commons BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)**.
-
----
-
-## 👤 Connect with the Creator
-
-Engineered by a developer building a real-world personal AI assistant.
-⭐ **Star the repository to support the journey of IP Ray.**
-
-| Platform | Link |
-|---|---|
-| YouTube | [@FatihMakes](https://www.youtube.com/@FatihMakes) |
-| Instagram | [@fatihmakes](https://www.instagram.com/fatihmakes) |
