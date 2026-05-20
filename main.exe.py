@@ -948,7 +948,7 @@ class IPRayLive:
 
                     async def send_welcome():
                         await asyncio.sleep(1) # Give audio time to initialize
-                        self.speak("[SYSTEM_EVENT] System online. Greet your creator, Pratik Thorat, with an exceptionally crazy, high-energy, and completely random welcome message. It must be wildly different every time, full of futuristic vibes, swagger, and absolute awesomeness (1-2 sentences max).")
+                        self.speak("[SYSTEM_EVENT] System online. Greet your creator, Pratik Thorat, with an exceptionally crazy, high-energy, and completely random welcome message. It must be wildly different every time, full of futuristic vibes, swagger, and absolute awesomeness (1-2 sentences max). You MUST respond purely in Hinglish (Hindi written in English alphabet).")
 
                     tg.create_task(self._send_realtime())
                     tg.create_task(self._listen_audio())
