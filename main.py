@@ -40,6 +40,7 @@ from actions.desktop           import desktop_control
 from actions.browser_control   import browser_control
 from actions.file_controller   import file_controller
 from actions.code_helper       import code_helper
+from actions.web_hud           import web_hud
 from actions.dev_agent         import dev_agent
 from actions.web_search        import web_search as web_search_action
 from actions.design_extractor  import design_extractor as design_extractor_action
@@ -1053,6 +1054,17 @@ TOOL_DECLARATIONS = [
             },
             "required": ["goal"]
         }
+    },
+    {
+        "name": "web_hud",
+        "description": "Launches the dynamic glassmorphic Web HUD dashboard inside the browser to monitor system statistics, check logs, and trigger interactive commands.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Server action: 'start' (default) or 'stop'"},
+                "port": {"type": "INTEGER", "description": "Port number to host the dashboard on (default is 5000)"}
+            }
+        }
     }
 ]
 
@@ -1824,6 +1836,10 @@ class IPRayLive:
                     goal=args.get("goal"),
                     player=self.ui
                 ))
+                result = r or "Done."
+
+            elif name == "web_hud":
+                r = await loop.run_in_executor(None, lambda: web_hud(parameters=args, player=self.ui))
                 result = r or "Done."
 
             elif name == "shutdown_ip_ray":

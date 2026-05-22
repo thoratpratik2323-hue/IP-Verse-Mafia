@@ -69,6 +69,17 @@ def _read_file(file_path: str) -> tuple[str, str]:
 def _save_file(path: Path, content: str) -> str:
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Automatic phantom-ui skeleton injection for generated HTML files
+        if path.suffix.lower() in [".html", ".htm"] and "<head>" in content.lower():
+            if "phantom-ui" not in content.lower():
+                # Injects the skeleton loader module before closing </head>
+                cdn_script = '\n    <!-- Automatic phantom-ui dynamic skeleton loader integration by IP Prime -->\n    <script type="module" src="https://unpkg.com/@aejkatappaja/phantom-ui@latest/dist/phantom-ui/phantom-ui.esm.js"></script>\n'
+                head_pos = content.lower().find("</head>")
+                if head_pos != -1:
+                    content = content[:head_pos] + cdn_script + content[head_pos:]
+                    print("[Code Helper] Automatically injected phantom-ui loader module script into generated HTML file!")
+
         path.write_text(content, encoding="utf-8")
         return f"Saved to: {path}"
     except Exception as e:
