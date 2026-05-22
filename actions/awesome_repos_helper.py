@@ -264,14 +264,40 @@ AWESOME_REPOS = [
             "Hierarchical agent models",
             "Multi-language software engineering"
         ]
+    },
+    {
+        "id": 21,
+        "name": "Nezha Agent-First IDE",
+        "author": "hanshuaikang",
+        "url": "https://github.com/hanshuaikang/nezha",
+        "description": "An Agent-First Tauri desktop IDE designed for vibe coding. It allows parallel execution of agents like Claude Code and Codex, unifying workspace tasks, terminals, session history, native Git, and token usage analytics in a beautiful unified interface.",
+        "features": [
+            "Agent-First parallel execution dashboard",
+            "Tauri desktop IDE architecture (React + TypeScript)",
+            "Native terminal, workspace, and git integration",
+            "Token usage tracking and cost analytics"
+        ]
+    },
+    {
+        "id": 22,
+        "name": "IRIS-AI",
+        "author": "201Harsh",
+        "url": "https://github.com/201Harsh/IRIS-AI",
+        "description": "A local-first, low-latency 'God Mode' AI operating system layer leveraging Google Gemini, Groq, and Hugging Face/Xenova for reasoning, LanceDB for vector memory, Nut.js for desktop clicks, and Puppeteer for browser automation.",
+        "features": [
+            "Local-first 'God Mode' computer automation layer",
+            "Nut.js and Puppeteer visual click controls",
+            "LanceDB local vector RAG memory",
+            "Biometric facial security vault authentication"
+        ]
     }
 ]
 
 def get_awesome_repo_info(query: str = None) -> str:
-    """Retrieves beautifully formatted information or a listing of the 20 Claude/MCP repositories."""
+    """Retrieves beautifully formatted information or a listing of the 22 Claude/MCP repositories."""
     if not query or query.strip().lower() in ("list", "all", "show", "help"):
         res = [
-            "## 🌟 20 Claude & MCP GitHub Repos That Can Completely Change Your Life\n",
+            "## 🌟 22 Claude & MCP GitHub Repos That Can Completely Change Your Life\n",
             "Here is the premium catalog of essential agentic and developer tools from your Instagram guide:\n"
         ]
         for r in AWESOME_REPOS:
@@ -300,13 +326,13 @@ def get_awesome_repo_info(query: str = None) -> str:
                 break
 
     if not matching:
-        return f"I couldn't find a repository in the list of 20 matching '{query}'. Try asking for a specific name like 'Aider AI', 'Cline', or 'Open Interpreter'."
+        return f"I couldn't find a repository in the list of 22 matching '{query}'. Try asking for a specific name like 'Aider AI', 'Cline', 'Nezha Agent-First IDE', 'Open Interpreter', or 'IRIS-AI'."
 
     res = [
         f"### 📦 Repository Info: **{matching['name']}**",
         f"- **GitHub Link**: {matching['url']}",
         f"- **Author**: {matching['author']}",
-        f"- **Index No.**: {matching['id']}/20",
+        f"- **Index No.**: {matching['id']}/22",
         "",
         f"**Description**:\n{matching['description']}",
         "",
@@ -319,7 +345,7 @@ def get_awesome_repo_info(query: str = None) -> str:
     return "\n".join(res)
 
 def clone_awesome_repo(repo_name: str, dest_dir: str = None) -> str:
-    """Clones one of the 20 premium repositories directly to the system workspace for exploration."""
+    """Clones one of the 22 premium repositories directly to the system workspace for exploration."""
     q = repo_name.strip().lower()
     
     matching = None
@@ -337,7 +363,7 @@ def clone_awesome_repo(repo_name: str, dest_dir: str = None) -> str:
                 break
 
     if not matching:
-        return f"Error: Repository '{repo_name}' is not in the recognized list of 20 premium resources."
+        return f"Error: Repository '{repo_name}' is not in the recognized list of 22 premium resources."
 
     # Prepare destination directory path
     base_dir = Path(__file__).resolve().parent.parent
