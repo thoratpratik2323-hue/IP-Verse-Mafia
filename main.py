@@ -54,6 +54,7 @@ from actions.premium_utilities import (
     drag_drop_converter, spotify_ambient_dj, smart_light_control,
     voice_alarm_suite
 )
+from actions.warp_helper import warp_helper
 
 
 
@@ -1065,6 +1066,19 @@ TOOL_DECLARATIONS = [
                 "port": {"type": "INTEGER", "description": "Port number to host the dashboard on (default is 5000)"}
             }
         }
+    },
+    {
+        "name": "warp_helper",
+        "description": "Generates, lists, or views custom, premium Warp Terminal Workflows in YAML format to automate complex command sequences.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Workflow action: 'generate' (default), 'list', or 'view'"},
+                "name": {"type": "STRING", "description": "The name/filename of the target workflow (e.g. 'build_deploy_react')"},
+                "description": {"type": "STRING", "description": "Description of the command pipeline to generate for the 'generate' action"},
+                "project_path": {"type": "STRING", "description": "Optional destination path to save inside the project under '.warp/workflows/'"}
+            }
+        }
     }
 ]
 
@@ -1840,6 +1854,10 @@ class IPRayLive:
 
             elif name == "web_hud":
                 r = await loop.run_in_executor(None, lambda: web_hud(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "warp_helper":
+                r = await loop.run_in_executor(None, lambda: warp_helper(parameters=args, player=self.ui))
                 result = r or "Done."
 
             elif name == "shutdown_ip_ray":
