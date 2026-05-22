@@ -14,7 +14,7 @@ BASE_DIR        = get_base_dir()
 API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 
 
-PLANNER_PROMPT = """You are the planning module of IP Prime, a personal AI assistant. Your owner is Pratik Thorat.
+PLANNER_PROMPT_TEMPLATE = """You are the planning module of IP Prime, a personal AI assistant. Your owner is Pratik Thorat.
 Your job: break any user goal into a sequence of steps using ONLY the tools listed below.
 
 ABSOLUTE RULES:
@@ -26,90 +26,8 @@ ABSOLUTE RULES:
 
 AVAILABLE TOOLS AND THEIR PARAMETERS:
 
-open_app
-  app_name: string (required)
+{AVAILABLE_TOOLS}
 
-web_search
-  query: string (required) — write a clear, focused search query
-  mode: "search" or "compare" (optional, default: search)
-  items: list of strings (optional, for compare mode)
-  aspect: string (optional, for compare mode)
-
-game_updater
-  action: "update" | "install" | "list" | "download_status" | "schedule" (required)
-  platform: "steam" | "epic" | "both" (optional, default: both)
-  game_name: string (optional)
-  app_id: string (optional)
-  shutdown_when_done: boolean (optional)
-
-browser_control
-  action: "go_to" | "search" | "click" | "type" | "scroll" | "get_text" | "press" | "close" (required)
-  url: string (for go_to)
-  query: string (for search)
-  text: string (for click/type)
-  direction: "up" | "down" (for scroll)
-
-file_controller
-  action: "write" | "create_file" | "read" | "list" | "delete" | "move" | "copy" | "find" | "disk_usage" (required)
-  path: string — use "desktop" for Desktop folder
-  name: string — filename
-  content: string — file content (for write/create_file)
-
-computer_settings
-  action: string (required)
-  description: string — natural language description
-  value: string (optional)
-
-computer_control
-  action: "type" | "click" | "hotkey" | "press" | "scroll" | "screenshot" | "screen_find" | "screen_click" (required)
-  text: string (for type)
-  x, y: int (for click)
-  keys: string (for hotkey, e.g. "ctrl+c")
-  key: string (for press)
-  direction: "up" | "down" (for scroll)
-  description: string (for screen_find/screen_click)
-
-screen_process
-  text: string (required) — what to analyze or ask about the screen
-  angle: "screen" | "camera" (optional)
-
-send_message
-  receiver: string (required)
-  message_text: string (required)
-  platform: string (required)
-
-reminder
-  date: string YYYY-MM-DD (required)
-  time: string HH:MM (required)
-  message: string (required)
-
-desktop_control
-  action: "wallpaper" | "organize" | "clean" | "list" | "task" (required)
-  path: string (optional)
-  task: string (optional)
-
-youtube_video
-  action: "play" | "summarize" | "trending" (required)
-  query: string (for play)
-
-weather_report
-  city: string (required)
-
-flight_finder
-  origin: string (required)
-  destination: string (required)
-  date: string (required)
-
-code_helper
-  action: "write" | "edit" | "run" | "explain" (required)
-  description: string (required)
-  language: string (optional)
-  output_path: string (optional)
-  file_path: string (optional)
-
-dev_agent
-  description: string (required)
-  language: string (optional)
 EXAMPLES:
 
 Goal: "research mechanical engineering and save it to a notepad file"
@@ -173,11 +91,16 @@ def _get_api_key() -> str:
 
 def create_plan(goal: str, context: str = "") -> dict:
     import google.generativeai as genai
+    from agent.skills_manager import format_tools_for_prompt
 
     genai.configure(api_key=_get_api_key())
+    
+    tools_str = format_tools_for_prompt()
+    system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
+    
     model = genai.GenerativeModel(
         model_name="gemini-2.5-flash-lite",
-        system_instruction=PLANNER_PROMPT
+        system_instruction=system_instruction
     )
 
     user_input = f"Goal: {goal}"
@@ -196,27 +119,27 @@ def create_plan(goal: str, context: str = "") -> dict:
 
         for step in plan["steps"]:
             if step.get("tool") in ("generated_code",):
-                print(f"[Planner] ⚠️ generated_code detected in step {step.get('step')} — replacing with web_search")
+                print(f"[Planner] [Warning] generated_code detected in step {step.get('step')} — replacing with web_search")
                 desc = step.get("description", goal)
                 step["tool"] = "web_search"
                 step["parameters"] = {"query": desc[:200]}
 
-        print(f"[Planner] ✅ Plan: {len(plan['steps'])} steps")
+        print(f"[Planner] [OK] Plan: {len(plan['steps'])} steps")
         for s in plan["steps"]:
             print(f"  Step {s['step']}: [{s['tool']}] {s['description']}")
 
         return plan
 
     except json.JSONDecodeError as e:
-        print(f"[Planner] ⚠️ JSON parse failed: {e}")
+        print(f"[Planner] [Error] JSON parse failed: {e}")
         return _fallback_plan(goal)
     except Exception as e:
-        print(f"[Planner] ⚠️ Planning failed: {e}")
+        print(f"[Planner] [Error] Planning failed: {e}")
         return _fallback_plan(goal)
 
 
 def _fallback_plan(goal: str) -> dict:
-    print("[Planner] 🔄 Fallback plan")
+    print("[Planner] [Fallback] Fallback plan")
     return {
         "goal": goal,
         "steps": [
@@ -233,11 +156,16 @@ def _fallback_plan(goal: str) -> dict:
 
 def replan(goal: str, completed_steps: list, failed_step: dict, error: str) -> dict:
     import google.generativeai as genai
+    from agent.skills_manager import format_tools_for_prompt
 
     genai.configure(api_key=_get_api_key())
+    
+    tools_str = format_tools_for_prompt()
+    system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
+    
     model = genai.GenerativeModel(
         model_name="gemini-2.5-flash",
-        system_instruction=PLANNER_PROMPT
+        system_instruction=system_instruction
     )
 
     completed_summary = "\n".join(
@@ -265,8 +193,8 @@ Create a REVISED plan for the remaining work only. Do not repeat completed steps
                 step["tool"] = "web_search"
                 step["parameters"] = {"query": step.get("description", goal)[:200]}
 
-        print(f"[Planner] 🔄 Revised plan: {len(plan['steps'])} steps")
+        print(f"[Planner] [Revised] Revised plan: {len(plan['steps'])} steps")
         return plan
     except Exception as e:
-        print(f"[Planner] ⚠️ Replan failed: {e}")
+        print(f"[Planner] [Error] Replan failed: {e}")
         return _fallback_plan(goal)

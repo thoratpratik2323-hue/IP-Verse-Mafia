@@ -43,7 +43,7 @@ It's not just an assistant — it's an extension of your digital life.
 git clone https://github.com/thoratpratik2323-hue/ip-prime.git
 cd ip-prime
 python setup.py
-python main.exe.py
+python main.py
 ```
 
 > ⚠️ **Installation Note:** To keep the repository lightweight, some OS-specific dependencies are not bundled in `requirements.txt`. If you run into a `ModuleNotFoundError`, simply install the missing package via `pip install <module_name>` for your specific system.

@@ -12,10 +12,11 @@ def get_base_dir() -> Path:
 
 
 BASE_DIR         = get_base_dir()
-MEMORY_PATH      = BASE_DIR / "memory" / "long_term.json"
+OLD_MEMORY_PATH  = BASE_DIR / "memory" / "long_term.json"
+LONG_TERM_DIR    = BASE_DIR / "memory" / "long_term"
 _lock            = Lock()
-MAX_VALUE_LENGTH = 380
-MEMORY_MAX_CHARS = 2200
+MAX_VALUE_LENGTH = 1000
+MEMORY_MAX_CHARS = 100000
 
 def _empty_memory() -> dict:
     return {
@@ -28,21 +29,43 @@ def _empty_memory() -> dict:
     }
 
 def load_memory() -> dict:
-    if not MEMORY_PATH.exists():
-        return _empty_memory()
+    LONG_TERM_DIR.mkdir(parents=True, exist_ok=True)
+    memory = _empty_memory()
+    
+    # Check if we need to migrate from the old long_term.json
+    if OLD_MEMORY_PATH.exists() and not any(LONG_TERM_DIR.glob("*.json")):
+        with _lock:
+            try:
+                print("[Memory] [Migrating] Migrating old long_term.json to hierarchical structure...")
+                data = json.loads(OLD_MEMORY_PATH.read_text(encoding="utf-8"))
+                if isinstance(data, dict):
+                    for key in memory:
+                        if key in data and isinstance(data[key], dict):
+                            memory[key] = data[key]
+                    # Write to new hierarchical files immediately
+                    for key, val in memory.items():
+                        file_path = LONG_TERM_DIR / f"{key}.json"
+                        file_path.write_text(json.dumps(val, indent=2, ensure_ascii=False), encoding="utf-8")
+                    # Backup old memory path by renaming it
+                    backup_path = OLD_MEMORY_PATH.with_suffix(".json.bak")
+                    OLD_MEMORY_PATH.rename(backup_path)
+                    print(f"[Memory] [OK] Migration complete. Old file backed up to {backup_path.name}")
+                    return memory
+            except Exception as e:
+                print(f"[Memory] [Error] Migration failed: {e}")
+                
+    # Normal load: read each file in memory/long_term/
     with _lock:
-        try:
-            data = json.loads(MEMORY_PATH.read_text(encoding="utf-8"))
-            if isinstance(data, dict):
-                base = _empty_memory()
-                for key in base:
-                    if key not in data:
-                        data[key] = {}
-                return data
-            return _empty_memory()
-        except Exception as e:
-            print(f"[Memory] ⚠️ Load error: {e}")
-            return _empty_memory()
+        for key in memory:
+            file_path = LONG_TERM_DIR / f"{key}.json"
+            if file_path.exists():
+                try:
+                    data = json.loads(file_path.read_text(encoding="utf-8"))
+                    if isinstance(data, dict):
+                        memory[key] = data
+                except Exception as e:
+                    print(f"[Memory] [Error] Error loading {key}.json: {e}")
+    return memory
 
 def _all_entries(memory: dict) -> list[tuple]:
     entries = []
@@ -54,7 +77,6 @@ def _all_entries(memory: dict) -> list[tuple]:
                 entries.append((cat, key, entry))
     return entries
 
-
 def _trim_to_limit(memory: dict) -> dict:
     if len(json.dumps(memory, ensure_ascii=False)) <= MEMORY_MAX_CHARS:
         return memory
@@ -64,26 +86,30 @@ def _trim_to_limit(memory: dict) -> dict:
         if len(json.dumps(memory, ensure_ascii=False)) <= MEMORY_MAX_CHARS:
             break
         del memory[cat][key]
-        print(f"[Memory] 🗑️  Trimmed {cat}/{key}")
+        print(f"[Memory] [Trimmed] Trimmed {cat}/{key}")
     return memory
 
 def save_memory(memory: dict) -> None:
     if not isinstance(memory, dict):
         return
     memory = _trim_to_limit(memory)
-    MEMORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    LONG_TERM_DIR.mkdir(parents=True, exist_ok=True)
     with _lock:
-        MEMORY_PATH.write_text(
-            json.dumps(memory, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
-
+        try:
+            for key, val in memory.items():
+                if key in _empty_memory():
+                    file_path = LONG_TERM_DIR / f"{key}.json"
+                    file_path.write_text(
+                        json.dumps(val, indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+        except Exception as e:
+            print(f"[Memory] [Error] Error saving memory: {e}")
 
 def _truncate_value(val: str) -> str:
     if isinstance(val, str) and len(val) > MAX_VALUE_LENGTH:
         return val[:MAX_VALUE_LENGTH].rstrip() + "…"
     return val
-
 
 def _recursive_update(target: dict, updates: dict) -> bool:
     changed = False
@@ -107,14 +133,13 @@ def _recursive_update(target: dict, updates: dict) -> bool:
                 changed = True
     return changed
 
-
 def update_memory(memory_update: dict) -> dict:
     if not isinstance(memory_update, dict) or not memory_update:
         return load_memory()
     memory = load_memory()
     if _recursive_update(memory, memory_update):
         save_memory(memory)
-        print(f"[Memory] 💾 Saved: {list(memory_update.keys())}")
+        print(f"[Memory] [Saved] Saved: {list(memory_update.keys())}")
     return memory
 
 def format_memory_for_prompt(memory: dict | None) -> str:
@@ -142,7 +167,7 @@ def format_memory_for_prompt(memory: dict | None) -> str:
     if prefs:
         lines.append("")
         lines.append("Preferences:")
-        for key, entry in list(prefs.items())[:15]:
+        for key, entry in list(prefs.items())[:50]:
             val = entry.get("value") if isinstance(entry, dict) else entry
             if val:
                 lines.append(f"  - {key.replace('_', ' ').title()}: {val}")
@@ -151,7 +176,7 @@ def format_memory_for_prompt(memory: dict | None) -> str:
     if projects:
         lines.append("")
         lines.append("Active Projects / Goals:")
-        for key, entry in list(projects.items())[:8]:
+        for key, entry in list(projects.items())[:30]:
             val = entry.get("value") if isinstance(entry, dict) else entry
             if val:
                 lines.append(f"  - {key.replace('_', ' ').title()}: {val}")
@@ -160,7 +185,7 @@ def format_memory_for_prompt(memory: dict | None) -> str:
     if rels:
         lines.append("")
         lines.append("People in their life:")
-        for key, entry in list(rels.items())[:10]:
+        for key, entry in list(rels.items())[:30]:
             val = entry.get("value") if isinstance(entry, dict) else entry
             if val:
                 lines.append(f"  - {key.replace('_', ' ').title()}: {val}")
@@ -169,7 +194,7 @@ def format_memory_for_prompt(memory: dict | None) -> str:
     if wishes:
         lines.append("")
         lines.append("Wishes / Plans / Wants:")
-        for key, entry in list(wishes.items())[:8]:
+        for key, entry in list(wishes.items())[:30]:
             val = entry.get("value") if isinstance(entry, dict) else entry
             if val:
                 lines.append(f"  - {key.replace('_', ' ').title()}: {val}")
@@ -178,7 +203,7 @@ def format_memory_for_prompt(memory: dict | None) -> str:
     if notes:
         lines.append("")
         lines.append("Other notes:")
-        for key, entry in list(notes.items())[:8]:
+        for key, entry in list(notes.items())[:30]:
             val = entry.get("value") if isinstance(entry, dict) else entry
             if val:
                 lines.append(f"  - {key}: {val}")
@@ -188,8 +213,8 @@ def format_memory_for_prompt(memory: dict | None) -> str:
 
     header = "[WHAT YOU KNOW ABOUT THIS PERSON — use naturally, never recite like a list]\n"
     result = header + "\n".join(lines)
-    if len(result) > 2000:
-        result = result[:1997] + "…"
+    if len(result) > 90000:
+        result = result[:89997] + "…"
 
     return result + "\n"
 

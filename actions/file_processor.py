@@ -31,12 +31,214 @@ import google.generativeai as genai
 def _get_api_key() -> str:
     config_path = Path(__file__).resolve().parent.parent / "config" / "api_keys.json"
     with open(config_path, "r", encoding="utf-8") as f:
-        return json.load(f)["gemini_api_key"]
+        config = json.load(f)
+        return config.get("coding_api_key") or config["gemini_api_key"]
 
 
 def _gemini_client():
     genai.configure(api_key=_get_api_key())
     return genai.GenerativeModel("gemini-2.5-flash")
+
+
+def _gemini_lite_client():
+    genai.configure(api_key=_get_api_key())
+    return genai.GenerativeModel("gemini-2.5-flash-lite")
+
+INDEX_FILE_PATH = Path(__file__).resolve().parent.parent / "memory" / "resources_index.json"
+
+def _load_resources_index() -> dict:
+    if INDEX_FILE_PATH.exists():
+        try:
+            return json.loads(INDEX_FILE_PATH.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"[FileProcessor] [Error] Failed to load resources_index.json: {e}")
+    return {}
+
+def _save_resources_index(index_data: dict):
+    try:
+        INDEX_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        INDEX_FILE_PATH.write_text(json.dumps(index_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        print(f"[FileProcessor] [Error] Failed to save resources_index.json: {e}")
+
+def _index_file(path: Path, speak=None) -> str:
+    try:
+        file_type = _detect_type(path)
+        text = ""
+        if file_type == "text":
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        elif file_type == "code":
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        elif file_type == "pdf":
+            try:
+                import pdfplumber
+                with pdfplumber.open(path) as pdf:
+                    text = "\n".join((page.extract_text() or "") for page in pdf.pages)
+            except Exception:
+                try:
+                    import PyPDF2
+                    with open(path, "rb") as f:
+                        reader = PyPDF2.PdfReader(f)
+                        text = "\n".join(page.extract_text() for page in reader.pages)
+                except Exception:
+                    pass
+        elif file_type == "docx":
+            try:
+                from docx import Document
+                doc = Document(path)
+                text = "\n".join(p.text for p in doc.paragraphs)
+            except Exception:
+                pass
+        elif file_type in ("csv", "excel"):
+            try:
+                import pandas as pd
+                if file_type == "csv":
+                    df = pd.read_csv(path, encoding="utf-8", errors="replace")
+                else:
+                    df = pd.read_excel(path)
+                text = df.head(100).to_string()
+            except Exception:
+                pass
+        elif file_type == "json":
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        else:
+            return f"Unsupported file type '{file_type}' for local indexing."
+
+        if not text.strip():
+            return "File has no extractable text content to index."
+
+        chunk_size = 4000
+        overlap = 500
+        chunks = []
+        
+        i = 0
+        while i < len(text):
+            chunk_text = text[i:i + chunk_size]
+            chunks.append(chunk_text)
+            if i + chunk_size >= len(text):
+                break
+            i += chunk_size - overlap
+
+        print(f"[FileProcessor] Indexing '{path.name}' into {len(chunks)} chunks...")
+        if speak:
+            speak(f"Indexing {path.name} into {len(chunks)} chunks, sir.")
+
+        model = _gemini_lite_client()
+        
+        overall_summary = ""
+        try:
+            summary_resp = model.generate_content(
+                f"Give a concise 2-sentence summary of the following file content from '{path.name}':\n\n{text[:10000]}"
+            )
+            overall_summary = summary_resp.text.strip()
+        except Exception as e:
+            overall_summary = f"Summary generation failed: {e}"
+
+        indexed_chunks = []
+        for idx, chunk in enumerate(chunks, 1):
+            chunk_summary = ""
+            keywords = []
+            try:
+                prompt = (
+                    f"Analyze this text chunk {idx} of {len(chunks)} from file '{path.name}'.\n"
+                    "Output a single line containing a brief 1-sentence summary, followed by a line containing comma-separated keywords.\n"
+                    "Example:\n"
+                    "Summary of section.\n"
+                    "keyword1, keyword2, keyword3\n\n"
+                    f"Text Chunk:\n{chunk[:1500]}"
+                )
+                resp = model.generate_content(prompt)
+                resp_text = resp.text.strip().split("\n")
+                if len(resp_text) >= 1:
+                    chunk_summary = resp_text[0].strip()
+                if len(resp_text) >= 2:
+                    keywords = [k.strip().lower() for k in resp_text[1].split(",") if k.strip()]
+            except Exception as e:
+                chunk_summary = f"Chunk summary failed: {e}"
+            
+            indexed_chunks.append({
+                "chunk_id": idx,
+                "text": chunk,
+                "summary": chunk_summary,
+                "keywords": keywords
+            })
+
+        index_data = _load_resources_index()
+        index_data[str(path.resolve())] = {
+            "file_name": path.name,
+            "file_path": str(path.resolve()),
+            "file_size": _file_size_str(path),
+            "updated": datetime.now().strftime("%Y-%m-%d"),
+            "overall_summary": overall_summary,
+            "chunks": indexed_chunks
+        }
+        _save_resources_index(index_data)
+
+        msg = f"Successfully indexed '{path.name}' locally with {len(chunks)} chunks, sir."
+        if speak:
+            speak(msg)
+        return f"Success: File '{path.name}' indexed. Summary: {overall_summary}"
+    except Exception as e:
+        return f"Error: Indexing failed: {e}"
+
+def _search_file_index(path: Path, query: str, speak=None) -> str:
+    index_data = _load_resources_index()
+    file_key = str(path.resolve())
+    
+    if file_key not in index_data:
+        print(f"[FileProcessor] File '{path.name}' not in index. Indexing first...")
+        index_res = _index_file(path, speak=speak)
+        if index_res.startswith("Error:"):
+            return index_res
+        index_data = _load_resources_index()
+
+    file_info = index_data.get(file_key)
+    if not file_info:
+        return f"Error: Failed to retrieve index for '{path.name}'."
+
+    chunks = file_info.get("chunks", [])
+    if not chunks:
+        return "No text chunks found in file index."
+
+    print(f"[FileProcessor] Searching index of '{path.name}' for query: '{query}'...")
+
+    query_terms = set(re.findall(r"\w+", query.lower()))
+    scored_chunks = []
+    
+    for c in chunks:
+        score = 0
+        chunk_text_lower = c["text"].lower()
+        chunk_sum_lower = c["summary"].lower()
+        chunk_kws = set(c.get("keywords", []))
+        
+        for term in query_terms:
+            if term in chunk_text_lower:
+                score += 1
+            if term in chunk_sum_lower:
+                score += 2
+            if term in chunk_kws:
+                score += 3
+        
+        scored_chunks.append((score, c))
+    
+    scored_chunks.sort(key=lambda x: x[0], reverse=True)
+    
+    top_candidates = [c for score, c in scored_chunks[:3] if score > 0]
+    if not top_candidates:
+        top_candidates = [c for score, c in scored_chunks[:2]]
+
+    result_parts = []
+    result_parts.append(f"Search Results in File: {path.name}")
+    result_parts.append(f"Overall File Summary: {file_info.get('overall_summary')}\n")
+    
+    for idx, c in enumerate(top_candidates, 1):
+        result_parts.append(f"--- Relevant Chunk {idx} (Chunk ID: {c['chunk_id']}) ---")
+        result_parts.append(f"Chunk Summary: {c['summary']}")
+        result_parts.append(f"Snippet:\n{c['text'][:1500]}")
+        result_parts.append("")
+
+    return "\n".join(result_parts)
+
 
 
 def _detect_type(path: Path) -> str:
@@ -773,6 +975,120 @@ def _process_pptx(path: Path, action: str, params: dict, speak=None) -> str:
 
     return f"Unknown PPTX action: '{action}'. Try: summarize, extract_text, analyze"
 
+
+def _process_parse_document(path: Path, file_type: str, speak=None) -> str:
+    if speak:
+        speak(f"Starting advanced document parsing on {path.name}, sir. Converting to formatted markdown.", wait=False)
+    
+    # Define prompt
+    PARSER_PROMPT = """You are an advanced document parser (similar to MinerU). 
+Your task is to convert the provided document/image into a clean, highly structured Markdown file (.md).
+
+Follow these rules perfectly:
+1. Extract all text, headers, and structural elements precisely.
+2. Render all mathematical equations, math symbols, and formulas using LaTeX syntax:
+   - Inline equations must be enclosed in single dollar signs: $equation$
+   - Block equations must be enclosed in double dollar signs: $$equation$$
+3. Convert all tables into clean GitHub Flavored Markdown (GFM) tables.
+4. Keep the output clean, structured, and completely free of conversational preambles, explanations, or extra commentary. Return only the Markdown text.
+5. If there are multiple pages or slides, use '<!-- page -->' or '<!-- slide -->' to demarcate boundaries where applicable.
+"""
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    uploaded_file = None
+    
+    try:
+        if file_type == "image":
+            # For images, we can open with PIL
+            from PIL import Image
+            img = Image.open(path)
+            response = model.generate_content([PARSER_PROMPT, img])
+            parsed_text = response.text.strip()
+        else:
+            # For PDF, DOCX, PPTX - try upload
+            try:
+                print(f"[FileProcessor] Uploading {path.name} to Gemini API for parsing...")
+                uploaded_file = genai.upload_file(path=str(path))
+                print(f"[FileProcessor] Upload complete. Waiting for parsing processing...")
+                response = model.generate_content([PARSER_PROMPT, uploaded_file])
+                parsed_text = response.text.strip()
+            except Exception as upload_err:
+                print(f"[FileProcessor] API Upload failed ({upload_err}). Falling back to text extraction...")
+                # Fallback based on file type
+                if file_type == "pdf":
+                    # Try to extract text
+                    text = ""
+                    try:
+                        import pdfplumber
+                        with pdfplumber.open(path) as pdf:
+                            text = "\n".join((page.extract_text() or "") for page in pdf.pages)
+                    except Exception:
+                        try:
+                            import PyPDF2
+                            with open(path, "rb") as f:
+                                reader = PyPDF2.PdfReader(f)
+                                text = "\n".join(page.extract_text() for page in reader.pages)
+                        except Exception:
+                            pass
+                    if not text.strip():
+                        return "Failed to parse PDF: Upload failed and text extraction could not retrieve any content."
+                    response = model.generate_content([PARSER_PROMPT, f"Document Name: {path.name}\n\nContent:\n{text}"])
+                    parsed_text = response.text.strip()
+                elif file_type == "docx":
+                    text = ""
+                    try:
+                        from docx import Document
+                        doc = Document(path)
+                        text = "\n".join(p.text for p in doc.paragraphs)
+                    except Exception:
+                        pass
+                    if not text.strip():
+                        return "Failed to parse Word Document: Upload failed and text extraction could not retrieve any content."
+                    response = model.generate_content([PARSER_PROMPT, f"Document Name: {path.name}\n\nContent:\n{text}"])
+                    parsed_text = response.text.strip()
+                elif file_type == "pptx":
+                    text = []
+                    try:
+                        from pptx import Presentation
+                        prs = Presentation(path)
+                        for i, slide in enumerate(prs.slides, 1):
+                            slide_text = f"\n--- Slide {i} ---\n"
+                            for shape in slide.shapes:
+                                if hasattr(shape, "text") and shape.text.strip():
+                                    slide_text += shape.text.strip() + "\n"
+                            text.append(slide_text)
+                    except Exception:
+                        pass
+                    full_text = "\n".join(text)
+                    if not full_text.strip():
+                        return "Failed to parse PowerPoint: Upload failed and text extraction could not retrieve any content."
+                    response = model.generate_content([PARSER_PROMPT, f"Document Name: {path.name}\n\nContent:\n{full_text}"])
+                    parsed_text = response.text.strip()
+                else:
+                    return f"Unsupported file parsing type: {file_type}"
+    except Exception as e:
+        return f"Parsing failed: {e}"
+    finally:
+        # Clean up uploaded file
+        if uploaded_file:
+            try:
+                uploaded_file.delete()
+                print("[FileProcessor] Cleaned up uploaded file from Gemini API.")
+            except Exception:
+                pass
+
+    # Save output file as *_parsed.md
+    out_path = path.parent / f"{path.stem}_parsed.md"
+    try:
+        out_path.write_text(parsed_text, encoding="utf-8")
+        msg = f"Successfully parsed {path.name}! Advanced markdown structure with mathematical formulas and tables saved to: {out_path.name}"
+        if speak:
+            speak(f"Successfully parsed the document, sir! The result is saved as {out_path.name}")
+        return f"{msg}\n\nPreview (First 600 characters):\n{parsed_text[:600]}..."
+    except Exception as save_err:
+        return f"Document parsed successfully but failed to save file: {save_err}"
+
+
 def file_processor(parameters: dict, player=None, speak=None) -> str:
     file_path_str = parameters.get("file_path", "").strip()
     if not file_path_str:
@@ -793,6 +1109,19 @@ def file_processor(parameters: dict, player=None, speak=None) -> str:
     print(log_msg)
     if player:
         player.write_log(log_msg)
+
+    # MinerU-inspired advanced parsing
+    if action in ("parse_document", "mineru_parse"):
+        return _process_parse_document(path, file_type, speak=speak)
+
+    # Smart local indexing & search actions
+    if action == "index":
+        return _index_file(path, speak=speak)
+    elif action == "search_index":
+        query = parameters.get("query", parameters.get("instruction", ""))
+        if not query:
+            return "Error: A search query is required in parameters (e.g. 'query' or 'instruction')."
+        return _search_file_index(path, query, speak=speak)
 
     if file_type == "unknown":
         try:

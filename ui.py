@@ -15,7 +15,7 @@ from pathlib import Path
 import psutil
 
 from PyQt6.QtCore import (
-    QEasingCurve, QMimeData, QObject, QPointF, QRectF, QSize, Qt,
+    QEasingCurve, QMimeData, QObject, QPointF, QPropertyAnimation, QRectF, QSize, Qt,
     QTimer, QUrl, pyqtSignal,
 )
 from PyQt6.QtGui import (
@@ -26,7 +26,7 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy, QTextEdit,
-    QVBoxLayout, QWidget, QProgressBar, QSlider,
+    QVBoxLayout, QWidget, QProgressBar, QSlider, QCheckBox, QComboBox,
 )
 
 
@@ -375,29 +375,27 @@ class HudCanvas(QWidget):
             self._blob_angles[i] = (self._blob_angles[i] + rot_speeds[i]) % 360
             self._blob_phases[i] = (self._blob_phases[i] + (0.06 if self.speaking else 0.024)) % (2 * math.pi)
 
-        # Ambient background particles drifting
-        W, H = self.width(), self.height()
+        # Ambient background particles drifting in virtual 800x800 space
         for p in self._ambient_particles:
-            p[1] -= p[3] # Upward motion
+            p[1] -= p[3] * 3.5 # Scale speed inside 800x800 space
             if p[1] < 0:
-                p[1] = H if H > 0 else 600
-                p[0] = random.uniform(0, W if W > 0 else 800)
+                p[1] = 800.0
+                p[0] = random.uniform(0, 800.0)
 
         # Orbit swirling particles (THINKING state)
         if self.state in ("THINKING", "PROCESSING"):
             for op in self._orbit_particles:
                 op[0] = (op[0] + op[1]) % 360
 
-        # Speak explosion particles
+        # Speak explosion particles in virtual 800x800 space
         if self.speaking and random.random() < 0.22:
-            cx, cy = self.width() / 2, self.height() / 2
+            vcx, vcy = 400.0, 400.0
             ang = random.uniform(0, 2 * math.pi)
-            fw  = min(self.width(), self.height())
-            r_s = fw * 0.16
+            vr_s = 800.0 * 0.16
             self._particles.append([
-                cx + math.cos(ang) * r_s, cy + math.sin(ang) * r_s,
-                math.cos(ang) * random.uniform(1.2, 3.2),
-                math.sin(ang) * random.uniform(1.2, 3.2) - 0.2, 1.0
+                vcx + math.cos(ang) * vr_s, vcy + math.sin(ang) * vr_s,
+                math.cos(ang) * random.uniform(4.5, 12.0),
+                math.sin(ang) * random.uniform(4.5, 12.0) - 0.8, 1.0
             ])
             
         self._particles = [
@@ -446,18 +444,59 @@ class HudCanvas(QWidget):
         bg_grad.setColorAt(1.0, qcol("#010206", 0))
         
         if self.compact_mode:
-            p.setBrush(QBrush(bg_grad))
+            # Draw premium glassmorphic frosted background
             p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QRectF(cx - fw/2, cy - fw/2, fw, fw))
+            glass_grad = QRadialGradient(cx, cy, fw * 0.5)
+            glass_grad.setColorAt(0.0, qcol("#1e293b", 160)) # frosted glass light-slate-800
+            glass_grad.setColorAt(0.8, qcol("#0f172a", 200)) # darker slate-900 edge
+            glass_grad.setColorAt(1.0, qcol("#020617", 220))
+            p.setBrush(QBrush(glass_grad))
+            p.drawEllipse(QRectF(cx - fw/2 + 2, cy - fw/2 + 2, fw - 4, fw - 4))
+
+            # Specular glossy highlight overlay on top hemisphere
+            highlight_path = QPainterPath()
+            highlight_path.addEllipse(QRectF(cx - fw * 0.38, cy - fw * 0.44, fw * 0.76, fw * 0.42))
+            highlight_grad = QLinearGradient(cx, cy - fw * 0.44, cx, cy)
+            highlight_grad.setColorAt(0.0, qcol(C.WHITE, 90))
+            highlight_grad.setColorAt(1.0, qcol(C.WHITE, 0))
+            p.save()
+            clip_path = QPainterPath()
+            clip_path.addEllipse(QRectF(cx - fw/2 + 3, cy - fw/2 + 3, fw - 6, fw - 6))
+            p.setClipPath(clip_path)
+            p.setBrush(QBrush(highlight_grad))
+            p.drawPath(highlight_path)
+            p.restore()
+
+            # Dynamic neon state glow border
+            if self.muted:
+                glow_color = C.MUTED_C
+            elif self.speaking:
+                glow_color = C.ACC
+            elif self.state in ("THINKING", "PROCESSING"):
+                glow_color = C.CYAN
+            else: # LISTENING
+                glow_color = C.GREEN if hasattr(C, "GREEN") else "#10b981"
+            
+            glow_pen = QPen(qcol(glow_color, 210), 3.0)
+            p.setPen(glow_pen)
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawEllipse(QRectF(cx - fw/2 + 3, cy - fw/2 + 3, fw - 6, fw - 6))
+            
+            # Thin specular inner ring
+            p.setPen(QPen(qcol(C.WHITE, 55), 1.0))
+            p.drawEllipse(QRectF(cx - fw/2 + 5, cy - fw/2 + 5, fw - 10, fw - 10))
         else:
             p.fillRect(self.rect(), QBrush(bg_grad))
 
-        # 2. Ambient starfield particles
+        # 2. Ambient starfield particles (Projected from virtual 800x800)
         p.setPen(Qt.PenStyle.NoPen)
         for pt in self._ambient_particles:
             col = qcol(C.CYAN if self.state in ("THINKING", "PROCESSING") else C.PRI, int(pt[4] * 255))
             p.setBrush(QBrush(col))
-            p.drawEllipse(QPointF(pt[0], pt[1]), pt[2], pt[2])
+            proj_x = pt[0] * W / 800.0 if W > 0 else pt[0]
+            proj_y = pt[1] * H / 800.0 if H > 0 else pt[1]
+            sz = pt[2] * fw / 600.0 if fw < 400 else pt[2]
+            p.drawEllipse(QPointF(proj_x, proj_y), sz, sz)
 
         # 3. Soft background glowing aura behind the core
         aura_rad = fw * 0.44 * self._scale
@@ -511,23 +550,61 @@ class HudCanvas(QWidget):
             p.setPen(Qt.PenStyle.NoPen)
             p.drawPath(path)
 
-        # 5. Celestial orbiting particles (THINKING / PROCESSING)
+        # 5. Holographic orbital particle rings (Feature 1 - Reactive Holographic Visualizer)
+        p.save()
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setPen(Qt.PenStyle.NoPen)
+        
+        react_scale = 1.0
+        if self.speaking:
+            react_scale = 1.0 + 0.3 * self._voice_level
+        elif self.state in ("THINKING", "PROCESSING"):
+            react_scale = 1.0 + 0.15 * math.sin(self._tick * 0.1)
+        elif self.state == "LISTENING":
+            react_scale = 1.0 + 0.08 * math.sin(self._tick * 0.05)
+
+        for ring_idx in range(2):
+            ring_r = base_r * (1.2 + 0.25 * ring_idx) * react_scale
+            p.setPen(QPen(qcol(C.CYAN if self.state in ("THINKING", "PROCESSING") else C.PRI, 35), 1.0, Qt.PenStyle.DashLine))
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawEllipse(QRectF(cx - ring_r, cy - ring_r, ring_r * 2, ring_r * 2))
+            
+            p.setPen(Qt.PenStyle.NoPen)
+            num_dots = 12 + ring_idx * 6
+            for dot_idx in range(num_dots):
+                angle = (self._tick * (0.4 - ring_idx * 0.15) + dot_idx * (360 / num_dots)) % 360
+                ang_rad = math.radians(angle)
+                
+                ripple = 4.0 * math.sin(self._tick * 0.1 + dot_idx) if (self.speaking or self.state in ("THINKING", "PROCESSING")) else 0.0
+                rad_dist = ring_r + ripple
+                dot_x = cx + rad_dist * math.cos(ang_rad)
+                dot_y = cy + rad_dist * math.sin(ang_rad)
+                
+                opacity = int(180 * (0.3 + 0.7 * (0.5 + 0.5 * math.sin(ang_rad + self._tick * 0.02))))
+                p.setBrush(QBrush(qcol(C.CYAN if self.state in ("THINKING", "PROCESSING") else C.PRI, opacity)))
+                
+                dot_sz = (1.5 + ring_idx * 0.5) * react_scale
+                p.drawEllipse(QPointF(dot_x, dot_y), dot_sz, dot_sz)
+        p.restore()
+
+        # 5. Celestial orbiting particles (THINKING / PROCESSING - Projected and Scaled)
         if self.state in ("THINKING", "PROCESSING"):
-            orbit_r = base_r + 28
+            orbit_r = base_r + fw * 0.035
             p.setPen(Qt.PenStyle.NoPen)
             for op in self._orbit_particles:
                 ang_rad = math.radians(op[0])
-                rad_dist = orbit_r + op[2]
+                rad_dist = orbit_r + op[2] * fw / 800.0
                 op_x = cx + rad_dist * math.cos(ang_rad)
                 op_y = cy + rad_dist * math.sin(ang_rad)
                 
                 # Glowing trail effect
                 opacity = int(180 * (0.4 + 0.6 * math.sin(ang_rad)))
                 p.setBrush(QBrush(qcol(C.CYAN, opacity)))
-                p.drawEllipse(QPointF(op_x, op_y), op[3], op[3])
+                scaled_size = max(1.0, op[3] * fw / 300.0)
+                p.drawEllipse(QPointF(op_x, op_y), scaled_size, scaled_size)
 
-        # 6. Rounded avatar face projection
-        if self._face_px:
+        # 6. Rounded avatar face projection (Disabled by user request)
+        if False and self._face_px:
             fsz = int(base_r * 1.55)
             scaled = self._face_px.scaled(
                 fsz, fsz,
@@ -547,12 +624,15 @@ class HudCanvas(QWidget):
             p.setBrush(Qt.BrushStyle.NoBrush)
             p.drawEllipse(QRectF(cx - fsz/2, cy - fsz/2, fsz, fsz))
 
-        # 7. Explosive sound particles
+        # 7. Explosive sound particles (Projected from virtual 800x800)
         for pt in self._particles:
             a = max(0, min(255, int(pt[4] * 230)))
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QBrush(qcol(C.CYAN if random.random() > 0.5 else C.PRI, a)))
-            p.drawEllipse(QPointF(pt[0], pt[1]), 2.2, 2.2)
+            proj_x = pt[0] * W / 800.0 if W > 0 else pt[0]
+            proj_y = pt[1] * H / 800.0 if H > 0 else pt[1]
+            sz = 2.2 * fw / 600.0 if fw < 400 else 2.2
+            p.drawEllipse(QPointF(proj_x, proj_y), sz, sz)
 
         # 8. Translucent State Pill Badge
         if not self.compact_mode:
@@ -655,6 +735,36 @@ class HudCanvas(QWidget):
             event.accept()
         else:
             super().mouseDoubleClickEvent(event)
+
+    def contextMenuEvent(self, event):
+        if self.compact_mode:
+            from PyQt6.QtWidgets import QMenu
+            menu = QMenu(self)
+            menu.setStyleSheet("""
+                QMenu {
+                    background-color: #0f172a;
+                    color: #e2e8f0;
+                    border: 1px solid #1e293b;
+                    border-radius: 6px;
+                }
+                QMenu::item {
+                    padding: 8px 16px;
+                }
+                QMenu::item:selected {
+                    background-color: #1e293b;
+                    color: #38bdf8;
+                }
+            """)
+            restore_action = menu.addAction("Restore Main GUI")
+            exit_action = menu.addAction("Exit IP Prime")
+            action = menu.exec(self.mapToGlobal(event.pos()))
+            if action == restore_action:
+                self.window().toggle_compact_mode()
+            elif action == exit_action:
+                self.window().close()
+            event.accept()
+        else:
+            super().contextMenuEvent(event)
 
 class MetricBar(QWidget):
 
@@ -923,11 +1033,18 @@ class LogWidget(QScrollArea):
                 background: {C.BG};
                 width: 8px;
                 border: none;
+                margin: 0px;
             }}
             QScrollBar::handle:vertical {{
                 background: {C.BORDER_B};
                 border-radius: 4px;
                 min-height: 20px;
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                height: 0px;
+            }}
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
             }}
         """)
         
@@ -1336,15 +1453,22 @@ class SetupOverlay(QWidget):
 
 
 class MainWindow(QMainWindow):
-    _log_sig   = pyqtSignal(str)
-    _state_sig = pyqtSignal(str)
+    _log_sig        = pyqtSignal(str)
+    _state_sig      = pyqtSignal(str)
     _fullscreen_sig = pyqtSignal(bool)
+    _thought_sig    = pyqtSignal(str)
 
     def __init__(self, face_path: str):
         super().__init__()
         self.setWindowTitle("IP Prime")
         self.setMinimumSize(_MIN_W, _MIN_H)
         self.resize(_DEFAULT_W, _DEFAULT_H)
+        self._start_time = time.time()
+        
+        self._f11_shortcut = QShortcut(QKeySequence("F11"), self)
+        self._f11_shortcut.activated.connect(lambda: self._set_fullscreen_slot(not self.isFullScreen()))
+        self._f12_shortcut = QShortcut(QKeySequence("F12"), self)
+        self._f12_shortcut.activated.connect(lambda: self._set_fullscreen_slot(not self.isFullScreen()))
 
         screen = QApplication.primaryScreen().availableGeometry()
         self.move(
@@ -1369,31 +1493,93 @@ class MainWindow(QMainWindow):
         body.setContentsMargins(0, 0, 0, 0)
         body.setSpacing(10)
 
+        self._settings_panel = self._build_settings_panel()
+        self._settings_panel.setMaximumWidth(0)
+        self._settings_panel.setMinimumWidth(0)
+        self._settings_panel_visible = False
+        body.addWidget(self._settings_panel, stretch=0)
+
         self._left_panel = self._build_left_panel()
         body.addWidget(self._left_panel, stretch=0)
         self._left_panel.hide()  # Permanently hide left panel containing SYS MONITOR and HUD CONFIG as requested
 
         self.hud = HudCanvas(face_path)
         self.hud.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
-        # Wrapped HUD inside a beautiful rounded obsidian card
+
+        # ── Wrapped HUD inside a beautiful rounded obsidian card ──────────────
         self._hud_container = QWidget()
-        self._hud_container.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
+        self._hud_container.setStyleSheet(
+            f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;"
+        )
         hud_lay = QVBoxLayout(self._hud_container)
         hud_lay.setContentsMargins(2, 2, 2, 2)
+        hud_lay.setSpacing(0)
         hud_lay.addWidget(self.hud)
+
+        # ── NLA Thought Stream Panel ──────────────────────────────────────────
+        self._thought_panel = QWidget()
+        self._thought_panel.setFixedHeight(44)
+        self._thought_panel.setStyleSheet(
+            "background: rgba(5, 10, 20, 0.88);"
+            "border-top: 1px solid rgba(6, 182, 212, 0.25);"
+            "border-bottom-left-radius: 11px;"
+            "border-bottom-right-radius: 11px;"
+        )
+        _tp_lay = QHBoxLayout(self._thought_panel)
+        _tp_lay.setContentsMargins(12, 0, 12, 0)
+        _tp_lay.setSpacing(8)
+
+        # Pill badge: [LATENT MONITOR]
+        self._thought_badge = QLabel("LATENT")
+        self._thought_badge.setFixedSize(58, 20)
+        self._thought_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._thought_badge.setStyleSheet(
+            f"color: {C.CYAN}; background: rgba(6,182,212,0.12);"
+            f"border: 1px solid rgba(6,182,212,0.35); border-radius: 4px;"
+            f"font-family: 'Consolas','Courier New',monospace; font-size: 7px; font-weight: bold; letter-spacing: 1px;"
+        )
+        _tp_lay.addWidget(self._thought_badge)
+
+        # Neon pulse indicator dot
+        self._thought_dot = QLabel("●")
+        self._thought_dot.setFixedSize(14, 14)
+        self._thought_dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._thought_dot.setStyleSheet(
+            f"color: {C.CYAN}; font-size: 8px;"
+        )
+        _tp_lay.addWidget(self._thought_dot)
+
+        # Thought text ticker
+        self._thought_label = QLabel("> SYSTEM IDLE // COGNITIVE STREAM STANDBY")
+        self._thought_label.setStyleSheet(
+            f"color: rgba(6,182,212,0.80); background: transparent;"
+            f"font-family: 'Consolas','Courier New',monospace; font-size: 10px; letter-spacing: 0.5px;"
+        )
+        self._thought_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self._thought_label.setWordWrap(False)
+        _tp_lay.addWidget(self._thought_label, stretch=1)
+
+        # Faint right-aligned ticker timestamp
+        self._thought_ts = QLabel("──")
+        self._thought_ts.setStyleSheet(
+            "color: rgba(71,85,105,0.7); background: transparent;"
+            "font-family: 'Consolas','Courier New',monospace; font-size: 9px;"
+        )
+        _tp_lay.addWidget(self._thought_ts)
+
+        hud_lay.addWidget(self._thought_panel)
         body.addWidget(self._hud_container, stretch=5)
 
         self._right_panel = self._build_right_panel()
+        self._right_panel.setMaximumWidth(0)
+        self._right_panel.setMinimumWidth(0)
+        self._right_panel_visible = False
         body.addWidget(self._right_panel, stretch=0)
 
         root.addLayout(body, stretch=1)
         root.addWidget(self._build_footer())
 
-        self._clock_tmr = QTimer(self)
-        self._clock_tmr.timeout.connect(self._tick_clock)
-        self._clock_tmr.start(1000)
-        self._tick_clock()
+
 
         # Metrik güncelleme timer'ı
         self._metric_tmr = QTimer(self)
@@ -1404,29 +1590,33 @@ class MainWindow(QMainWindow):
         self._log_sig.connect(self._log.append_log)
         self._state_sig.connect(self._apply_state)
         self._fullscreen_sig.connect(self._set_fullscreen_slot)
+        self._thought_sig.connect(self._apply_thought)
 
         self._overlay: SetupOverlay | None = None
         self._ready = self._check_config()
         if not self._ready:
             self._show_setup()
-
-        sc_mute = QShortcut(QKeySequence("F4"), self)
-        sc_mute.activated.connect(self._toggle_mute)
-        sc_full = QShortcut(QKeySequence("F11"), self)
-        sc_full.activated.connect(self._toggle_fullscreen)
-
-    def _toggle_fullscreen(self):
-        if self.isFullScreen():
-            self.showNormal()
         else:
-            self.showFullScreen()
+            pass
+
+
 
     def _set_fullscreen_slot(self, full: bool):
         if full:
             if not self.isFullScreen():
+                self._header_widget.hide()
+                self._footer_widget.hide()
+                if getattr(self, '_right_panel_visible', False):
+                    self._right_panel.hide()
+                self._central_widget.layout().setContentsMargins(0, 0, 0, 0)
                 self.showFullScreen()
         else:
             if self.isFullScreen():
+                self._header_widget.show()
+                self._footer_widget.show()
+                if getattr(self, '_right_panel_visible', False):
+                    self._right_panel.show()
+                self._central_widget.layout().setContentsMargins(12, 12, 12, 12)
                 self.showNormal()
 
     def resizeEvent(self, event):
@@ -1480,19 +1670,49 @@ class MainWindow(QMainWindow):
             self._bar_tmp.set_value(0, "N/A")
 
         try:
-            boot_t  = psutil.boot_time()
-            elapsed = time.time() - boot_t
+            elapsed = time.time() - self._start_time
             h = int(elapsed // 3600)
             m = int((elapsed % 3600) // 60)
-            self._uptime_lbl.setText(f"UP  {h:02d}:{m:02d}")
+            s = int(elapsed % 60)
+            self._uptime_lbl.setText(f"UPTIME: {h:02d}:{m:02d}:{s:02d}")
         except Exception:
-            self._uptime_lbl.setText("UP  --:--")
+            self._uptime_lbl.setText("UPTIME: --:--:--")
 
         try:
             proc_count = len(psutil.pids())
             self._proc_lbl.setText(f"PROC  {proc_count}")
         except Exception:
             self._proc_lbl.setText("PROC  --")
+
+        # Update MCP server rows connection states dynamically
+        try:
+            if hasattr(self, "_mcp_server_rows") and self._mcp_server_rows:
+                from actions.mcp_client import MCPClientManager
+                mcp_mgr = MCPClientManager()
+                for name, (status_lbl, toggle_btn) in self._mcp_server_rows.items():
+                    conn = mcp_mgr.connections.get(name)
+                    running = conn.running if conn else False
+                    
+                    if running:
+                        status_lbl.setText("🟢 Running")
+                        status_lbl.setStyleSheet(f"color: {C.GREEN}; font-size: 11px;")
+                        toggle_btn.setText("Stop")
+                        toggle_btn.setStyleSheet(
+                            f"QPushButton {{ background: rgba(239, 68, 68, 0.15); color: {C.RED}; "
+                            f"border: 1px solid {C.RED}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                            f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.35); }}"
+                        )
+                    else:
+                        status_lbl.setText("⚪ Stopped")
+                        status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; font-size: 11px;")
+                        toggle_btn.setText("Start")
+                        toggle_btn.setStyleSheet(
+                            f"QPushButton {{ background: rgba(59, 130, 246, 0.15); color: {C.PRI}; "
+                            f"border: 1px solid {C.PRI}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                            f"QPushButton:hover {{ background: rgba(59, 130, 246, 0.35); }}"
+                        )
+        except Exception as e:
+            print(f"[IP PRIME UI] Error updating MCP metrics: {e}")
 
 
     def _build_header(self) -> QWidget:
@@ -1509,7 +1729,7 @@ class MainWindow(QMainWindow):
             return l
 
         logo_lbl = QLabel()
-        logo_path = BASE_DIR / "assets" / "logo.png"
+        logo_path = BASE_DIR / "assets" / "ip_prime_logo.png"
         if logo_path.exists():
             pix = QPixmap(str(logo_path)).scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             logo_lbl.setPixmap(pix)
@@ -1518,55 +1738,1034 @@ class MainWindow(QMainWindow):
 
         lay.addStretch()
 
-        mid = QVBoxLayout(); mid.setSpacing(1)
-        self._title_lbl = QLabel("IP PRIME")
+        self._title_container = QFrame()
+        self._title_container.setObjectName("TitleContainer")
+        self._title_container.setStyleSheet(f"""
+            QFrame#TitleContainer {{
+                background: {C.PANEL2};
+                border: 1px solid {C.BORDER_B};
+                border-radius: 14px;
+                padding-left: 14px;
+                padding-right: 14px;
+            }}
+        """)
+        title_lay = QHBoxLayout(self._title_container)
+        title_lay.setContentsMargins(12, 4, 12, 4)
+        title_lay.setSpacing(0)
+        
+        self._title_lbl = QLabel()
         self._title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._title_lbl.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-        self._title_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 2px;")
-        mid.addWidget(self._title_lbl)
-        self._sub_lbl = QLabel("Intelligent Partner Prime")
-        self._sub_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._sub_lbl.setFont(QFont("Segoe UI", 8))
-        self._sub_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
-        mid.addWidget(self._sub_lbl)
-        lay.addLayout(mid)
+        self._title_lbl.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
+        self._title_lbl.setStyleSheet(f"""
+            QLabel {{
+                color: {C.WHITE};
+                background: transparent;
+                border: none;
+                letter-spacing: 4px;
+            }}
+        """)
+        self._title_lbl.setText(f"<span style='color: {C.PRI}; font-weight: 800;'>IP</span> <span style='color: {C.CYAN}; font-weight: 800;'>PRIME</span>")
+        title_lay.addWidget(self._title_lbl)
+        
+        lay.addWidget(self._title_container)
+
         lay.addStretch()
 
-        right_col = QVBoxLayout(); right_col.setSpacing(2)
-        self._clock_lbl = QLabel("00:00:00")
-        self._clock_lbl.setFont(QFont("Consolas", 14, QFont.Weight.Bold))
-        self._clock_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent;")
-        self._clock_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
-        right_col.addWidget(self._clock_lbl)
-        self._date_lbl = QLabel("")
-        self._date_lbl.setFont(QFont("Segoe UI", 8))
-        self._date_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
-        self._date_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
-        right_col.addWidget(self._date_lbl)
-        lay.addLayout(right_col)
-
-        self._compact_btn = QPushButton("🛸")
-        self._compact_btn.setFixedSize(36, 36)
-        self._compact_btn.setFont(QFont("Segoe UI Emoji", 14) if _OS == "Windows" else QFont("Arial", 14))
-        self._compact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._compact_btn.setToolTip("Toggle Frameless Mini-Orb Mode")
-        self._compact_btn.setStyleSheet(f"""
+        self._settings_gear_btn = QPushButton("⚙")
+        self._settings_gear_btn.setFixedSize(36, 36)
+        self._settings_gear_btn.setFont(QFont("Segoe UI", 14))
+        self._settings_gear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._settings_gear_btn.setToolTip("Toggle Settings Panel")
+        self._settings_gear_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {C.PRI};
-                border: 1px solid {C.BORDER}; border-radius: 18px;
+                background: transparent; color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER_B}; border-radius: 18px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO}; border: 1px solid {C.PRI};
+                background: {C.PRI_GHO}; color: {C.PRI}; border: 1px solid {C.PRI_DIM};
+            }}
+        """)
+        self._settings_gear_btn.clicked.connect(self._toggle_settings_panel)
+        lay.addWidget(self._settings_gear_btn)
+
+        self._compact_btn = QPushButton("❐")
+        self._compact_btn.setFixedSize(36, 36)
+        self._compact_btn.setFont(QFont("Segoe UI", 12))
+        self._compact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._compact_btn.setToolTip("Toggle HUD Compact Mode")
+        self._compact_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER_B}; border-radius: 18px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI_GHO}; color: {C.CYAN}; border: 1px solid {C.CYAN};
             }}
         """)
         self._compact_btn.clicked.connect(self.toggle_compact_mode)
         lay.addWidget(self._compact_btn)
 
+        self._slide_btn = QPushButton("◂")
+        self._slide_btn.setFixedSize(36, 36)
+        self._slide_btn.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        self._slide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._slide_btn.setToolTip("Toggle Side Panel (Logs · Files · Input)")
+        self._slide_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.ACC};
+                border: 1px solid {C.BORDER_B}; border-radius: 18px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI_GHO}; border: 1px solid {C.ACC};
+            }}
+        """)
+        self._slide_btn.clicked.connect(self._toggle_right_panel)
+        lay.addWidget(self._slide_btn)
+
         return self._header_widget
 
-    def _tick_clock(self):
-        self._clock_lbl.setText(time.strftime("%H:%M:%S"))
-        self._date_lbl.setText(time.strftime("%a %d %b %Y"))
+        # Date and time display removed per user request; no UI update needed.
+        pass
+
+    def _build_settings_panel(self) -> QWidget:
+        # ── Outer card (fixed width, no internal padding — scroll area fills it) ──
+        outer = QWidget()
+        outer.setFixedWidth(240)
+        outer.setStyleSheet(
+            f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;"
+        )
+        outer_lay = QVBoxLayout(outer)
+        outer_lay.setContentsMargins(0, 0, 0, 0)
+        outer_lay.setSpacing(0)
+
+        # ── Scroll Area ──────────────────────────────────────────────────────────
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet(
+            "QScrollArea { background: transparent; border: none; border-radius: 12px; }"
+            "QScrollBar:vertical {"
+            "  background: rgba(15,23,42,0.6);"
+            "  width: 5px;"
+            "  border-radius: 3px;"
+            "  margin: 4px 2px;"
+            "}"
+            "QScrollBar::handle:vertical {"
+            "  background: rgba(59,130,246,0.45);"
+            "  border-radius: 3px;"
+            "  min-height: 20px;"
+            "}"
+            "QScrollBar::handle:vertical:hover {"
+            "  background: rgba(59,130,246,0.75);"
+            "}"
+            "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }"
+            "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }"
+        )
+
+        # ── Inner content widget (all widgets go here) ───────────────────────────
+        panel = QWidget()
+        panel.setStyleSheet("background: transparent; border: none;")
+        lay = QVBoxLayout(panel)
+        lay.setContentsMargins(14, 16, 14, 16)
+        lay.setSpacing(10)
+
+        # Title
+        title = QLabel("⚙  SETTINGS")
+        title.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        title.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 1px;")
+        lay.addWidget(title)
+
+        sep = QFrame(); sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep)
+
+        # API Key section label
+        api_lbl = QLabel("GEMINI API KEY")
+        api_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        api_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(api_lbl)
+
+        # API key input
+        self._settings_api_input = QLineEdit()
+        try:
+            existing_key = json.loads(API_FILE.read_text(encoding="utf-8")).get("gemini_api_key", "")
+        except Exception:
+            existing_key = ""
+        self._settings_api_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self._settings_api_input.setPlaceholderText("AIza… paste karo")
+        self._settings_api_input.setText(existing_key)
+        self._settings_api_input.setFont(QFont("Segoe UI", 9))
+        self._settings_api_input.setFixedHeight(34)
+        self._settings_api_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 8px; padding: 4px 10px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        lay.addWidget(self._settings_api_input)
+
+        # Save button
+        self._settings_save_btn = QPushButton("💾  Save API Key")
+        self._settings_save_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self._settings_save_btn.setFixedHeight(32)
+        self._settings_save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._settings_save_btn.setStyleSheet(
+            f"QPushButton {{ background: transparent; color: {C.PRI}; "
+            f"border: 1px solid {C.PRI_DIM}; border-radius: 6px; }} "
+            f"QPushButton:hover {{ background: {C.PRI_GHO}; border: 1px solid {C.PRI}; }}"
+        )
+        self._settings_save_btn.clicked.connect(self._settings_save_key)
+        lay.addWidget(self._settings_save_btn)
+
+        # Status label
+        self._settings_status_lbl = QLabel("")
+        self._settings_status_lbl.setFont(QFont("Segoe UI", 8))
+        self._settings_status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        self._settings_status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._settings_status_lbl.setWordWrap(True)
+        lay.addWidget(self._settings_status_lbl)
+
+        sep2 = QFrame(); sep2.setFrameShape(QFrame.Shape.HLine)
+        sep2.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep2)
+
+        # Restart button
+        self._settings_restart_btn = QPushButton("🔄  Restart Prime")
+        self._settings_restart_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self._settings_restart_btn.setFixedHeight(34)
+        self._settings_restart_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._settings_restart_btn.setStyleSheet(
+            f"QPushButton {{ background: transparent; color: {C.ACC2}; "
+            f"border: 1px solid {C.ACC2}; border-radius: 6px; }} "
+            f"QPushButton:hover {{ background: rgba(0,255,200,0.08); border: 1px solid {C.GREEN}; color: {C.GREEN}; }}"
+        )
+        self._settings_restart_btn.clicked.connect(self._restart_app)
+        lay.addWidget(self._settings_restart_btn)
+
+        # Separator 3
+        sep3 = QFrame(); sep3.setFrameShape(QFrame.Shape.HLine)
+        sep3.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep3)
+
+        # WhatsApp bot label
+        wa_lbl = QLabel("📱 WHATSAPP BOT")
+        wa_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        wa_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(wa_lbl)
+
+        # Toggle/Status button for WhatsApp
+        self._settings_whatsapp_btn = QPushButton("🟢  Start Bot")
+        self._settings_whatsapp_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self._settings_whatsapp_btn.setFixedHeight(34)
+        self._settings_whatsapp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._settings_whatsapp_btn.setStyleSheet(
+            f"QPushButton {{ background: transparent; color: {C.GREEN}; "
+            f"border: 1px solid {C.GREEN}; border-radius: 6px; }} "
+            f"QPushButton:hover {{ background: rgba(16, 185, 129, 0.08); border: 1px solid {C.GREEN}; }}"
+        )
+        self._settings_whatsapp_btn.clicked.connect(self._toggle_whatsapp_bot)
+        lay.addWidget(self._settings_whatsapp_btn)
+
+        # WhatsApp Status text
+        self._settings_whatsapp_status = QLabel("Status: Stopped")
+        self._settings_whatsapp_status.setFont(QFont("Segoe UI", 8))
+        self._settings_whatsapp_status.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        self._settings_whatsapp_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(self._settings_whatsapp_status)
+
+        # WhatsApp Group Link label
+        wa_grp_lbl = QLabel("🔗 MONITOR CHAT / GROUP LINK")
+        wa_grp_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        wa_grp_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(wa_grp_lbl)
+
+        # Get existing link from config
+        try:
+            _wa_cfg = json.loads(API_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            _wa_cfg = {}
+        existing_group_link = _wa_cfg.get("whatsapp_group_link", "")
+
+        # WhatsApp Group Link Input
+        self._settings_whatsapp_group_input = QLineEdit()
+        self._settings_whatsapp_group_input.setPlaceholderText("https://chat.whatsapp.com/...")
+        self._settings_whatsapp_group_input.setText(existing_group_link)
+        self._settings_whatsapp_group_input.setFixedHeight(30)
+        self._settings_whatsapp_group_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 4px 8px; font-size: 10px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._settings_whatsapp_group_input.textChanged.connect(self._save_whatsapp_group_link)
+        lay.addWidget(self._settings_whatsapp_group_input)
+
+        # Separator for Camoufox
+        sep4 = QFrame(); sep4.setFrameShape(QFrame.Shape.HLine)
+        sep4.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep4)
+
+        # Camoufox Header
+        cam_lbl = QLabel("🕷 CAMOUFOX STEALTH")
+        cam_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        cam_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(cam_lbl)
+
+        # Reading values
+        try:
+            cfg = json.loads(API_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            cfg = {}
+
+        use_camou = cfg.get("use_camoufox", False)
+        camou_headless = cfg.get("camoufox_headless", False)
+        camou_os = cfg.get("camoufox_os", "random")
+        camou_proxy = cfg.get("camoufox_proxy", "")
+        camou_block = cfg.get("camoufox_block_assets", False)
+        camou_human = cfg.get("camoufox_human_mimic", True)
+        camou_webrtc = cfg.get("camoufox_block_webrtc", True)
+        camou_webgl = cfg.get("camoufox_allow_webgl", False)
+        camou_geoip = cfg.get("camoufox_geoip", True)
+        camou_addons = cfg.get("camoufox_addons_path", "")
+
+        # Master Toggle
+        self._stealth_btn = QPushButton()
+        self._stealth_btn.setCheckable(True)
+        self._stealth_btn.setChecked(use_camou)
+        self._stealth_btn.setFixedHeight(30)
+        self._stealth_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._stealth_btn.clicked.connect(self._toggle_stealth_mode)
+        lay.addWidget(self._stealth_btn)
+
+        # Checkboxes and fields container
+        self._stealth_opts_widget = QWidget()
+        self._stealth_opts_widget.setStyleSheet("background: transparent; border: none;")
+        opts_lay = QVBoxLayout(self._stealth_opts_widget)
+        opts_lay.setContentsMargins(0, 0, 0, 0)
+        opts_lay.setSpacing(6)
+
+        # Headless Toggle
+        self._stealth_headless_cb = QCheckBox("Headless Stealth")
+        self._stealth_headless_cb.setChecked(camou_headless)
+        self._stealth_headless_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_headless_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_headless_cb)
+
+        # Block images/fonts
+        self._stealth_block_cb = QCheckBox("Block Heavy Assets")
+        self._stealth_block_cb.setChecked(camou_block)
+        self._stealth_block_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_block_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_block_cb)
+
+        # Human mimicry
+        self._stealth_human_cb = QCheckBox("Human Mimicry")
+        self._stealth_human_cb.setChecked(camou_human)
+        self._stealth_human_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_human_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_human_cb)
+
+        # Block WebRTC
+        self._stealth_webrtc_cb = QCheckBox("Block WebRTC Leaks")
+        self._stealth_webrtc_cb.setChecked(camou_webrtc)
+        self._stealth_webrtc_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_webrtc_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_webrtc_cb)
+
+        # WebGL Canvas Spoofing
+        self._stealth_webgl_cb = QCheckBox("Spoof WebGL/Canvas")
+        self._stealth_webgl_cb.setChecked(not camou_webgl)
+        self._stealth_webgl_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_webgl_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_webgl_cb)
+
+        # GeoIP Synchronization
+        self._stealth_geoip_cb = QCheckBox("Sync Proxy Locale")
+        self._stealth_geoip_cb.setChecked(camou_geoip)
+        self._stealth_geoip_cb.setStyleSheet(
+            f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+            f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+            f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_geoip_cb.stateChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_geoip_cb)
+
+        # Spoof OS Combo
+        os_lbl = QLabel("Spoof OS Platform:")
+        os_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        os_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        opts_lay.addWidget(os_lbl)
+
+        self._stealth_os_combo = QComboBox()
+        self._stealth_os_combo.addItems(["random", "windows", "macos", "linux"])
+        idx = self._stealth_os_combo.findText(camou_os)
+        if idx >= 0:
+            self._stealth_os_combo.setCurrentIndex(idx)
+        self._stealth_os_combo.setStyleSheet(
+            f"QComboBox {{ background: #000d12; color: {C.TEXT}; border: 1px solid {C.BORDER}; border-radius: 6px; padding: 3px 6px; font-size: 11px; }} "
+            f"QComboBox QAbstractItemView {{ background-color: #0f172a; color: {C.TEXT}; selection-background-color: {C.BORDER}; }}"
+        )
+        self._stealth_os_combo.currentIndexChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_os_combo)
+
+        # Proxy Input
+        proxy_lbl = QLabel("HTTP/SOCKS5 Proxy:")
+        proxy_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        proxy_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        opts_lay.addWidget(proxy_lbl)
+
+        self._stealth_proxy_input = QLineEdit()
+        self._stealth_proxy_input.setPlaceholderText("socks5://127.0.0.1:9050")
+        self._stealth_proxy_input.setText(camou_proxy)
+        self._stealth_proxy_input.setFont(QFont("Segoe UI", 8))
+        self._stealth_proxy_input.setFixedHeight(26)
+        self._stealth_proxy_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_proxy_input.textChanged.connect(self._save_stealth_settings)
+        opts_lay.addWidget(self._stealth_proxy_input)
+
+        # Add-ons Directory Input with browse button
+        addons_lbl = QLabel("Add-ons Extensions Directory:")
+        addons_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        addons_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        opts_lay.addWidget(addons_lbl)
+
+        addons_w = QWidget()
+        addons_w.setStyleSheet("background: transparent; border: none;")
+        addons_lay = QHBoxLayout(addons_w)
+        addons_lay.setContentsMargins(0, 0, 0, 0)
+        addons_lay.setSpacing(4)
+
+        self._stealth_addons_input = QLineEdit()
+        self._stealth_addons_input.setPlaceholderText("Folder path to extracted addons...")
+        self._stealth_addons_input.setText(camou_addons)
+        self._stealth_addons_input.setFont(QFont("Segoe UI", 8))
+        self._stealth_addons_input.setFixedHeight(26)
+        self._stealth_addons_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._stealth_addons_input.textChanged.connect(self._save_stealth_settings)
+        addons_lay.addWidget(self._stealth_addons_input)
+
+        self._stealth_addons_browse_btn = QPushButton("Browse")
+        self._stealth_addons_browse_btn.setFont(QFont("Segoe UI", 8))
+        self._stealth_addons_browse_btn.setFixedHeight(26)
+        self._stealth_addons_browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._stealth_addons_browse_btn.setStyleSheet(
+            f"QPushButton {{ background: #000d12; color: {C.TEXT}; border: 1px solid {C.BORDER}; border-radius: 6px; padding: 0 8px; }} "
+            f"QPushButton:hover {{ background: rgba(255,255,255,0.06); border: 1px solid {C.TEXT_MED}; }}"
+        )
+        self._stealth_addons_browse_btn.clicked.connect(self._browse_addons_folder)
+        addons_lay.addWidget(self._stealth_addons_browse_btn)
+        opts_lay.addWidget(addons_w)
+
+        lay.addWidget(self._stealth_opts_widget)
+        self._update_stealth_btn_style()
+
+        # ── Startup Section ─────────────────────────────────────────────────
+        sep_startup = QFrame(); sep_startup.setFrameShape(QFrame.Shape.HLine)
+        sep_startup.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep_startup)
+
+        startup_lbl = QLabel("⚡ WINDOWS STARTUP")
+        startup_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        startup_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(startup_lbl)
+
+        startup_desc = QLabel("PC on karte hi IP Prime automatically start ho")
+        startup_desc.setFont(QFont("Segoe UI", 7))
+        startup_desc.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        startup_desc.setWordWrap(True)
+        lay.addWidget(startup_desc)
+
+        self._startup_btn = QPushButton()
+        self._startup_btn.setCheckable(True)
+        self._startup_btn.setFixedHeight(32)
+        self._startup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._startup_btn.clicked.connect(self._toggle_startup)
+        _startup_enabled = self._check_startup_enabled()
+        self._startup_btn.setChecked(_startup_enabled)
+        self._update_startup_btn_style(_startup_enabled)
+        lay.addWidget(self._startup_btn)
+
+        self._startup_status_lbl = QLabel("")
+        self._startup_status_lbl.setFont(QFont("Segoe UI", 7))
+        self._startup_status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        self._startup_status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(self._startup_status_lbl)
+
+        # ── Desktop Integrations Section ─────────────────────────────────────
+        sep_integrations = QFrame(); sep_integrations.setFrameShape(QFrame.Shape.HLine)
+        sep_integrations.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep_integrations)
+
+        integrations_lbl = QLabel("🔌 DESKTOP INTEGRATIONS")
+        integrations_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        integrations_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(integrations_lbl)
+
+        # 1. Obsidian Vault Path
+        obs_lbl = QLabel("Obsidian Vault Directory:")
+        obs_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        obs_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        lay.addWidget(obs_lbl)
+
+        obs_w = QWidget()
+        obs_w.setStyleSheet("background: transparent; border: none;")
+        obs_lay = QHBoxLayout(obs_w)
+        obs_lay.setContentsMargins(0, 0, 0, 0)
+        obs_lay.setSpacing(4)
+
+        self._obsidian_path_input = QLineEdit()
+        self._obsidian_path_input.setPlaceholderText("Path to Obsidian vault...")
+        self._obsidian_path_input.setText(cfg.get("obsidian_vault_path", ""))
+        self._obsidian_path_input.setFont(QFont("Segoe UI", 8))
+        self._obsidian_path_input.setFixedHeight(26)
+        self._obsidian_path_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._obsidian_path_input.textChanged.connect(self._save_integrations_settings)
+        obs_lay.addWidget(self._obsidian_path_input)
+
+        self._obsidian_browse_btn = QPushButton("Browse")
+        self._obsidian_browse_btn.setFont(QFont("Segoe UI", 8))
+        self._obsidian_browse_btn.setFixedHeight(26)
+        self._obsidian_browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._obsidian_browse_btn.setStyleSheet(
+            f"QPushButton {{ background: #000d12; color: {C.TEXT}; border: 1px solid {C.BORDER}; border-radius: 6px; padding: 0 8px; }} "
+            f"QPushButton:hover {{ background: rgba(255,255,255,0.06); border: 1px solid {C.TEXT_MED}; }}"
+        )
+        self._obsidian_browse_btn.clicked.connect(self._browse_obsidian_vault)
+        obs_lay.addWidget(self._obsidian_browse_btn)
+        lay.addWidget(obs_w)
+
+        # 2. Spotify Client ID
+        spot_id_lbl = QLabel("Spotify Client ID:")
+        spot_id_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        spot_id_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        lay.addWidget(spot_id_lbl)
+
+        self._spotify_id_input = QLineEdit()
+        self._spotify_id_input.setPlaceholderText("Spotify Client ID...")
+        self._spotify_id_input.setText(cfg.get("spotify_client_id", ""))
+        self._spotify_id_input.setFont(QFont("Segoe UI", 8))
+        self._spotify_id_input.setFixedHeight(26)
+        self._spotify_id_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._spotify_id_input.textChanged.connect(self._save_integrations_settings)
+        lay.addWidget(self._spotify_id_input)
+
+        # 3. Spotify Client Secret
+        spot_sec_lbl = QLabel("Spotify Client Secret:")
+        spot_sec_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        spot_sec_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        lay.addWidget(spot_sec_lbl)
+
+        self._spotify_secret_input = QLineEdit()
+        self._spotify_secret_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self._spotify_secret_input.setPlaceholderText("Spotify Secret Key...")
+        self._spotify_secret_input.setText(cfg.get("spotify_client_secret", ""))
+        self._spotify_secret_input.setFont(QFont("Segoe UI", 8))
+        self._spotify_secret_input.setFixedHeight(26)
+        self._spotify_secret_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._spotify_secret_input.textChanged.connect(self._save_integrations_settings)
+        lay.addWidget(self._spotify_secret_input)
+
+        # 4. Home Assistant URL
+        ha_url_lbl = QLabel("Home Assistant URL:")
+        ha_url_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        ha_url_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        lay.addWidget(ha_url_lbl)
+
+        self._ha_url_input = QLineEdit()
+        self._ha_url_input.setPlaceholderText("http://homeassistant.local:8123")
+        self._ha_url_input.setText(cfg.get("home_assistant_url", ""))
+        self._ha_url_input.setFont(QFont("Segoe UI", 8))
+        self._ha_url_input.setFixedHeight(26)
+        self._ha_url_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._ha_url_input.textChanged.connect(self._save_integrations_settings)
+        lay.addWidget(self._ha_url_input)
+
+        # 5. Home Assistant Token
+        ha_token_lbl = QLabel("HA Long-Lived Token:")
+        ha_token_lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        ha_token_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        lay.addWidget(ha_token_lbl)
+
+        self._ha_token_input = QLineEdit()
+        self._ha_token_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self._ha_token_input.setPlaceholderText("HA Token key...")
+        self._ha_token_input.setText(cfg.get("home_assistant_token", ""))
+        self._ha_token_input.setFont(QFont("Segoe UI", 8))
+        self._ha_token_input.setFixedHeight(26)
+        self._ha_token_input.setStyleSheet(
+            f"QLineEdit {{ background: #000d12; color: {C.TEXT}; "
+            f"border: 1px solid {C.BORDER}; border-radius: 6px; padding: 2px 8px; }} "
+            f"QLineEdit:focus {{ border: 1px solid {C.PRI}; }}"
+        )
+        self._ha_token_input.textChanged.connect(self._save_integrations_settings)
+        lay.addWidget(self._ha_token_input)
+
+        # ── MCP Servers Section ──────────────────────────────────────────────
+
+        # ── MCP Servers Section ──────────────────────────────────────────────
+        sep_mcp = QFrame(); sep_mcp.setFrameShape(QFrame.Shape.HLine)
+        sep_mcp.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep_mcp)
+
+        mcp_lbl = QLabel("🔌 MCP SERVERS")
+        mcp_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        mcp_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(mcp_lbl)
+
+        self._mcp_container = QWidget()
+        self._mcp_container.setStyleSheet("background: transparent; border: none;")
+        self._mcp_container_lay = QVBoxLayout(self._mcp_container)
+        self._mcp_container_lay.setContentsMargins(0, 0, 0, 0)
+        self._mcp_container_lay.setSpacing(6)
+        lay.addWidget(self._mcp_container)
+
+        self._mcp_server_rows = {}
+        self._rebuild_mcp_servers_ui()
+
+        # Configure Config button
+        self._mcp_config_btn = QPushButton("📝  Configure Servers")
+        self._mcp_config_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._mcp_config_btn.setFixedHeight(30)
+        self._mcp_config_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._mcp_config_btn.setStyleSheet(
+            f"QPushButton {{ background: #000d12; color: {C.TEXT_MED}; border: 1px solid {C.BORDER}; border-radius: 6px; }} "
+            f"QPushButton:hover {{ background: rgba(255,255,255,0.06); border: 1px solid {C.TEXT_MED}; color: {C.WHITE}; }}"
+        )
+        self._mcp_config_btn.clicked.connect(self._open_mcp_config)
+        lay.addWidget(self._mcp_config_btn)
+
+        lay.addStretch()
+
+        # ── Mount inner content into scroll area, scroll area into outer card ──
+        scroll.setWidget(panel)
+        outer_lay.addWidget(scroll)
+        return outer
+
+    def _rebuild_mcp_servers_ui(self):
+        # Clear existing rows
+        for i in reversed(range(self._mcp_container_lay.count())):
+            widget = self._mcp_container_lay.itemAt(i).widget()
+            if widget:
+                widget.setParent(None)
+        
+        self._mcp_server_rows.clear()
+
+        try:
+            from actions.mcp_client import MCPClientManager
+            mcp_mgr = MCPClientManager()
+            if not mcp_mgr.loaded:
+                mcp_mgr.initialize(player=self)
+            
+            servers = mcp_mgr.connections
+            
+            if not servers:
+                empty_lbl = QLabel("No MCP servers configured.")
+                empty_lbl.setFont(QFont("Segoe UI", 8))
+                empty_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; font-style: italic; background: transparent;")
+                self._mcp_container_lay.addWidget(empty_lbl)
+                return
+            
+            for name, conn in servers.items():
+                row_widget = QWidget()
+                row_widget.setStyleSheet("background: transparent; border: none;")
+                row_lay = QHBoxLayout(row_widget)
+                row_lay.setContentsMargins(0, 2, 0, 2)
+                row_lay.setSpacing(6)
+
+                name_lbl = QLabel(name.upper())
+                name_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+                name_lbl.setStyleSheet(f"color: {C.TEXT}; background: transparent;")
+                row_lay.addWidget(name_lbl)
+
+                status_lbl = QLabel("⚪ Stopped")
+                status_lbl.setFont(QFont("Segoe UI", 8))
+                status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+                row_lay.addWidget(status_lbl)
+
+                toggle_btn = QPushButton("Start")
+                toggle_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+                toggle_btn.setFixedSize(54, 22)
+                toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                toggle_btn.clicked.connect(lambda checked, n=name: self._toggle_mcp_server(n))
+                row_lay.addWidget(toggle_btn)
+
+                self._mcp_container_lay.addWidget(row_widget)
+                self._mcp_server_rows[name] = (status_lbl, toggle_btn)
+                
+            # Initial style update
+            from actions.mcp_client import MCPClientManager
+            for name, (status_lbl, toggle_btn) in self._mcp_server_rows.items():
+                conn = MCPClientManager().connections.get(name)
+                running = conn.running if conn else False
+                if running:
+                    status_lbl.setText("🟢 Running")
+                    status_lbl.setStyleSheet(f"color: {C.GREEN}; font-size: 11px;")
+                    toggle_btn.setText("Stop")
+                    toggle_btn.setStyleSheet(
+                        f"QPushButton {{ background: rgba(239, 68, 68, 0.15); color: {C.RED}; "
+                        f"border: 1px solid {C.RED}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                        f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.35); }}"
+                    )
+                else:
+                    status_lbl.setText("⚪ Stopped")
+                    status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; font-size: 11px;")
+                    toggle_btn.setText("Start")
+                    toggle_btn.setStyleSheet(
+                        f"QPushButton {{ background: rgba(59, 130, 246, 0.15); color: {C.PRI}; "
+                        f"border: 1px solid {C.PRI}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                        f"QPushButton:hover {{ background: rgba(59, 130, 246, 0.35); }}"
+                    )
+        except Exception as e:
+            print(f"[IP PRIME UI] Error building MCP Server UI: {e}")
+
+    def _toggle_mcp_server(self, name):
+        try:
+            from actions.mcp_client import MCPClientManager
+            mcp_mgr = MCPClientManager()
+            conn = mcp_mgr.connections.get(name)
+            if not conn:
+                return
+            
+            def do_toggle():
+                if conn.running:
+                    self.write_log(f"SYS: Stopping MCP server '{name}'...")
+                    conn.stop()
+                else:
+                    self.write_log(f"SYS: Starting MCP server '{name}'...")
+                    success = conn.start()
+                    if success:
+                        self.write_log(f"SYS: MCP server '{name}' successfully started.")
+                    else:
+                        self.write_log(f"SYS: Failed to start MCP server '{name}'.")
+            
+            threading.Thread(target=do_toggle, daemon=True, name=f"MCP-Toggle-{name}").start()
+        except Exception as e:
+            print(f"[IP PRIME UI] Error toggling MCP server '{name}': {e}")
+
+    def _open_mcp_config(self):
+        try:
+            import sys
+            import subprocess
+            if getattr(sys, "frozen", False):
+                base_dir = Path(sys.executable).parent
+            else:
+                base_dir = Path(__file__).resolve().parent
+            config_path = base_dir / "config" / "mcp_servers.json"
+            
+            if not config_path.exists():
+                config_path.parent.mkdir(parents=True, exist_ok=True)
+                default_cfg = {
+                    "mcpServers": {
+                        "fetch": {
+                            "command": "npx",
+                            "args": ["-y", "mcp-server-fetch-typescript"],
+                            "env": {}
+                        },
+                        "memory": {
+                            "command": "npx",
+                            "args": ["-y", "@modelcontextprotocol/server-memory"],
+                            "env": {}
+                        }
+                    }
+                }
+                config_path.write_text(json.dumps(default_cfg, indent=4), encoding="utf-8")
+
+            if sys.platform == "win32":
+                import os
+                os.startfile(str(config_path))
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", str(config_path)])
+            else:
+                subprocess.Popen(["xdg-open", str(config_path)])
+            
+            self.write_log(f"SYS: Opened configuration '{config_path}' in system editor.")
+        except Exception as e:
+            self.write_log(f"SYS: Failed to open MCP configuration: {e}")
+
+    def _settings_save_key(self):
+        new_key = self._settings_api_input.text().strip()
+        if not new_key:
+            self._settings_status_lbl.setStyleSheet(f"color: {C.RED}; background: transparent;")
+            self._settings_status_lbl.setText("⚠ Key empty hai!")
+            return
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            existing["gemini_api_key"] = new_key
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+            self._settings_status_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent;")
+            self._settings_status_lbl.setText("✅ Saved! Restarting...")
+            self._log.append_log("SYS: API Key updated. Restarting...")
+            QTimer.singleShot(1000, self._restart_app)
+        except Exception as e:
+            self._settings_status_lbl.setStyleSheet(f"color: {C.RED}; background: transparent;")
+            self._settings_status_lbl.setText(f"❌ Error: {e}")
+
+    def _toggle_stealth_mode(self):
+        val = self._stealth_btn.isChecked()
+        self._update_stealth_btn_style()
+        self._save_stealth_settings()
+        self._log.append_log(f"SYS: Stealth browser {'ENABLED' if val else 'DISABLED'}")
+
+    def _update_stealth_btn_style(self):
+        val = self._stealth_btn.isChecked()
+        if val:
+            self._stealth_btn.setText("🕷  Stealth Enabled")
+            self._stealth_btn.setStyleSheet(
+                f"QPushButton {{ background: transparent; color: {C.GREEN}; "
+                f"border: 1px solid {C.GREEN}; border-radius: 6px; font-weight: bold; }} "
+                f"QPushButton:hover {{ background: rgba(16, 185, 129, 0.08); }}"
+            )
+        else:
+            self._stealth_btn.setText("🕷  Enable Stealth")
+            self._stealth_btn.setStyleSheet(
+                f"QPushButton {{ background: transparent; color: {C.TEXT_MED}; "
+                f"border: 1px solid {C.BORDER}; border-radius: 6px; }} "
+                f"QPushButton:hover {{ background: rgba(255, 255, 255, 0.04); border: 1px solid {C.TEXT_MED}; }}"
+            )
+
+    def _browse_addons_folder(self):
+        from PyQt6.QtWidgets import QFileDialog
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Add-ons Extensions Directory", self._stealth_addons_input.text() or "")
+        if dir_path:
+            self._stealth_addons_input.setText(dir_path)
+            self._save_stealth_settings()
+
+    # ── Windows Startup Registry ─────────────────────────────────────────────
+    _STARTUP_REG_KEY  = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    _STARTUP_APP_NAME = "IPPrime"
+
+    def _check_startup_enabled(self) -> bool:
+        try:
+            import winreg
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, self._STARTUP_REG_KEY, 0, winreg.KEY_READ)
+            winreg.QueryValueEx(key, self._STARTUP_APP_NAME)
+            winreg.CloseKey(key)
+            return True
+        except Exception:
+            return False
+
+    def _toggle_startup(self):
+        enabled = self._startup_btn.isChecked()
+        try:
+            import winreg, sys
+            key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                self._STARTUP_REG_KEY, 0,
+                winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE
+            )
+            if enabled:
+                # Build the launch command — use pythonw.exe so no console window pops up
+                python_exe = sys.executable.replace("python.exe", "pythonw.exe")
+                main_path  = str(Path(__file__).resolve().parent / "main.py")
+                cmd = f'"{python_exe}" "{main_path}"'
+                winreg.SetValueEx(key, self._STARTUP_APP_NAME, 0, winreg.REG_SZ, cmd)
+                msg = "✅ Startup enabled! Ab PC on karte hi IP Prime chalega."
+                colour = C.GREEN
+            else:
+                try:
+                    winreg.DeleteValue(key, self._STARTUP_APP_NAME)
+                except FileNotFoundError:
+                    pass
+                msg = "🔴 Startup disabled."
+                colour = C.RED
+            winreg.CloseKey(key)
+            self._startup_status_lbl.setStyleSheet(f"color: {colour}; background: transparent;")
+            self._startup_status_lbl.setText(msg)
+        except Exception as e:
+            self._startup_btn.setChecked(not enabled)  # revert
+            self._startup_status_lbl.setStyleSheet(f"color: {C.RED}; background: transparent;")
+            self._startup_status_lbl.setText(f"❌ Error: {e}")
+        self._update_startup_btn_style(self._startup_btn.isChecked())
+
+    def _update_startup_btn_style(self, enabled: bool):
+        if enabled:
+            self._startup_btn.setText("⚡  Auto-Start: ON")
+            self._startup_btn.setStyleSheet(
+                f"QPushButton {{ background: transparent; color: {C.GREEN}; "
+                f"border: 1px solid {C.GREEN}; border-radius: 6px; font-weight: bold; font-size: 10px; }} "
+                f"QPushButton:hover {{ background: rgba(16,185,129,0.08); }}"
+            )
+        else:
+            self._startup_btn.setText("⚡  Auto-Start: OFF")
+            self._startup_btn.setStyleSheet(
+                f"QPushButton {{ background: transparent; color: {C.TEXT_MED}; "
+                f"border: 1px solid {C.BORDER}; border-radius: 6px; font-size: 10px; }} "
+                f"QPushButton:hover {{ background: rgba(255,255,255,0.04); }}"
+            )
+
+    def _save_stealth_settings(self):
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            
+            existing["use_camoufox"] = self._stealth_btn.isChecked()
+            existing["camoufox_headless"] = self._stealth_headless_cb.isChecked()
+            existing["camoufox_block_assets"] = self._stealth_block_cb.isChecked()
+            existing["camoufox_human_mimic"] = self._stealth_human_cb.isChecked()
+            existing["camoufox_block_webrtc"] = self._stealth_webrtc_cb.isChecked()
+            existing["camoufox_allow_webgl"] = not self._stealth_webgl_cb.isChecked() # allow WebGL is True if not checked spoof
+            existing["camoufox_geoip"] = self._stealth_geoip_cb.isChecked()
+            existing["camoufox_os"] = self._stealth_os_combo.currentText()
+            existing["camoufox_proxy"] = self._stealth_proxy_input.text().strip()
+            existing["camoufox_addons_path"] = self._stealth_addons_input.text().strip()
+            
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+        except Exception as e:
+            print(f"[Stealth Settings] Error saving: {e}")
+
+    def _save_integrations_settings(self):
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            
+            existing["obsidian_vault_path"] = self._obsidian_path_input.text().strip()
+            existing["spotify_client_id"] = self._spotify_id_input.text().strip()
+            existing["spotify_client_secret"] = self._spotify_secret_input.text().strip()
+            existing["home_assistant_url"] = self._ha_url_input.text().strip()
+            existing["home_assistant_token"] = self._ha_token_input.text().strip()
+            
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+        except Exception as e:
+            print(f"[Integrations Settings] Error saving: {e}")
+
+    def _browse_obsidian_vault(self):
+        from PyQt6.QtWidgets import QFileDialog
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Obsidian Vault Directory", self._obsidian_path_input.text() or "")
+        if dir_path:
+            self._obsidian_path_input.setText(dir_path)
+            self._save_integrations_settings()
+
+    def _toggle_settings_panel(self):
+        self._settings_panel_visible = not getattr(self, '_settings_panel_visible', False)
+        target_w = 240 if self._settings_panel_visible else 0
+        self._settings_anim = QPropertyAnimation(self._settings_panel, b"maximumWidth")
+        self._settings_anim.setDuration(300)
+        self._settings_anim.setStartValue(self._settings_panel.maximumWidth())
+        self._settings_anim.setEndValue(target_w)
+        self._settings_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        self._settings_panel.setMinimumWidth(0)
+        self._settings_anim.start()
+        icon = "✕" if self._settings_panel_visible else "⚙"
+        self._settings_gear_btn.setText(icon)
+
+    def _toggle_whatsapp_bot(self):
+        try:
+            from actions.whatsapp_listener import WhatsAppListenerService
+            service = WhatsAppListenerService()
+            if service.is_running:
+                res = service.stop()
+                self._settings_whatsapp_btn.setText("🟢  Start Bot")
+                self._settings_whatsapp_btn.setStyleSheet(
+                    f"QPushButton {{ background: transparent; color: {C.GREEN}; "
+                    f"border: 1px solid {C.GREEN}; border-radius: 6px; }} "
+                    f"QPushButton:hover {{ background: rgba(16, 185, 129, 0.08); border: 1px solid {C.GREEN}; }}"
+                )
+                self._settings_whatsapp_status.setText("Status: Stopped")
+                self.write_log("SYS: WhatsApp Bot service stopped.")
+            else:
+                res = service.start(player=self)
+                self._settings_whatsapp_btn.setText("🔴  Stop Bot")
+                self._settings_whatsapp_btn.setStyleSheet(
+                    f"QPushButton {{ background: transparent; color: {C.RED}; "
+                    f"border: 1px solid {C.RED}; border-radius: 6px; }} "
+                    f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.08); border: 1px solid {C.RED}; }}"
+                )
+                self._settings_whatsapp_status.setText("Status: Connected & Listening")
+                self.write_log("SYS: WhatsApp Bot service starting... Scan QR code if browser opens.")
+        except Exception as e:
+            self.write_log(f"SYS: Error toggling WhatsApp Bot: {e}")
+
+    def _save_whatsapp_group_link(self):
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            
+            existing["whatsapp_group_link"] = self._settings_whatsapp_group_input.text().strip()
+            
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+        except Exception as e:
+            print(f"[WhatsApp Group Settings] Error saving: {e}")
+
+    def _start_whatsapp_bot_on_boot(self):
+        try:
+            from actions.whatsapp_listener import WhatsAppListenerService
+            service = WhatsAppListenerService()
+            if not service.is_running:
+                res = service.start(player=self)
+                self._settings_whatsapp_btn.setText("🔴  Stop Bot")
+                self._settings_whatsapp_btn.setStyleSheet(
+                    f"QPushButton {{ background: transparent; color: {C.RED}; "
+                    f"border: 1px solid {C.RED}; border-radius: 6px; }} "
+                    f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.08); border: 1px solid {C.RED}; }}"
+                )
+                self._settings_whatsapp_status.setText("Status: Connected & Listening")
+                self.write_log("SYS: WhatsApp Bot service auto-started on boot.")
+        except Exception as e:
+            self.write_log(f"SYS: Error auto-starting WhatsApp Bot: {e}")
+
+    def write_log(self, text: str):
+        self._log_sig.emit(text)
 
     def _build_left_panel(self) -> QWidget:
         self._left_panel = QWidget()
@@ -1724,29 +2923,9 @@ class MainWindow(QMainWindow):
         lay.addWidget(_sec("COMMAND INPUT"))
         lay.addLayout(self._build_input_row())
 
-        self._mute_btn = QPushButton("🎙  MICROPHONE ACTIVE")
-        self._mute_btn.setFixedHeight(30)
-        self._mute_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        self._mute_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._mute_btn.clicked.connect(self._toggle_mute)
-        self._style_mute_btn()
-        lay.addWidget(self._mute_btn)
 
-        self._fullscreen_btn = QPushButton("⛶  FULLSCREEN  [F11]")
-        self._fullscreen_btn.setFixedHeight(26)
-        self._fullscreen_btn.setFont(QFont("Segoe UI", 8))
-        self._fullscreen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._fullscreen_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent; color: {C.TEXT_MED};
-                border: 1px solid {C.BORDER}; border-radius: 6px;
-            }}
-            QPushButton:hover {{
-                color: {C.PRI}; border: 1px solid {C.BORDER_B};
-            }}
-        """)
-        self._fullscreen_btn.clicked.connect(self._toggle_fullscreen)
-        lay.addWidget(self._fullscreen_btn)
+
+
 
         return self._right_panel
 
@@ -1793,21 +2972,14 @@ class MainWindow(QMainWindow):
             l.setStyleSheet(f"color: {color}; background: transparent;")
             self._footer_labels.append(l)
             return l
+        
 
-        lay.addWidget(_fl("[F4] Mute  ·  [F11] Fullscreen"))
         
-        self._theme_btn = QPushButton("🎨 THEME")
-        self._theme_btn.setFixedHeight(20)
-        self._theme_btn.setFont(QFont("Segoe UI", 8))
-        self._theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._theme_btn.setStyleSheet(f"color: {C.PRI}; background: transparent; border: none;")
-        self._theme_btn.clicked.connect(self._cycle_theme)
-        lay.addWidget(self._theme_btn)
-        
+        self._uptime_lbl = QLabel("UPTIME: 00:00:00")
+        self._uptime_lbl.setFont(QFont("Segoe UI", 8))
+        self._uptime_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
+        lay.addWidget(self._uptime_lbl)
         lay.addStretch()
-        lay.addWidget(_fl("IP Verse Industries  ·  IP PRIME  ·  CLASSIFIED"))
-        lay.addStretch()
-        
         self._footer_copyright_lbl = QLabel("© IP VERSE")
         self._footer_copyright_lbl.setFont(QFont("Segoe UI", 8))
         self._footer_copyright_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
@@ -1841,10 +3013,23 @@ class MainWindow(QMainWindow):
 
         # 2. Header
         self._header_widget.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 10px;")
-        self._title_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 2px;")
-        self._sub_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
-        self._clock_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent;")
-        self._date_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        if hasattr(self, "_title_container"):
+            self._title_container.setStyleSheet(f"""
+                QFrame#TitleContainer {{
+                    background: {C.PANEL2};
+                    border: 1px solid {C.BORDER_B};
+                    border-radius: 14px;
+                }}
+            """)
+        self._title_lbl.setStyleSheet(f"""
+            QLabel {{
+                color: {C.WHITE};
+                background: transparent;
+                border: none;
+                letter-spacing: 4px;
+            }}
+        """)
+        self._title_lbl.setText(f"<span style='color: {C.PRI}; font-weight: 800;'>IP</span> <span style='color: {C.CYAN}; font-weight: 800;'>PRIME</span>")
 
         # 3. Left Panel
         self._left_panel.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
@@ -1969,23 +3154,27 @@ class MainWindow(QMainWindow):
 
         # 11. Log Widget
         self._log.setStyleSheet(f"""
-            QTextEdit {{
+            QScrollArea {{
                 background: {C.PANEL};
-                color: {C.TEXT};
                 border: 1px solid {C.BORDER};
                 border-radius: 8px;
-                padding: 8px;
-                selection-background-color: {C.PRI_GHO};
             }}
             QScrollBar:vertical {{
                 background: {C.BG};
                 width: 8px;
                 border: none;
+                margin: 0px;
             }}
             QScrollBar::handle:vertical {{
                 background: {C.BORDER_B};
                 border-radius: 4px;
                 min-height: 20px;
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                height: 0px;
+            }}
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
             }}
         """)
 
@@ -2010,24 +3199,12 @@ class MainWindow(QMainWindow):
             QPushButton:hover {{ background: {C.PRI_GHO}; border: 1px solid {C.PRI}; }}
         """)
 
-        # 15. Mute Button
-        self._style_mute_btn()
-
-        # 16. Fullscreen Button
-        self._fullscreen_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent; color: {C.TEXT_MED};
-                border: 1px solid {C.BORDER}; border-radius: 6px;
-            }}
-            QPushButton:hover {{
-                color: {C.PRI}; border: 1px solid {C.BORDER_B};
-            }}
-        """)
+        pass
 
         # 17. Footer Widget & Labels
         self._footer_widget.setStyleSheet(f"background: {C.DARK}; border-top: 1px solid {C.BORDER};")
         self._theme_btn.setStyleSheet(f"color: {C.PRI}; background: transparent; border: none;")
-        self._footer_copyright_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
+        self._uptime_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
         for l in self._footer_labels:
             l.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
 
@@ -2052,35 +3229,46 @@ class MainWindow(QMainWindow):
             )
             threading.Thread(target=self.on_text_command, args=(msg,), daemon=True).start()
 
-    def _toggle_mute(self):
-        self._muted = not self._muted
-        self.hud.muted = self._muted
-        self._style_mute_btn()
-        if self._muted:
-            self._apply_state("MUTED")
-            self._log.append_log("SYS: Microphone muted.")
-        else:
-            self._apply_state("LISTENING")
-            self._log.append_log("SYS: Microphone active.")
+    def _restart_app(self):
+        import os, sys
+        self._log.append_log("SYS: Restarting IP Prime...")
+        QTimer.singleShot(400, lambda: os.execv(sys.executable, [sys.executable] + sys.argv))
 
-    def _style_mute_btn(self):
-        if self._muted:
-            self._mute_btn.setText("🔇  MICROPHONE MUTED")
-            self._mute_btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: #140006; color: {C.MUTED_C};
-                    border: 1px solid {C.MUTED_C}; border-radius: 3px;
-                }}
-            """)
-        else:
-            self._mute_btn.setText("🎙  MICROPHONE ACTIVE")
-            self._mute_btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: #00140a; color: {C.GREEN};
-                    border: 1px solid {C.GREEN}; border-radius: 3px;
-                }}
-                QPushButton:hover {{ background: #001f10; }}
-            """)
+    def _save_api_key(self):
+        new_key = self._api_key_input.text().strip()
+        if not new_key:
+            self._api_status_lbl.setStyleSheet(f"color: {C.RED}; background: transparent;")
+            self._api_status_lbl.setText("⚠ Key empty hai! Pehle key daalo.")
+            return
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            existing["gemini_api_key"] = new_key
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+            self._api_status_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent;")
+            self._api_status_lbl.setText("✅ Key save ho gayi! Restarting...")
+            self._log.append_log("SYS: Gemini API Key updated. Restarting...")
+            QTimer.singleShot(1000, self._restart_app)
+        except Exception as e:
+            self._api_status_lbl.setStyleSheet(f"color: {C.RED}; background: transparent;")
+            self._api_status_lbl.setText(f"❌ Error: {e}")
+
+    def _toggle_right_panel(self):
+        self._right_panel_visible = not getattr(self, '_right_panel_visible', False)
+        target_w = _RIGHT_W if self._right_panel_visible else 0
+        
+        self._panel_anim = QPropertyAnimation(self._right_panel, b"maximumWidth")
+        self._panel_anim.setDuration(300)
+        self._panel_anim.setStartValue(self._right_panel.maximumWidth())
+        self._panel_anim.setEndValue(target_w)
+        self._panel_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        
+        self._right_panel.setMinimumWidth(0)
+        self._panel_anim.start()
 
     def _send(self):
         txt = self._input.text().strip()
@@ -2095,6 +3283,34 @@ class MainWindow(QMainWindow):
         self.hud.speaking = (state == "SPEAKING")
         if hasattr(self, "_log"):
             self._log.show_typing(state in ("THINKING", "PROCESSING"))
+
+    def _apply_thought(self, text: str):
+        """Updates the NLA Live HUD Thought Stream Panel with new real-time reasoning text."""
+        if not hasattr(self, "_thought_label"):
+            return
+        import time as _time
+        ts = _time.strftime("%H:%M:%S")
+        # Determine colour based on content keywords
+        txt_lower = text.lower()
+        if any(k in txt_lower for k in ("browser", "camoufox", "ui-tars", "visual", "screenshot", "desktop")):
+            colour = C.CYAN      # Electric cyan for visual/browser ops
+            dot_colour = C.CYAN
+        elif any(k in txt_lower for k in ("worktree", "git", "compil", "agent", "orchestrat", "branch", "conflict", "merge")):
+            colour = C.ACC       # Royal purple for coder/git ops
+            dot_colour = C.ACC
+        else:
+            colour = C.GREEN     # Emerald green for general cognition
+            dot_colour = C.GREEN
+        self._thought_dot.setStyleSheet(f"color: {dot_colour}; font-size: 8px;")
+        self._thought_label.setStyleSheet(
+            f"color: {colour}; background: transparent;"
+            f"font-family: 'Consolas','Courier New',monospace; font-size: 10px; letter-spacing: 0.5px;"
+        )
+        # Elide long text to fit width without wrapping
+        max_chars = 110
+        display = text if len(text) <= max_chars else text[:max_chars - 1] + "…"
+        self._thought_label.setText(f"> {display}")
+        self._thought_ts.setText(ts)
 
     def _on_opacity_changed(self, val: int):
         self._lbl_opacity.setText(f"OPACITY: {val}%")
@@ -2127,6 +3343,8 @@ class MainWindow(QMainWindow):
         if is_compact:
             self._normal_geometry = self.geometry()
             self._was_maximized = self.isMaximized()
+            if self._was_maximized:
+                self.showNormal()
             
             self._header_widget.hide()
             self._footer_widget.hide()
@@ -2134,7 +3352,13 @@ class MainWindow(QMainWindow):
             self._right_panel.hide()
             
             self._central_widget.layout().setContentsMargins(0, 0, 0, 0)
+            
+            # Make the central widget background transparent so translucency shows through
+            self._central_widget.setStyleSheet("background: transparent; border: none;")
             self._hud_container.setStyleSheet("background: transparent; border: none;")
+            
+            # Disable OpaquePaintEvent on HudCanvas for translucency
+            self.hud.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
             
             self.hide()
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -2143,8 +3367,19 @@ class MainWindow(QMainWindow):
             self.resize(180, 180)
             self.setFixedSize(180, 180)
             self.show()
+            
+            # Reposition to the bottom-right corner of the screen
+            screen = QApplication.primaryScreen()
+            if screen:
+                geom = screen.availableGeometry()
+                x = geom.x() + geom.width() - 180 - 40
+                y = geom.y() + geom.height() - 180 - 40
+                self.move(x, y)
         else:
             self.hide()
+            
+            # Restore OpaquePaintEvent on HudCanvas
+            self.hud.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
             
             self.setMinimumSize(_MIN_W, _MIN_H)
             self.setMaximumSize(16777215, 16777215)
@@ -2153,6 +3388,10 @@ class MainWindow(QMainWindow):
             self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
             
             self._central_widget.layout().setContentsMargins(12, 12, 12, 12)
+            
+            # Restore central widget and container styles
+            self._central_widget.setStyleSheet(f"background: {C.BG};")
+            self._hud_container.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
             
             self._header_widget.show()
             self._footer_widget.show()
@@ -2212,10 +3451,279 @@ class _RootShim:
         pass
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# WELCOME SPLASH  —  Matrix rain + cyberpunk boot sequence
+# ═══════════════════════════════════════════════════════════════════════════════
+class WelcomeSplash(QWidget):
+    """Full-screen cyberpunk welcome splash with character rain and boot sequence."""
+
+    RAIN_CHARS = (
+        "アイウエオカキクケコサシスセソタチツテトナニヌネノ"
+        "ハヒフヘホマミムメモヤユヨラリルレロワヲン"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        "#@$%&*!?><|[]{}01"
+    )
+
+    BOOT_LINES = [
+        (0,    "[BOOT]  Quantum neural core warming up..."),
+        (500,  "[SYS]   Loading cognitive matrix............. OK"),
+        (900,  "[MEM]   Allocating latent space embeddings... OK"),
+        (1300, "[NET]   Establishing encrypted uplinks........ OK"),
+        (1700, "[SEC]   Camoufox stealth layer active......... OK"),
+        (2100, "[AI]    Gemini 2.5 neural pathway online...... OK"),
+        (2500, "[HUD]   Holographic display initialised....... OK"),
+        (2900, "[READY] ■ IP PRIME IS ONLINE ■"),
+    ]
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowStaysOnTopHint |
+            Qt.WindowType.Tool
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        screen = QApplication.primaryScreen().geometry()
+        self.setGeometry(screen)
+
+        # ── Rain state ─────────────────────────────────────────────────────
+        self._cols: list[dict] = []
+        self._init_rain()
+
+        # ── Boot text lines visible so far ─────────────────────────────────
+        self._boot_lines_visible: list[str] = []
+        self._progress = 0          # 0-100
+        self._title_glitch = 0      # glitch frame counter
+        self._glitch_char = "IP PRIME"
+        self._done = False
+
+        # ── Rain animation (60fps) ──────────────────────────────────────────
+        self._rain_tmr = QTimer(self)
+        self._rain_tmr.timeout.connect(self._tick_rain)
+        self._rain_tmr.start(40)
+
+        # ── Boot line timers ────────────────────────────────────────────────
+        for delay_ms, line in self.BOOT_LINES:
+            QTimer.singleShot(delay_ms, lambda l=line: self._add_boot_line(l))
+
+        # ── Progress bar timer ─────────────────────────────────────────────
+        self._prog_tmr = QTimer(self)
+        self._prog_tmr.timeout.connect(self._tick_progress)
+        self._prog_tmr.start(32)
+
+        # ── Glitch timer ───────────────────────────────────────────────────
+        self._glitch_tmr = QTimer(self)
+        self._glitch_tmr.timeout.connect(self._tick_glitch)
+        self._glitch_tmr.start(80)
+
+        # ── Auto close after 3.6s ──────────────────────────────────────────
+        QTimer.singleShot(3600, self._finish)
+
+    # ─── helpers ───────────────────────────────────────────────────────────
+    def _init_rain(self):
+        w = QApplication.primaryScreen().geometry().width()
+        col_w = 18
+        n_cols = w // col_w + 2
+        self._col_w = col_w
+        self._cols = [
+            {
+                "x": i * col_w,
+                "y": random.randint(-200, 0),
+                "speed": random.uniform(8, 22),
+                "len": random.randint(6, 22),
+                "chars": [random.choice(self.RAIN_CHARS) for _ in range(28)],
+                "bright": random.random() > 0.85,
+            }
+            for i in range(n_cols)
+        ]
+
+    def _tick_rain(self):
+        h = self.height()
+        for col in self._cols:
+            col["y"] += col["speed"]
+            if col["y"] - col["len"] * 18 > h + 40:
+                col["y"] = random.randint(-120, -20)
+                col["speed"] = random.uniform(8, 22)
+                col["len"] = random.randint(6, 22)
+                col["bright"] = random.random() > 0.85
+            # randomly mutate one char for flicker
+            idx = random.randint(0, len(col["chars"]) - 1)
+            col["chars"][idx] = random.choice(self.RAIN_CHARS)
+        self.update()
+
+    def _tick_progress(self):
+        if self._progress < 100:
+            self._progress = min(100, self._progress + 1)
+            self.update()
+
+    def _tick_glitch(self):
+        self._title_glitch = (self._title_glitch + 1) % 12
+        if self._title_glitch < 2:
+            glitched = ""
+            for ch in "IP PRIME":
+                if random.random() < 0.25:
+                    glitched += random.choice("@#$%!?&*<>[]{}|01アイウ")
+                else:
+                    glitched += ch
+            self._glitch_char = glitched
+        else:
+            self._glitch_char = "IP PRIME"
+        self.update()
+
+    def _add_boot_line(self, line: str):
+        self._boot_lines_visible.append(line)
+        self.update()
+
+    def _finish(self):
+        self._done = True
+        self._rain_tmr.stop()
+        self._prog_tmr.stop()
+        self._glitch_tmr.stop()
+        self.close()
+
+    # ─── painting ──────────────────────────────────────────────────────────
+    def paintEvent(self, _):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+
+        # Deep background
+        p.fillRect(0, 0, w, h, QColor(2, 6, 15, 252))
+
+        # ── Matrix rain ────────────────────────────────────────────────────
+        fnt_rain = QFont("Consolas", 13)
+        fnt_rain.setBold(True)
+        p.setFont(fnt_rain)
+        fm = p.fontMetrics()
+        ch_h = fm.height()
+
+        for col in self._cols:
+            n = col["len"]
+            for i in range(n):
+                cy = int(col["y"]) - i * ch_h
+                if cy < -ch_h or cy > h + ch_h:
+                    continue
+                char = col["chars"][i % len(col["chars"])]
+                if i == 0:  # head — bright white/cyan
+                    alpha = 255
+                    colour = QColor(200, 255, 255, alpha) if col["bright"] else QColor(100, 255, 200, alpha)
+                elif i < 3:
+                    fade = int(255 * (1 - i / n))
+                    colour = QColor(0, 230, 150, fade)
+                else:
+                    fade = max(20, int(180 * (1 - i / n)))
+                    colour = QColor(0, 160, 80, fade)
+                p.setPen(colour)
+                p.drawText(col["x"], cy, char)
+
+        # ── Dark gradient overlay (centre readable zone) ───────────────────
+        grad = QLinearGradient(0, 0, 0, h)
+        grad.setColorAt(0.0, QColor(2, 6, 15, 0))
+        grad.setColorAt(0.28, QColor(2, 6, 15, 200))
+        grad.setColorAt(0.72, QColor(2, 6, 15, 200))
+        grad.setColorAt(1.0, QColor(2, 6, 15, 0))
+        p.fillRect(0, 0, w, h, QBrush(grad))
+
+        # ── Cyan top accent line ───────────────────────────────────────────
+        pen_acc = QPen(QColor(6, 182, 212, 180), 1.5)
+        p.setPen(pen_acc)
+        p.drawLine(w // 4, h // 2 - 155, 3 * w // 4, h // 2 - 155)
+
+        # ── Main title — GLITCH ────────────────────────────────────────────
+        fnt_title = QFont("Consolas", 62)
+        fnt_title.setBold(True)
+        fnt_title.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 14)
+        p.setFont(fnt_title)
+
+        # Shadow
+        p.setPen(QColor(6, 182, 212, 30))
+        p.drawText(0 + 4, h // 2 - 100 + 4, w, 100, Qt.AlignmentFlag.AlignCenter, self._glitch_char)
+
+        # Main
+        grad_title = QLinearGradient(0, h // 2 - 140, 0, h // 2 - 60)
+        grad_title.setColorAt(0.0, QColor(230, 240, 255))
+        grad_title.setColorAt(0.5, QColor(6, 182, 212))
+        grad_title.setColorAt(1.0, QColor(99, 102, 241))
+        p.setPen(QPen(QBrush(grad_title), 1))
+        p.drawText(0, h // 2 - 140, w, 100, Qt.AlignmentFlag.AlignCenter, self._glitch_char)
+
+        # ── Subtitle ───────────────────────────────────────────────────────
+        fnt_sub = QFont("Consolas", 13)
+        fnt_sub.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 7)
+        p.setFont(fnt_sub)
+        p.setPen(QColor(6, 182, 212, 160))
+        p.drawText(0, h // 2 - 55, w, 30, Qt.AlignmentFlag.AlignCenter,
+                   "ADVANCED  AGENTIC  INTELLIGENCE  SYSTEM  //  v2.5")
+
+        # ── Boot log lines ─────────────────────────────────────────────────
+        fnt_log = QFont("Consolas", 10)
+        p.setFont(fnt_log)
+        log_y = h // 2 - 10
+        max_show = 8
+        lines = self._boot_lines_visible[-max_show:]
+        for i, line in enumerate(lines):
+            is_last = (i == len(lines) - 1)
+            if "READY" in line:
+                p.setPen(QColor(0, 255, 180, 255))
+            elif is_last:
+                p.setPen(QColor(6, 182, 212, 230))
+            else:
+                alpha = max(60, 200 - (len(lines) - 1 - i) * 28)
+                p.setPen(QColor(100, 200, 140, alpha))
+            p.drawText(0, log_y + i * 22, w, 22, Qt.AlignmentFlag.AlignCenter, line)
+
+        # ── Progress bar ───────────────────────────────────────────────────
+        bar_w = min(520, w - 120)
+        bar_x = (w - bar_w) // 2
+        bar_y = h // 2 + 185
+        bar_h = 4
+
+        # Track
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(15, 30, 55, 200))
+        p.drawRoundedRect(bar_x, bar_y, bar_w, bar_h, 2, 2)
+
+        # Fill
+        fill_w = int(bar_w * self._progress / 100)
+        if fill_w > 0:
+            grad_bar = QLinearGradient(bar_x, 0, bar_x + fill_w, 0)
+            grad_bar.setColorAt(0.0, QColor(6, 182, 212, 220))
+            grad_bar.setColorAt(0.6, QColor(99, 102, 241, 220))
+            grad_bar.setColorAt(1.0, QColor(6, 182, 212, 255))
+            p.setBrush(QBrush(grad_bar))
+            p.drawRoundedRect(bar_x, bar_y, fill_w, bar_h, 2, 2)
+
+        # Progress label
+        fnt_prog = QFont("Consolas", 8)
+        p.setFont(fnt_prog)
+        p.setPen(QColor(71, 85, 105, 200))
+        p.drawText(0, bar_y + 14, w, 16, Qt.AlignmentFlag.AlignCenter,
+                   f"LOADING  {self._progress}%")
+
+        # ── Bottom accent line ─────────────────────────────────────────────
+        p.setPen(pen_acc)
+        p.drawLine(w // 4, h // 2 + 220, 3 * w // 4, h // 2 + 220)
+
+        p.end()
+
+    def keyPressEvent(self, e):
+        # Allow instant dismiss with any key
+        self._finish()
+
+    def mousePressEvent(self, e):
+        self._finish()
+
+
 class IPRayUI:
     def __init__(self, face_path: str, size=None):
         self._app = QApplication.instance() or QApplication(sys.argv)
         self._app.setStyle("Fusion")
+
+        # ── Show cyberpunk welcome splash ──────────────────────────────────
+        self._splash = WelcomeSplash()
+        self._splash.show()
+        self._app.processEvents()
+
         self._win = MainWindow(face_path)
         self._win.showMaximized()
         self.root = _RootShim(self._app)
@@ -2243,6 +3751,13 @@ class IPRayUI:
 
     def set_state(self, state: str):
         self._win._state_sig.emit(state)
+
+    def write_thought(self, text: str):
+        """Stream a live reasoning/thought update to the NLA HUD Thought Panel."""
+        try:
+            self._win._thought_sig.emit(str(text))
+        except Exception:
+            pass
 
     def write_log(self, text: str):
         self._win._log_sig.emit(text)

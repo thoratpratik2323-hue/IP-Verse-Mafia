@@ -1,4 +1,25 @@
 {
-    "gemini_api_key": "AIzaSyDOmXj2ReRI7wMnJCncMJbhNrZ5EstVZtE",
-    "os_system": "windows"
+    "gemini_api_key": "AIzaSyBHdY2G3EgEjKcn4j34O2NGFVhg9u4CN0k",
+    "whatsapp_group_link": "https://chat.whatsapp.com/FBAZjoFKQa0DrCiiKbxUVD",
+    "coding_api_key": "AIzaSyDNhfMB0jzDE4ecdeU9Nx_x1sjj6NCCHeQ",
+    "vision_api_key": "AIzaSyAXfLTrYMJJJTeeUVAcS3Vqan0uSEpM1_I",
+    "os_system": "windows",
+    "codex_worker_provider": "gemini",
+    "codex_worker_model": "gemini-2.5-flash-lite",
+    "codex_worker_api_key": "",
+    "codex_worker_base_url": "",
+    "use_camoufox": true,
+    "camoufox_headless": true,
+    "camoufox_block_assets": false,
+    "camoufox_human_mimic": true,
+    "camoufox_block_webrtc": true,
+    "camoufox_allow_webgl": false,
+    "camoufox_geoip": true,
+    "camoufox_os": "linux",
+    "camoufox_proxy": "",
+    "camoufox_addons_path": "",
+    "use_cloakbrowser": false,
+    "cloakbrowser_path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "cloakbrowser_proxy": "",
+    "cloakbrowser_headless": false
 }

@@ -1,0 +1,9 @@
+{
+  "name": "calculate_interest",
+  "description": "Calculate compound interest for a given principal, rate, and time.",
+  "parameters": {
+    "principal": "float (required) - the starting amount",
+    "rate": "float (required) - interest rate in percentage",
+    "time": "float (required) - time period in years"
+  }
+}

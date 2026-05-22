@@ -1032,7 +1032,325 @@ def system_diagnostics() -> str:
     return "\n".join(report)
 
 
+def smart_workspace(layout: str = "dev", player=None) -> str:
+    import subprocess
+    import os
+    import threading
+    import time
+    try:
+        import pyautogui
+    except ImportError:
+        pass
+    try:
+        import pygetwindow as gw
+    except ImportError:
+        pass
+    import ctypes
+
+    layout = layout.lower().strip()
+    if layout not in ("dev", "chill", "design"):
+        layout = "dev"
+
+    if player:
+        player.write_log(f"SYS: Smart Workspace Launcher active for layout '{layout}'...")
+
+    launched = []
+    
+    if layout == "dev":
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "chrome", "https://github.com", "https://stackoverflow.com"], shell=True)
+            launched.append("Chrome (GitHub, StackOverflow)")
+            if player:
+                player.write_log("SYS: Launching Google Chrome (GitHub, StackOverflow) in background...")
+        except Exception as e:
+            print(f"[Workspace] Chrome launch failed: {e}")
+        
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "spotify:"], shell=True)
+            launched.append("Spotify")
+            if player:
+                player.write_log("SYS: Launching Spotify background daemon...")
+        except Exception as e:
+            print(f"[Workspace] Spotify launch failed: {e}")
+            
+        try:
+            subprocess.Popen("code", shell=True)
+            launched.append("VS Code")
+            if player:
+                player.write_log("SYS: Launching Visual Studio Code editor...")
+        except Exception as e:
+            print(f"[Workspace] VS Code launch failed: {e}")
+
+    elif layout == "chill":
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "chrome", "https://youtube.com"], shell=True)
+            launched.append("Chrome (YouTube)")
+            if player:
+                player.write_log("SYS: Launching Google Chrome (YouTube) in background...")
+        except Exception as e:
+            print(f"[Workspace] Chrome launch failed: {e}")
+        
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "spotify:"], shell=True)
+            launched.append("Spotify")
+            if player:
+                player.write_log("SYS: Launching Spotify background daemon...")
+        except Exception as e:
+            print(f"[Workspace] Spotify launch failed: {e}")
+
+    elif layout == "design":
+        try:
+            subprocess.Popen(["cmd", "/c", "start", "chrome", "https://figma.com", "https://pinterest.com"], shell=True)
+            launched.append("Chrome (Figma, Pinterest)")
+            if player:
+                player.write_log("SYS: Launching Google Chrome (Figma, Pinterest) in background...")
+        except Exception as e:
+            print(f"[Workspace] Chrome launch failed: {e}")
+
+    def position_windows_thread():
+        time.sleep(3.0)
+        W, H = pyautogui.size()
+        taskbar_h = 40
+        usable_h = H - taskbar_h
+        
+        if player:
+            player.write_log("SYS: [Workspace Snapper] Actively scanning active desktop windows...")
+
+        start_time = time.time()
+        while time.time() - start_time < 15.0:
+            try:
+                windows = gw.getAllWindows()
+            except Exception:
+                time.sleep(1.0)
+                continue
+            
+            code_w = None
+            chrome_w = None
+            spotify_w = None
+            
+            for w in windows:
+                if not w.title:
+                    continue
+                t_lower = w.title.lower()
+                if "visual studio code" in t_lower or w.title.endswith(" - Code"):
+                    code_w = w
+                elif "google chrome" in t_lower or t_lower.endswith("chrome"):
+                    chrome_w = w
+                elif "spotify" in t_lower:
+                    spotify_w = w
+            
+            if layout == "dev":
+                if code_w:
+                    try:
+                        if code_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(code_w._hWnd, 9)
+                        code_w.moveTo(0, 0)
+                        code_w.resizeTo(W // 2, usable_h)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Snapped Visual Studio Code split left (50%).")
+                    except Exception:
+                        pass
+                if chrome_w:
+                    try:
+                        if chrome_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(chrome_w._hWnd, 9)
+                        chrome_w.moveTo(W // 2, 0)
+                        chrome_w.resizeTo(W // 2, usable_h // 2)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Snapped Google Chrome split top-right (25%).")
+                    except Exception:
+                        pass
+                if spotify_w:
+                    try:
+                        if spotify_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(spotify_w._hWnd, 9)
+                        spotify_w.moveTo(W // 2, usable_h // 2)
+                        spotify_w.resizeTo(W // 2, usable_h // 2)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Snapped Spotify split bottom-right (25%).")
+                    except Exception:
+                        pass
+                        
+            elif layout == "chill":
+                if chrome_w:
+                    try:
+                        if chrome_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(chrome_w._hWnd, 9)
+                        chrome_w.moveTo(0, 0)
+                        chrome_w.resizeTo(int(W * 0.6), usable_h)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Snapped Google Chrome split left (60%).")
+                    except Exception:
+                        pass
+                if spotify_w:
+                    try:
+                        if spotify_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(spotify_w._hWnd, 9)
+                        spotify_w.moveTo(int(W * 0.6), 0)
+                        spotify_w.resizeTo(int(W * 0.4), usable_h)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Snapped Spotify split right (40%).")
+                    except Exception:
+                        pass
+                        
+            elif layout == "design":
+                if chrome_w:
+                    try:
+                        if chrome_w.isMinimized:
+                            ctypes.windll.user32.ShowWindow(chrome_w._hWnd, 9)
+                        chrome_w.moveTo(0, 0)
+                        chrome_w.resizeTo(W, usable_h)
+                        if player:
+                            player.write_log("SYS: [Workspace Snapper] Maximized Google Chrome window split (100%).")
+                    except Exception:
+                        pass
+            
+            if layout == "dev" and code_w and chrome_w and spotify_w:
+                if player:
+                    player.write_log("SYS: [Workspace Snapper] Snap alignment complete. Workspace fully aligned, Sir!")
+                break
+            if layout == "chill" and chrome_w and spotify_w:
+                if player:
+                    player.write_log("SYS: [Workspace Snapper] Snap alignment complete. Chill zone aligned, Sir!")
+                break
+            if layout == "design" and chrome_w:
+                if player:
+                    player.write_log("SYS: [Workspace Snapper] Snap alignment complete. Design board maximized, Sir!")
+                break
+                
+            time.sleep(1.5)
+            
+    threading.Thread(target=position_windows_thread, daemon=True).start()
+    
+    return f"Initiated Smart Workspace for layout '{layout}'. Apps spawned: {', '.join(launched)}."
+
+
+def pc_cleaner(player=None) -> str:
+    import os
+    import shutil
+    import tempfile
+    if player:
+        player.write_log("SYS: Safe system temp cleaner initiated...")
+    try:
+        import psutil
+    except ImportError:
+        pass
+
+    temp_paths = []
+    try:
+        temp_paths.append(Path(tempfile.gettempdir()))
+    except Exception:
+        pass
+    
+    if _OS == "Windows":
+        system_root = os.environ.get("SystemRoot", "C:\\Windows")
+        sys_temp = Path(system_root) / "Temp"
+        if sys_temp.exists():
+            temp_paths.append(sys_temp)
+    else:
+        sys_temp = Path("/tmp")
+        if sys_temp.exists():
+            temp_paths.append(sys_temp)
+
+    deleted_files = 0
+    deleted_dirs = 0
+    freed_bytes = 0
+    skipped_files = 0
+
+    print(f"[Cleaner] Starting PC cleanup in paths: {temp_paths}")
+
+    for temp_path in temp_paths:
+        if not temp_path.exists():
+            continue
+            
+        for item in temp_path.iterdir():
+            try:
+                if item.is_file() or item.is_symlink():
+                    file_size = item.stat().st_size
+                    try:
+                        item.unlink()
+                        deleted_files += 1
+                        freed_bytes += file_size
+                    except (PermissionError, FileNotFoundError, OSError):
+                        skipped_files += 1
+                elif item.is_dir():
+                    dir_size = 0
+                    try:
+                        for root, dirs, files in os.walk(str(item)):
+                            for f in files:
+                                fp = os.path.join(root, f)
+                                try:
+                                    dir_size += os.path.getsize(fp)
+                                except OSError:
+                                    pass
+                    except OSError:
+                        pass
+                    try:
+                        shutil.rmtree(item)
+                        deleted_dirs += 1
+                        freed_bytes += dir_size
+                    except (PermissionError, FileNotFoundError, OSError):
+                        dir_deleted_files = 0
+                        try:
+                            for root, dirs, files in os.walk(str(item), topdown=False):
+                                for name in files:
+                                    fp = os.path.join(root, name)
+                                    try:
+                                        sz = os.path.getsize(fp)
+                                        os.unlink(fp)
+                                        deleted_files += 1
+                                        freed_bytes += sz
+                                        dir_deleted_files += 1
+                                    except OSError:
+                                        skipped_files += 1
+                                for name in dirs:
+                                    dp = os.path.join(root, name)
+                                    try:
+                                        os.rmdir(dp)
+                                    except OSError:
+                                        pass
+                            os.rmdir(item)
+                            deleted_dirs += 1
+                        except OSError:
+                            pass
+            except Exception:
+                skipped_files += 1
+
+    ram_hogs = []
+    try:
+        for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
+            try:
+                mem_bytes = proc.info['memory_info'].rss
+                ram_hogs.append((proc.info['name'], mem_bytes))
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        ram_hogs.sort(key=lambda x: x[1], reverse=True)
+    except Exception as e:
+        print(f"[Cleaner] RAM processes fetch failed: {e}")
+
+    freed_mb = freed_bytes / (1024 * 1024)
+    if player:
+        player.write_log(f"SYS: Safe optimization completed. Reclaimed {freed_mb:.2f} MB.")
+    
+    report = []
+    report.append("🧹 [PC CLEANER REPORT]")
+    report.append(f"Successfully deleted {deleted_files} files and {deleted_dirs} directories.")
+    report.append(f"Disk space reclaimed: {freed_mb:.2f} MB.")
+    report.append(f"Skipped {skipped_files} active/locked system files safely.")
+    
+    if ram_hogs:
+        report.append("\n💾 [TOP 3 RESOURCE-CONSUMING PROCESSES]:")
+        for i, (name, size) in enumerate(ram_hogs[:3], 1):
+            size_mb = size / (1024 * 1024)
+            report.append(f"{i}. {name} — {size_mb:.1f} MB")
+            
+    report.append("\nOptimization complete, Sir! The system should feel much more responsive now.")
+    return "\n".join(report)
+
+
 ACTION_MAP: dict[str, callable] = {
+    "smart_workspace":     smart_workspace,
+    "pc_cleaner":          pc_cleaner,
     "volume_up":           volume_up,
     "volume_down":         volume_down,
     "mute":                volume_mute,
@@ -1298,6 +1616,13 @@ def computer_settings(
 
     if action == "system_diagnostics":
         return system_diagnostics()
+
+    if action == "smart_workspace":
+        layout = str(value or params.get("value", "") or params.get("layout", "dev")).strip()
+        return smart_workspace(layout, player)
+
+    if action == "pc_cleaner":
+        return pc_cleaner(player)
 
     func = ACTION_MAP.get(action)
     if not func:

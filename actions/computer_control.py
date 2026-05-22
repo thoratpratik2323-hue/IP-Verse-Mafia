@@ -296,51 +296,420 @@ def _focus_window(title: str) -> str:
 
     return f"focus_window: unknown OS '{os_name}'"
 
+def _find_element_on_screen(description: str, api_key: str) -> tuple[int, int] | None:
+    """
+    Advanced 2-Stage Visual Grounding Locator for ultra-precise screen targeting:
+    - Stage 1: Calls Gemini 2.5 Flash with the full screenshot to obtain the target bounding box
+               in normalized coordinates [ymin, xmin, ymax, xmax] (scale 0-1000).
+    - Stage 2: Crops a 300x300 area around the Stage 1 center and performs a zoomed-in precision call
+               to pinpoint the exact click coordinates relative to the crop.
+    - Robust parsing and fallback strategies ensure pixel-perfect accuracy with safe fallbacks.
+    """
+    try:
+        from google import genai
+        from google.genai import types as gtypes
+        from PIL import Image
+
+        _require_pyautogui()
+        w, h = pyautogui.size()
+        img = pyautogui.screenshot()
+        phys_w, phys_h = img.width, img.height
+        
+        # Calculate DPI scale factors dynamically
+        scale_x = (phys_w / w) if w > 0 else 1.0
+        scale_y = (phys_h / h) if h > 0 else 1.0
+        
+        # --- Stage 1: Coarse Grounding using Normalized Bounding Box ---
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        full_image_bytes = buf.getvalue()
+
+        client = genai.Client(api_key=api_key)
+        
+        stage1_prompt = (
+            f"You are a high-precision screen coordinate locator. Locate the UI element described as: '{description}'.\n"
+            f"Return the exact 2D bounding box of the element as standard normalized coordinates in the form [ymin, xmin, ymax, xmax] on a scale of 0 to 1000 "
+            f"(where ymin, xmin, ymax, xmax represent the percentage of height and width from the top-left corner, multiplied by 1000).\n"
+            f"Reply with ONLY the coordinates in the format [ymin, xmin, ymax, xmax]. If not found, reply NOT_FOUND."
+        )
+
+        print(f"[PrecisionLocator] 🔍 Stage 1: Locating element '{description}' on full logical {w}x{h} (physical {phys_w}x{phys_h}) screen...")
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                gtypes.Part.from_bytes(data=full_image_bytes, mime_type="image/png"),
+                stage1_prompt,
+            ],
+        )
+
+        text = (response.text or "").strip()
+        print(f"[PrecisionLocator] Stage 1 raw response: '{text}'")
+
+        if "NOT_FOUND" in text.upper():
+            print("[PrecisionLocator] Element reported as NOT_FOUND in Stage 1")
+            return None
+
+        # Parse coordinates using robust regex
+        # 1. Bbox check [ymin, xmin, ymax, xmax]
+        bbox_match = re.search(r"[\[\(]\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*[\]\)]", text)
+        phys_cx, phys_cy = None, None
+        
+        if bbox_match:
+            ymin = int(bbox_match.group(1))
+            xmin = int(bbox_match.group(2))
+            ymax = int(bbox_match.group(3))
+            xmax = int(bbox_match.group(4))
+            
+            # Check if normalized (usually scale 0-1000)
+            if ymin > 1000 or xmin > 1000 or ymax > 1000 or xmax > 1000:
+                # Absolute pixel coordinates
+                raw_cx = int((xmin + xmax) / 2)
+                raw_cy = int((ymin + ymax) / 2)
+                if raw_cx > w or raw_cy > h:
+                    phys_cx = raw_cx
+                    phys_cy = raw_cy
+                else:
+                    phys_cx = int(raw_cx * scale_x)
+                    phys_cy = int(raw_cy * scale_y)
+                print(f"[PrecisionLocator] Stage 1 parsed absolute bbox -> Physical Coarse Center: ({phys_cx}, {phys_cy})")
+            else:
+                # Normalized coordinates map directly to physical pixels
+                phys_cx = int(((xmin + xmax) / 2.0) / 1000.0 * phys_w)
+                phys_cy = int(((ymin + ymax) / 2.0) / 1000.0 * phys_h)
+                print(f"[PrecisionLocator] Stage 1 parsed normalized bbox [{ymin}, {xmin}, {ymax}, {xmax}] -> Physical Coarse Center: ({phys_cx}, {phys_cy})")
+        else:
+            # 2. X,Y coordinates check
+            xy_match = re.search(r"(\d+)\s*,\s*(\d+)", text)
+            if xy_match:
+                raw_cx = int(xy_match.group(1))
+                raw_cy = int(xy_match.group(2))
+                if raw_cx > w or raw_cy > h:
+                    phys_cx = raw_cx
+                    phys_cy = raw_cy
+                else:
+                    phys_cx = int(raw_cx * scale_x)
+                    phys_cy = int(raw_cy * scale_y)
+                print(f"[PrecisionLocator] Stage 1 parsed raw xy coordinates -> Physical Coarse Center: ({phys_cx}, {phys_cy})")
+
+        if phys_cx is None or phys_cy is None:
+            print("[PrecisionLocator] ⚠️ Stage 1 could not extract coordinates from output.")
+            return None
+
+        # Ensure physical coordinates are within physical screen boundaries
+        phys_cx = max(0, min(phys_w - 1, phys_cx))
+        phys_cy = max(0, min(phys_h - 1, phys_cy))
+
+        # --- Stage 2: Precision Zoom (Fine Grounding on 300x300 crop in physical space) ---
+        phys_crop_size = 300
+        phys_half_crop = phys_crop_size // 2
+        
+        phys_left = max(0, phys_cx - phys_half_crop)
+        phys_top = max(0, phys_cy - phys_half_crop)
+        phys_right = min(phys_w, phys_cx + phys_half_crop)
+        phys_bottom = min(phys_h, phys_cy + phys_half_crop)
+        
+        phys_crop_w = phys_right - phys_left
+        phys_crop_h = phys_bottom - phys_top
+        
+        if phys_crop_w > 50 and phys_crop_h > 50:
+            print(f"[PrecisionLocator] 🔍 Stage 2: Zooming in. Cropping {phys_crop_w}x{phys_crop_h} centered at physical ({phys_cx}, {phys_cy})...")
+            # Crop physical image
+            cropped_img = img.crop((phys_left, phys_top, phys_right, phys_bottom))
+            crop_buf = io.BytesIO()
+            cropped_img.save(crop_buf, format="PNG")
+            crop_image_bytes = crop_buf.getvalue()
+
+            stage2_prompt = (
+                f"This is a zoomed-in, close-up crop of a screen, centered near the UI element: '{description}'.\n"
+                f"The crop dimensions are {phys_crop_w}×{phys_crop_h} pixels.\n"
+                f"Your goal is to find the EXACT pixel coordinates within this crop to click the element.\n"
+                f"Please locate the precise center of the element and reply with ONLY its coordinates in the format: crop_x,crop_y\n"
+                f"where crop_x is between 0 and {phys_crop_w}, and crop_y is between 0 and {phys_crop_h}.\n"
+                f"If the target element '{description}' is not visible or identifiable in this crop, reply: NOT_FOUND."
+            )
+
+            try:
+                response2 = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[
+                        gtypes.Part.from_bytes(data=crop_image_bytes, mime_type="image/png"),
+                        stage2_prompt,
+                    ],
+                )
+                text2 = (response2.text or "").strip()
+                print(f"[PrecisionLocator] Stage 2 raw response: '{text2}'")
+
+                if "NOT_FOUND" not in text2.upper():
+                    crop_match = re.search(r"(\d+)\s*,\s*(\d+)", text2)
+                    if crop_match:
+                        crop_x = int(crop_match.group(1))
+                        crop_y = int(crop_match.group(2))
+                        
+                        # Validate that the model-returned point is within crop bounds
+                        if 0 <= crop_x <= phys_crop_w and 0 <= crop_y <= phys_crop_h:
+                            # Exact coordinate in physical screen space
+                            phys_exact_x = phys_left + crop_x
+                            phys_exact_y = phys_top + crop_y
+                            
+                            # Convert physical screen space coordinate to logical space for PyAutoGUI
+                            exact_x = int(phys_exact_x / scale_x)
+                            exact_y = int(phys_exact_y / scale_y)
+                            print(f"[PrecisionLocator] ✨ Stage 2 Precision Match! Crop relative: ({crop_x}, {crop_y}) -> Physical Screen: ({phys_exact_x}, {phys_exact_y}) -> Logical Screen: ({exact_x}, {exact_y})")
+                            return exact_x, exact_y
+            except Exception as e2:
+                print(f"[PrecisionLocator] ⚠️ Stage 2 Zoom failed: {e2}. Falling back to Stage 1 coarse center.")
+
+        # Fallback to Stage 1 Coarse center mapped to logical space
+        logical_cx = int(phys_cx / scale_x)
+        logical_cy = int(phys_cy / scale_y)
+        print(f"[PrecisionLocator] ℹ️ Falling back to Stage 1 Coarse Center in logical space: ({logical_cx}, {logical_cy})")
+        return logical_cx, logical_cy
+
+    except Exception as e:
+        print(f"[PrecisionLocator] ❌ Advanced visual locator failed: {e}")
+        return None
+
 def _screen_find(description: str) -> tuple[int, int] | None:
     api_key = _get_api_key()
     if not api_key:
         print("[ComputerControl] ⚠️ No API key for screen_find")
         return None
+    return _find_element_on_screen(description, api_key)
+
+def _execute_ui_tars_agent(goal: str, player=None) -> str:
+    """
+    UI-TARS Vision Desktop Automation Agent loop (max 12 steps).
+    Takes desktop screenshots, sends them to Gemini 2.5 Flash with the goal
+    and executed action history, parses the single exact coordinate action,
+    executes it via PyAutoGUI, and loops until completion.
+    """
+    _require_pyautogui()
+    
+    api_key = _get_api_key()
+    if not api_key:
+        msg = "UI-TARS Agent error: No Gemini API Key in config."
+        if player:
+            player.write_log(msg)
+        return msg
+
+    from google import genai
+    from google.genai import types as gtypes
 
     try:
-        from google import genai
-        from google.genai import types as gtypes
-
-        _require_pyautogui()
-        w, h  = pyautogui.size()
-        img   = pyautogui.screenshot()
-        buf   = io.BytesIO()
-        img.save(buf, format="PNG")
-        image_bytes = buf.getvalue()
-
-        client = genai.Client(api_key=api_key)
-        prompt = (
-            f"This is a screenshot of a {w}×{h} pixel screen. "
-            f"Locate the UI element described as: '{description}'. "
-            f"Reply with ONLY the center coordinates as: x,y "
-            f"If the element is not visible, reply: NOT_FOUND"
-        )
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
-            contents=[
-                gtypes.Part.from_bytes(data=image_bytes, mime_type="image/png"),
-                prompt,
-            ],
-        )
-
-        text = (response.text or "").strip()
-        if "NOT_FOUND" in text.upper():
-            return None
-
-        match = re.search(r"(\d+)\s*,\s*(\d+)", text)
-        if match:
-            return int(match.group(1)), int(match.group(2))
-
+        w, h = pyautogui.size()
     except Exception as e:
-        print(f"[ComputerControl] ⚠️ screen_find failed: {e}")
+        return f"Failed to get screen size: {e}"
 
-    return None
+    action_history = []
+    max_steps = 12
+    
+    if player:
+        player.write_log(f"🤖 UI-TARS Visual Agent Started: '{goal}'")
+        if hasattr(player, "write_thought"):
+            player.write_thought(f"UI-TARS visual agent initialised for goal: {goal[:60]}")
+    print(f"[UI-TARS] Goal: {goal}")
+
+    for step in range(max_steps):
+        if player:
+            player.write_log(f"UI-TARS Loop: Step {step + 1}/{max_steps}...")
+            if hasattr(player, "write_thought"):
+                player.write_thought(f"Visual desktop screenshot analysis — step {step + 1} of {max_steps}")
+
+        # 1. Capture screen and compress to memory-mapped JPEG
+        try:
+            img = pyautogui.screenshot()
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=80)
+            image_bytes = buf.getvalue()
+        except Exception as e:
+            err_msg = f"Screenshot capture failed: {e}"
+            if player:
+                player.write_log(f"⚠️ {err_msg}")
+            return err_msg
+
+        # 2. Formulate grounding system prompt
+        history_str = "\n".join(f"- Step {i+1}: {act}" for i, act in enumerate(action_history)) if action_history else "No actions performed yet."
+        
+        prompt = f"""You are a Vision-based Desktop Automation Agent (UI-TARS Mode).
+Your goal is to achieve this task: "{goal}"
+
+Current Screen Dimensions: {w}x{h} pixels.
+
+Action History:
+{history_str}
+
+Your task:
+Analyze the screenshot and the Action History.
+If the goal is fully achieved, output exactly: finish("Reason why it is successfully finished")
+If not, determine the SINGLE next exact GUI action to perform. You MUST output ONLY the action in one of the following exact formats. Do NOT add any surrounding markdown, explanation, or extra code. Just output the single function call.
+
+Available formats:
+- click(x, y)
+- double_click(x, y)
+- right_click(x, y)
+- type("text to type")
+- press("key_name")  (e.g., "enter", "backspace", "tab", "esc", "win")
+- scroll("up" or "down", amount_integer)
+- drag(x1, y1, x2, y2)
+- wait(seconds_float)
+- finish("explanation")
+
+Coordinates MUST be absolute integer values matching the current {w}x{h} screen resolution.
+Keep mouse movements natural and select elements accurately.
+"""
+
+        # 3. Query Gemini
+        try:
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    gtypes.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                    prompt,
+                ],
+            )
+            response_text = (response.text or "").strip()
+        except Exception as api_err:
+            err_msg = f"Gemini API request failed: {api_err}"
+            if player:
+                player.write_log(f"⚠️ {err_msg}")
+            return err_msg
+
+        print(f"[UI-TARS] Step {step + 1} model suggestion: {response_text}")
+        if player and hasattr(player, "write_thought"):
+            player.write_thought(f"UI-TARS action decoded: {response_text[:80]}")
+
+        # 4. Parse the action
+        parsed = None
+        
+        # Try finish
+        m = re.search(r'finish\(\s*["\'](.*?)["\']\s*\)', response_text, re.IGNORECASE)
+        if m:
+            parsed = {"action": "finish", "reason": m.group(1)}
+        else:
+            # Try double_click
+            m = re.search(r'double_click\(\s*(\d+)\s*,\s*(\d+)\s*\)', response_text, re.IGNORECASE)
+            if m:
+                parsed = {"action": "double_click", "x": int(m.group(1)), "y": int(m.group(2))}
+            else:
+                # Try right_click
+                m = re.search(r'right_click\(\s*(\d+)\s*,\s*(\d+)\s*\)', response_text, re.IGNORECASE)
+                if m:
+                    parsed = {"action": "right_click", "x": int(m.group(1)), "y": int(m.group(2))}
+                else:
+                    # Try click
+                    m = re.search(r'click\(\s*(\d+)\s*,\s*(\d+)\s*\)', response_text, re.IGNORECASE)
+                    if m:
+                        parsed = {"action": "click", "x": int(m.group(1)), "y": int(m.group(2))}
+                    else:
+                        # Try drag
+                        m = re.search(r'drag\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', response_text, re.IGNORECASE)
+                        if m:
+                            parsed = {"action": "drag", "x1": int(m.group(1)), "y1": int(m.group(2)), "x2": int(m.group(3)), "y2": int(m.group(4))}
+                        else:
+                            # Try type
+                            m = re.search(r'type\(\s*["\'](.*?)["\']\s*\)', response_text, re.IGNORECASE)
+                            if m:
+                                parsed = {"action": "type", "text": m.group(1)}
+                            else:
+                                # Try press
+                                m = re.search(r'press\(\s*["\'](.*?)["\']\s*\)', response_text, re.IGNORECASE)
+                                if m:
+                                    parsed = {"action": "press", "key": m.group(1)}
+                                else:
+                                    # Try scroll
+                                    m = re.search(r'scroll\(\s*["\'](up|down)["\']\s*,\s*(\d+)\s*\)', response_text, re.IGNORECASE)
+                                    if m:
+                                        parsed = {"action": "scroll", "direction": m.group(1), "amount": int(m.group(2))}
+                                    else:
+                                        # Try wait
+                                        m = re.search(r'wait\(\s*([\d\.]+)\s*\)', response_text, re.IGNORECASE)
+                                        if m:
+                                            parsed = {"action": "wait", "seconds": float(m.group(1))}
+
+        if not parsed:
+            # Fallback parsing for text if it doesn't strictly match the parentheses format
+            m = re.search(r'(click|double_click|right_click).*?(\d+)\s*,\s*(\d+)', response_text, re.IGNORECASE)
+            if m:
+                act_type = m.group(1).lower()
+                parsed = {"action": act_type, "x": int(m.group(2)), "y": int(m.group(3))}
+            else:
+                err_msg = f"Failed to parse model response: '{response_text}'"
+                if player:
+                    player.write_log(f"⚠️ {err_msg}")
+                action_history.append(f"Error parsing model suggestion: '{response_text}'")
+                time.sleep(2)
+                continue
+
+        # 5. Execute parsed action with failsafe catches
+        action_name = parsed["action"]
+        action_desc = response_text
+        
+        try:
+            if action_name == "finish":
+                success_msg = f"UI-TARS Goal Achieved! Reason: {parsed.get('reason', 'completed')}"
+                if player:
+                    player.write_log(f"🎉 {success_msg}")
+                return success_msg
+                
+            elif action_name == "click":
+                _click(parsed["x"], parsed["y"])
+                action_desc = f"click({parsed['x']}, {parsed['y']})"
+                
+            elif action_name == "double_click":
+                _click(parsed["x"], parsed["y"], clicks=2)
+                action_desc = f"double_click({parsed['x']}, {parsed['y']})"
+                
+            elif action_name == "right_click":
+                _click(parsed["x"], parsed["y"], button="right")
+                action_desc = f"right_click({parsed['x']}, {parsed['y']})"
+                
+            elif action_name == "type":
+                _smart_type(parsed["text"])
+                action_desc = f"type('{parsed['text']}')"
+                
+            elif action_name == "press":
+                _press(parsed["key"])
+                action_desc = f"press('{parsed['key']}')"
+                
+            elif action_name == "scroll":
+                _scroll(parsed["direction"], parsed["amount"])
+                action_desc = f"scroll('{parsed['direction']}', {parsed['amount']})"
+                
+            elif action_name == "drag":
+                _drag(parsed["x1"], parsed["y1"], parsed["x2"], parsed["y2"])
+                action_desc = f"drag({parsed['x1']}, {parsed['y1']} to {parsed['x2']}, {parsed['y2']})"
+                
+            elif action_name == "wait":
+                time.sleep(parsed["seconds"])
+                action_desc = f"wait({parsed['seconds']}s)"
+                
+            if player:
+                player.write_log(f"GUI: Executed {action_desc}")
+            action_history.append(action_desc)
+            
+            # Buffer sleep to let GUI update
+            time.sleep(1.5)
+            
+        except pyautogui.FailSafeException:
+            fail_msg = "UI-TARS Agent halted: PyAutoGUI Failsafe triggered by moving mouse to screen corner."
+            if player:
+                player.write_log(fail_msg)
+            return fail_msg
+        except Exception as exec_err:
+            err_msg = f"Action execution failed: {exec_err}"
+            if player:
+                player.write_log(f"⚠️ {err_msg}")
+            action_history.append(f"Failed to execute: {action_desc} ({exec_err})")
+            time.sleep(2)
+
+    timeout_msg = f"UI-TARS Agent finished: Max step limit ({max_steps}) reached."
+    if player:
+        player.write_log(timeout_msg)
+    return timeout_msg
+
 
 def computer_control(
     parameters: dict,
@@ -492,6 +861,12 @@ def computer_control(
                 value = _random_data(field)
                 print(f"[ComputerControl] ⚠️ No '{field}' in memory, using random: {value}")
             return value
+
+        if action == "ui_tars_agent":
+            goal = params.get("goal", params.get("text", ""))
+            if not goal:
+                return "ui_tars_agent: 'goal' or 'text' parameter is required."
+            return _execute_ui_tars_agent(goal, player)
 
         return f"Unknown action: '{action}'"
 

@@ -63,9 +63,10 @@ def _save_config_key(key: str, value) -> None:
 
 
 def _get_api_key() -> str:
-    key = _load_config().get("gemini_api_key", "")
+    cfg = _load_config()
+    key = cfg.get("vision_api_key") or cfg.get("coding_api_key") or cfg.get("gemini_api_key", "")
     if not key:
-        raise RuntimeError("gemini_api_key not found in config.")
+        raise RuntimeError("No valid Gemini API key found in config.")
     return key
 
 
@@ -424,6 +425,116 @@ def warmup_session(player=None) -> None:
         _ensure_session(player=player)
     except Exception as e:
         print(f"[Vision] ⚠️  Warmup failed: {e}")
+
+def screen_clicker(element_description: str) -> str:
+    """Feature 5: J.A.R.V.I.S. Screen Clicker & Interaction"""
+    try:
+        import pyautogui
+    except ImportError:
+        return "PyAutoGUI is not installed. Cannot perform clicks, sir."
+
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key found in configuration to query Gemini, sir."
+
+    print(f"[Vision] Upgraded Screen Clicker targeting: '{element_description}'")
+    try:
+        from actions.computer_control import _find_element_on_screen
+        
+        coords = _find_element_on_screen(element_description, api_key)
+        if coords:
+            x, y = coords
+            pyautogui.moveTo(x, y, duration=0.4)
+            pyautogui.click(x, y)
+            return f"Successfully located and clicked '{element_description}' at ({x}, {y}) on screen, sir."
+        
+        return f"I could not locate the element '{element_description}' on your screen, sir."
+    except Exception as e:
+        return f"An error occurred while running Screen Clicker: {e}"
+
+
+def screen_explainer(description: str = "") -> str:
+    """Feature 6: Smart Screen Annotator & Explainer"""
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key found to run screen explanation, sir."
+
+    print(f"[Vision] Explaining screen. Query: '{description}'")
+    try:
+        image_bytes, mime_type = _capture_screen()
+
+        client = genai.Client(api_key=api_key)
+        prompt = (
+            f"Analyze this screenshot and answer/explain the following: '{description or 'Describe what is currently on the screen in high detail.'}'. "
+            f"Focus on identifying UI controls, any errors, layout bugs, text content, or code snippets. "
+            f"Provide professional, actionable feedback and optimizations where applicable."
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                gtypes.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                prompt,
+            ],
+        )
+        return response.text or "I was unable to analyze the screenshot, sir."
+    except Exception as e:
+        return f"Failed to perform screen explanation: {e}"
+
+
+def clipboard_action(action_type: str = "summarize") -> str:
+    """Feature 7: Smart Clipboard Context Manager"""
+    try:
+        import pyperclip
+    except ImportError:
+        return "Pyperclip is not installed. Cannot read or write clipboard contents, sir."
+
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key configured for clipboard operations, sir."
+
+    text = pyperclip.paste()
+    if not text or not text.strip():
+        return "Your clipboard is currently empty, sir. Please copy something first."
+
+    print(f"[Clipboard] Processing action '{action_type}' on {len(text)} characters of text.")
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        prompt = ""
+        if action_type == "summarize":
+            prompt = "Provide a concise summary of the following text:\n\n"
+        elif action_type == "refactor":
+            prompt = "Refactor and optimize the following code block according to SOLID principles. Keep all existing features but improve naming, structure, readability, and performance. Return ONLY the refactored code without extra markdown conversational explanations:\n\n"
+        elif action_type == "explain":
+            prompt = "Explain this code or text comprehensively and clearly:\n\n"
+        elif action_type == "docstrings":
+            prompt = "Generate high-quality docstrings and type hints for all functions/classes in this Python code. Return ONLY the updated code without extra markdown conversational explanations:\n\n"
+        elif action_type == "fix_grammar":
+            prompt = "Correct any grammar, spelling, or styling errors in the following text while preserving its meaning. Return ONLY the corrected text:\n\n"
+        else:
+            prompt = f"Perform the action '{action_type}' on this text:\n\n"
+
+        prompt += text
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        result = response.text or ""
+        
+        if action_type in ("refactor", "docstrings", "fix_grammar"):
+            cleaned = result.strip()
+            if cleaned.startswith("```"):
+                cleaned = re.sub(r"^```[a-zA-Z]*\r?\n?", "", cleaned)
+                cleaned = re.sub(r"\r?\n?```\s*$", "", cleaned)
+            result = cleaned.strip()
+
+        pyperclip.copy(result)
+        return f"Completed clipboard action '{action_type}', sir. The updated result has been copied back to your clipboard."
+    except Exception as e:
+        return f"An error occurred during clipboard processing: {e}"
+
 
 if __name__ == "__main__":
     print("[TEST] screen_processor.py")

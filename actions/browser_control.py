@@ -342,6 +342,52 @@ def _detect_default_browser() -> str:
     except Exception:
         pass
     return "chrome"
+def _load_stealth_config() -> dict:
+    try:
+        import sys
+        import json
+        if getattr(sys, "frozen", False):
+            base_dir = Path(sys.executable).parent
+        else:
+            base_dir = Path(__file__).resolve().parent.parent
+        config_path = base_dir / "config" / "api_keys.json"
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"[Browser] Error loading config: {e}")
+    return {}
+
+def _parse_proxy_string(proxy_str: str) -> dict | None:
+    proxy_str = proxy_str.strip()
+    if not proxy_str:
+        return None
+    from urllib.parse import urlparse
+    try:
+        if not (proxy_str.startswith("http://") or proxy_str.startswith("https://") or proxy_str.startswith("socks5://") or proxy_str.startswith("socks4://")):
+            parsed = urlparse("http://" + proxy_str)
+        else:
+            parsed = urlparse(proxy_str)
+        
+        netloc = parsed.netloc
+        if "@" in netloc:
+            auth, _, host = netloc.rpartition("@")
+            username, _, password = auth.partition(":")
+        else:
+            host = netloc
+            username, password = None, None
+        
+        scheme = parsed.scheme or "http"
+        server = f"{scheme}://{host}"
+        p = {"server": server}
+        if username:
+            p["username"] = username
+        if password:
+            p["password"] = password
+        return p
+    except Exception as e:
+        print(f"[Browser] Proxy parse error for '{proxy_str}': {e}")
+        return None
 
 
 class _BrowserSession:
@@ -361,6 +407,8 @@ class _BrowserSession:
         self._pw:      Playwright     | None = None
         self._context: BrowserContext | None = None
         self._page:    Page           | None = None
+        self._camou_manager = None
+
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -394,6 +442,15 @@ class _BrowserSession:
             asyncio.run_coroutine_threadsafe(self._async_close(), self._loop).result(10)
 
     async def _async_close(self):
+        if hasattr(self, "_camou_manager") and self._camou_manager:
+            try:
+                await self._camou_manager.__aexit__(None, None, None)
+            except Exception:
+                pass
+            self._camou_manager = None
+            self._context = self._page = None
+            return
+
         if self._context:
             try:
                 await self._context.close()
@@ -414,10 +471,117 @@ class _BrowserSession:
         if self._context is not None:
             return
 
+        cfg = _load_stealth_config()
+        use_camou = cfg.get("use_camoufox", False)
+        use_cloak = cfg.get("use_cloakbrowser", False)
+
+        if use_cloak:
+            cloak_path = cfg.get("cloakbrowser_path", "")
+            if cloak_path and os.path.exists(cloak_path):
+                try:
+                    engine_obj = self._pw.chromium
+                    profile = str(Path.home() / ".ipprime_cloakbrowser_profile")
+                    Path(profile).mkdir(parents=True, exist_ok=True)
+                    
+                    proxy_str = cfg.get("cloakbrowser_proxy", "")
+                    proxy_dict = _parse_proxy_string(proxy_str) if proxy_str else None
+                    
+                    kwargs = {
+                        "headless":    cfg.get("cloakbrowser_headless", False),
+                        "slow_mo":     0,
+                        "viewport":    None,
+                        "no_viewport": True,
+                        "executable_path": cloak_path,
+                        "args": [
+                            "--start-maximized",
+                            "--disable-blink-features=AutomationControlled",
+                            "--no-first-run",
+                            "--disable-default-apps",
+                            "--no-default-browser-check",
+                        ],
+                    }
+                    if proxy_dict:
+                        kwargs["proxy"] = proxy_dict
+                        
+                    print(f"[Browser] 🕶️ Launching CloakBrowser (stealth Chromium) from: {cloak_path}")
+                    self._context = await engine_obj.launch_persistent_context(profile, **kwargs)
+                    await asyncio.sleep(0.5)
+                    self._page = await self._context.new_page()
+                    print(f"[Browser] 🕶️ CloakBrowser launched successfully!")
+                    return
+                except Exception as e:
+                    print(f"[Browser] ⚠️ CloakBrowser launch failed: {e}. Falling back to standard browser.")
+            else:
+                print(f"[Browser] ⚠️ CloakBrowser path empty or not found: '{cloak_path}'. Falling back.")
+
+        if use_camou:
+            try:
+                from camoufox.async_api import AsyncCamoufox
+                
+                headless = cfg.get("camoufox_headless", False)
+                os_spoof = cfg.get("camoufox_os", "random")
+                if os_spoof not in ("windows", "macos", "linux"):
+                    os_spoof = "random"
+                
+                block_assets = cfg.get("camoufox_block_assets", False)
+                humanize = cfg.get("camoufox_human_mimic", True)
+                proxy_str = cfg.get("camoufox_proxy", "")
+                
+                proxy_dict = _parse_proxy_string(proxy_str) if proxy_str else None
+                
+                # Load advanced stealth options
+                block_webrtc = cfg.get("camoufox_block_webrtc", True)
+                allow_webgl = cfg.get("camoufox_allow_webgl", False)
+                geoip = cfg.get("camoufox_geoip", True)
+                addons_path_str = cfg.get("camoufox_addons_path", "")
+                
+                # Scan add-ons path if specified
+                addons_list = []
+                if addons_path_str:
+                    try:
+                        addons_dir = Path(addons_path_str)
+                        if addons_dir.exists() and addons_dir.is_dir():
+                            for item in addons_dir.iterdir():
+                                if item.is_dir() and (item / "manifest.json").exists():
+                                    addons_list.append(str(item.resolve()))
+                            if (addons_dir / "manifest.json").exists():
+                                addons_list.append(str(addons_dir.resolve()))
+                    except Exception as ae:
+                        print(f"[Browser] Error scanning addons directory: {ae}")
+                
+                profile = str(Path.home() / ".ipprime_camoufox_profile")
+                Path(profile).mkdir(parents=True, exist_ok=True)
+                
+                print(f"[Browser] 🕷 Launching Camoufox Stealth (headless={headless}, os={os_spoof}, block_images={block_assets}, humanize={humanize}, proxy={proxy_str}, block_webrtc={block_webrtc}, allow_webgl={allow_webgl}, geoip={geoip}, addons={len(addons_list)} found)...")
+                
+                self._camou_manager = AsyncCamoufox(
+                    persistent_context=True,
+                    user_data_dir=profile,
+                    headless=headless,
+                    os=os_spoof,
+                    block_images=block_assets,
+                    humanize=humanize,
+                    proxy=proxy_dict,
+                    geoip=geoip,
+                    block_webrtc=block_webrtc,
+                    allow_webgl=allow_webgl,
+                    addons=addons_list if addons_list else None,
+                )
+                self._context = await self._camou_manager.__aenter__()
+                await asyncio.sleep(0.5)
+                self._page = await self._context.new_page()
+                print(f"[Browser] 🕷 Camoufox Stealth launched successfully!")
+                return
+            except ImportError:
+                print("[Browser] ⚠️ Camoufox package not installed. Falling back to standard browser.")
+            except Exception as e:
+                print(f"[Browser] ⚠️ Camoufox launch failed: {e}. Falling back to standard browser.")
+
         if self._spec is None:
             raise RuntimeError(
                 f"'{self.browser_name}' bu platformda ({_OS}) desteklenmiyor."
             )
+
 
         engine_name = self._spec["engine"]
         exe         = self._spec["exe"]
@@ -891,3 +1055,5 @@ def _log(player, text: str):
     print(f"[Browser] {short}")
     if player:
         player.write_log(f"[browser] {short[:60]}")
+        if hasattr(player, "write_thought"):
+            player.write_thought(f"Browser: {short[:90]}")

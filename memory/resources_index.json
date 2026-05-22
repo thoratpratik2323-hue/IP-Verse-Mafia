@@ -1,0 +1,29 @@
+{
+  "C:\\Users\\thora\\Downloads\\IP Prime\\memory\\_test_rag_sample.txt": {
+    "file_name": "_test_rag_sample.txt",
+    "file_path": "C:\\Users\\thora\\Downloads\\IP Prime\\memory\\_test_rag_sample.txt",
+    "file_size": "2.4 KB",
+    "updated": "2026-05-21",
+    "overall_summary": "IP Prime is a voice-controlled desktop assistant built with Python and Google Generative AI, featuring a modular architecture for planning, execution, memory, and skills. Its self-evolving capabilities include a dynamic skills registry and a tool for creating new Python skills at runtime, along with a local RAG system for document analysis and retrieval.",
+    "chunks": [
+      {
+        "chunk_id": 1,
+        "text": "\nIP Prime Desktop Assistant - Architecture Guide\n\nChapter 1: Overview\nIP Prime is a voice-controlled desktop assistant built with Python 3.11 and Google Generative AI.\nIt uses a modular architecture with separate components for planning, execution, memory, and skills management.\nThe assistant can control the computer, browse the web, manage files, play games, and much more.\n\nChapter 2: Memory System\nThe memory system uses a hierarchical JSON storage approach. Long-term memories are stored in\ncategory-based JSON files under the memory/long_term/ directory. Each category (preferences, notes,\nfacts, context, skills) has its own file. This allows for virtually unlimited memory storage\nwithout hitting single-file size limits.\n\nChapter 3: Skills and Tools\nIP Prime has a dynamic skills registry that scans both core tools and dynamically created tools.\nCore tools include web_search, file_controller, browser_control, computer_control, and many others.\nDynamic tools are stored in the actions/dynamic/ directory and are automatically discovered at runtime.\n\nChapter 4: Self-Evolving Capabilities\nThe create_new_skill tool allows IP Prime to write brand new Python tools at runtime.\nIt generates Python code, validates it with compile(), writes it to the dynamic tools folder,\nand registers it immediately without requiring a restart. This is inspired by the OpenViking\nself-evolving architecture concept.\n\nChapter 5: File Processing and RAG\nThe file_processor module handles all file operations including image processing, PDF extraction,\ndocument summarization, code analysis, and more. It also includes a local RAG (Retrieval Augmented\nGeneration) system that can index documents into chunks, generate summaries and keywords for each\nchunk, and later search the index to retrieve the most relevant context snippets.\n\nChapter 6: Planner and Executor\nThe planner uses Gemini AI to decompose user requests into step-by-step action plans.\nEach step specifies a tool name, parameters, and whether it is critical. The executor then\nruns each step sequentially, passing results between steps and handling errors gracefully.\n\nChapter 7: Future Roadmap\nPlanned features include multi-agent collaboration, persistent task queues across sessions,\nadvanced screen understanding with vision models, and integration with external APIs and services.\nThe goal is to make IP Prime a fully autonomous desktop operating system assistant.\n",
+        "summary": "This document outlines the architecture of IP Prime, a voice-controlled desktop assistant, detailing its modular design, memory system, skill management, self-evolving capabilities, and file processing.",
+        "keywords": [
+          "ip prime",
+          "voice assistant",
+          "python",
+          "google generative ai",
+          "modular architecture",
+          "memory system",
+          "json storage",
+          "skills",
+          "tools",
+          "self-evolving capabilities",
+          "file processing"
+        ]
+      }
+    ]
+  }
+}

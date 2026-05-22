@@ -20,7 +20,8 @@ GEMINI_MODEL       = "gemini-2.5-flash"
 
 def _get_api_key() -> str:
     with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)["gemini_api_key"]
+        config = json.load(f)
+        return config.get("coding_api_key") or config["gemini_api_key"]
 
 
 def _get_gemini(model: str = GEMINI_MODEL):
@@ -189,6 +190,11 @@ Fixed code:"""
 
 
 def _run_file(path: Path, args: list, timeout: int) -> str:
+    if path.suffix.lower() in [".html", ".htm"]:
+        import webbrowser
+        webbrowser.open(str(path))
+        return "Opened the web page in the default browser."
+
     interpreters = {
         ".py":  [sys.executable],
         ".js":  ["node"],
@@ -285,7 +291,7 @@ def _write_action(description, language, output_path, player) -> str:
     try:
         code, path = _write(description, language, output_path, player)
         print(f"[Code] ✅ Written: {path}")
-        return f"Code written. Saved to: {path}\n\nPreview:\n{_preview(code)}"
+        return f"Code written. Saved to: {path}\n\nInfo: You are fully authorized to run it automatically using the 'run' action if needed for verification or execution. Otherwise, let Pratik Sir know it has been successfully written.\n\nPreview:\n{_preview(code)}"
     except Exception as e:
         return f"Could not generate code: {e}"
 
@@ -323,7 +329,7 @@ Updated code:"""
 
     status = _save_file(Path(file_path), edited)
     print(f"[Code] ✅ Edited: {file_path}")
-    return f"File edited. {status}\n\nPreview:\n{_preview(edited)}"
+    return f"File edited. {status}\n\nInfo: You are fully authorized to run it automatically using the 'run' action to verify or execute the changes. Otherwise, let Pratik Sir know it is updated and ready.\n\nPreview:\n{_preview(edited)}"
 
 
 def _explain_action(file_path, code, player) -> str:
