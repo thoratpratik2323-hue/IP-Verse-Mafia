@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-# Database of the 20 premium Claude & MCP coding repositories from the Instagram guide
+# Database of the 23 premium coding repositories, including Claude, MCP, and IP Verse tools
 AWESOME_REPOS = [
     {
         "id": 1,
@@ -288,15 +288,28 @@ AWESOME_REPOS = [
             "LanceDB local vector RAG memory",
             "Biometric facial security vault authentication"
         ]
+    },
+    {
+        "id": 23,
+        "name": "IP Codemaker Agent",
+        "author": "thoratpratik2323-hue",
+        "url": "https://github.com/thoratpratik2323-hue/IP-Codemaker-Agent-ip_agent_001",
+        "description": "Pratik Sir's canonical high-fidelity developer assistant for the IP Verse ecosystem, featuring the 3D Neural Vortex dashboard interface (Agent Red/Zenith themes) and the CLI binary claw.",
+        "features": [
+            "Neural Vortex 3D HUD Dashboard",
+            "Agent Red (Inferno) & Agent Purple (Zenith) themes",
+            "Rust-powered Claw CLI execution binary",
+            "Real-time token and filesystem telemetry logs"
+        ]
     }
 ]
 
 def get_awesome_repo_info(query: str = None) -> str:
-    """Retrieves beautifully formatted information or a listing of the 22 Claude/MCP repositories."""
+    """Retrieves beautifully formatted information or a listing of the 23 Claude/MCP/IP repositories."""
     if not query or query.strip().lower() in ("list", "all", "show", "help"):
         res = [
-            "## 🌟 22 Claude & MCP GitHub Repos That Can Completely Change Your Life\n",
-            "Here is the premium catalog of essential agentic and developer tools from your Instagram guide:\n"
+            "## 🌟 23 Claude, MCP & IP Verse GitHub Repos That Can Completely Change Your Life\n",
+            "Here is the premium catalog of essential agentic, developer, and ecosystem tools:\n"
         ]
         for r in AWESOME_REPOS:
             res.append(f"**{r['id']}. {r['name']}** by *{r['author']}*")
@@ -324,13 +337,13 @@ def get_awesome_repo_info(query: str = None) -> str:
                 break
 
     if not matching:
-        return f"I couldn't find a repository in the list of 22 matching '{query}'. Try asking for a specific name like 'Aider AI', 'Cline', 'Nezha Agent-First IDE', 'Open Interpreter', or 'IRIS-AI'."
+        return f"I couldn't find a repository in the list of 23 matching '{query}'. Try asking for a specific name like 'IP Codemaker Agent', 'Aider AI', 'Cline', 'Nezha Agent-First IDE', 'Open Interpreter', or 'IRIS-AI'."
 
     res = [
         f"### 📦 Repository Info: **{matching['name']}**",
         f"- **GitHub Link**: {matching['url']}",
         f"- **Author**: {matching['author']}",
-        f"- **Index No.**: {matching['id']}/22",
+        f"- **Index No.**: {matching['id']}/23",
         "",
         f"**Description**:\n{matching['description']}",
         "",

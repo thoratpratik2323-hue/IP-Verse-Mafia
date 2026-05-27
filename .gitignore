@@ -67,3 +67,7 @@ temp/
 tmp/
 .vscode/
 .idea/
+
+# Cloned awesome repositories
+awesome_repos/*
+!awesome_repos/.gitkeep
