@@ -2030,10 +2030,9 @@ class IPRayLive:
         else:
             _unmute_ui()
             
-        # Trigger startup welcome greeting to say hello immediately in Hinglish!
+        # Speak a short and crisp "Hi" on wake word detection
         if self._loop and self.session:
-            self._has_greeted_on_startup = False # allow greeting
-            asyncio.run_coroutine_threadsafe(self._send_startup_welcome(), self._loop)
+            self.speak("Hi")
 
     def trigger_personality_reload_and_greeting(self):
         self.ui.write_log("SYS: Rebooting AI Core with new personality matrix...")
