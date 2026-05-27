@@ -3,19 +3,12 @@ import sys
 import json
 import subprocess
 from pathlib import Path
+from actions.prime_utils import get_base_dir, get_api_key
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-API_KEYS_PATH = BASE_DIR / "config" / "api_keys.json"
+BASE_DIR = get_base_dir()
 
 def _get_api_key() -> str | None:
-    try:
-        if API_KEYS_PATH.exists():
-            with open(API_KEYS_PATH, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-                return cfg.get("gemini_api_key")
-    except Exception as e:
-        print(f"[Aider Helper] Error loading config: {e}")
-    return None
+    return get_api_key() or None
 
 def is_aider_installed() -> bool:
     try:
@@ -42,7 +35,7 @@ def install_aider() -> bool:
         print(f"[Aider Helper] Installation failed: {e}")
         return False
 
-def run_aider_coding_task(instruction: str, file_paths: list = None, project_path: str = None) -> str:
+def run_aider_coding_task(instruction: str, file_paths: list[str] | None = None, project_path: str | None = None) -> str:
     """Uses Aider AI to perform autonomous multi-file edits and coding tasks in the repository.
     
     Automatically installs Aider if it's missing, configures the environment with Gemini API keys,

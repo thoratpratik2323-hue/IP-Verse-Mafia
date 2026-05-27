@@ -455,15 +455,11 @@ def screen_clicker(element_description: str) -> str:
 
 def screen_explainer(description: str = "") -> str:
     """Feature 6: Smart Screen Annotator & Explainer"""
-    api_key = _get_api_key()
-    if not api_key:
-        return "No API key found to run screen explanation, sir."
-
-    print(f"[Vision] Explaining screen. Query: '{description}'")
     try:
+        from actions.prime_utils import UnifiedModelClient
         image_bytes, mime_type = _capture_screen()
 
-        client = genai.Client(api_key=api_key)
+        client = UnifiedModelClient(category="vision")
         prompt = (
             f"Analyze this screenshot and answer/explain the following: '{description or 'Describe what is currently on the screen in high detail.'}'. "
             f"Focus on identifying UI controls, any errors, layout bugs, text content, or code snippets. "
@@ -489,17 +485,14 @@ def clipboard_action(action_type: str = "summarize") -> str:
     except ImportError:
         return "Pyperclip is not installed. Cannot read or write clipboard contents, sir."
 
-    api_key = _get_api_key()
-    if not api_key:
-        return "No API key configured for clipboard operations, sir."
-
     text = pyperclip.paste()
     if not text or not text.strip():
         return "Your clipboard is currently empty, sir. Please copy something first."
 
     print(f"[Clipboard] Processing action '{action_type}' on {len(text)} characters of text.")
     try:
-        client = genai.Client(api_key=api_key)
+        from actions.prime_utils import UnifiedModelClient
+        client = UnifiedModelClient(category="coding")
         
         prompt = ""
         if action_type == "summarize":

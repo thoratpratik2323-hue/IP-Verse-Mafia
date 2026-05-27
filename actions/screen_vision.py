@@ -66,3 +66,46 @@ Use clean markdown to present your answer."""
             except Exception:
                 pass
         return f"Error analyzing screenshot with Gemini Vision: {e}"
+
+def screen_peel_to_code(prompt: str = "Extract all text, code, and UI elements from this screenshot and convert them into clean code/text.") -> str:
+    """Screen Peeler: OCR & UI-to-Code generator using Gemini Vision."""
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    temp_path = TEMP_DIR / "temp_peel.png"
+    
+    try:
+        screenshot = pyautogui.screenshot()
+        screenshot.save(temp_path)
+    except Exception as e:
+        return f"Peel Error (Screenshot failed): {e}"
+        
+    try:
+        client = _get_gemini_client()
+        image = Image.open(temp_path)
+        
+        system_instruction = """You are the Screen Peeler. Extract all text and code from the provided screenshot.
+If it is a UI, convert it to clean HTML/Tailwind or React code. If it is raw text or a document, transcribe it perfectly.
+Output ONLY the requested code or text. DO NOT output conversational filler."""
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[image, prompt],
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.1
+            )
+        )
+        
+        try:
+            image.close()
+            os.remove(temp_path)
+        except Exception:
+            pass
+            
+        return response.text
+    except Exception as e:
+        if temp_path.exists():
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+        return f"Peel Error (Vision processing failed): {e}"

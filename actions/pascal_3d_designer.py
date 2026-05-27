@@ -6,7 +6,6 @@ import time
 import os
 from pathlib import Path
 import pyautogui
-from PIL import Image
 from google import genai
 from google.genai import types as gtypes
 from playwright.sync_api import sync_playwright

@@ -1,4 +1,3 @@
-import sys
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
 def list_active_audio_sessions() -> str:

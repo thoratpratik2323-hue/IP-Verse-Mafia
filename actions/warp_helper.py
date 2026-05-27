@@ -72,7 +72,7 @@ def warp_helper(parameters: dict, player=None) -> str:
         if not files:
             return f"Pratik Sir, your custom Warp workflows directory (`{warp_dir}`) is currently empty."
         
-        results = [f"### 📋 Active Custom Warp Workflows inside APPDATA:\n"]
+        results = ["### 📋 Active Custom Warp Workflows inside APPDATA:\n"]
         for idx, f in enumerate(files, 1):
             results.append(f"{idx}. **{f.name}** (`{f.resolve()}`)")
         

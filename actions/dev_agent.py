@@ -3,6 +3,7 @@ import sys
 import json
 import re
 import time
+import threading
 from pathlib import Path
 
 
@@ -14,7 +15,12 @@ def get_base_dir():
 
 BASE_DIR         = get_base_dir()
 API_CONFIG_PATH  = BASE_DIR / "config" / "api_keys.json"
-PROJECTS_DIR     = Path.home() / "Desktop" / "IPRayProjects"
+def _projects_root() -> Path:
+    try:
+        from prime_platform.ip_given_workspace import projects_dir
+        return projects_dir()
+    except Exception:
+        return Path.home() / "Desktop" / "IPRayProjects"
 MAX_FIX_ATTEMPTS = 5
 MODEL_PLANNER    = "gemini-2.5-flash"
 MODEL_WRITER     = "gemini-2.5-flash"
@@ -127,19 +133,16 @@ class CodexSaver:
             log(f"Low-cost routing/execution encountered error: {e}. Escalating to premium model...")
         
         log("Executing task on premium model (gemini-2.5-pro fallback)...")
-        import google.generativeai as genai
-        config = CodexSaver.get_config()
-        actual_key = config.get("coding_api_key") or config.get("gemini_api_key")
-        genai.configure(api_key=actual_key)
+        from actions.prime_utils import UnifiedGenerativeModel
         
         try:
-            premium_model = genai.GenerativeModel("gemini-2.5-pro")
+            premium_model = UnifiedGenerativeModel("gemini-2.5-pro", category="coding")
             response = premium_model.generate_content(prompt)
             log("Premium model (gemini-2.5-pro) executed successfully.")
             return response.text
         except Exception as e:
             log(f"gemini-2.5-pro premium call failed: {e}. Falling back to default coding model...")
-            premium_model = genai.GenerativeModel("gemini-2.5-flash")
+            premium_model = UnifiedGenerativeModel("gemini-2.5-flash", category="coding")
             response = premium_model.generate_content(prompt)
             return response.text
 
@@ -191,6 +194,9 @@ def _has_error(output: str, run_command: str) -> bool:
 
     if not output.strip():
         return False
+
+    if "exit code:" in low and "exit code: 0" not in low:
+        return True
 
     error_type = _classify_error(output)
     return error_type != "none"
@@ -308,7 +314,7 @@ Purpose of this file: {file_desc}
 
 General rules:
 - Output ONLY raw code. Absolutely no explanation, no markdown, no triple backticks.
-- Write COMPLETE, RUNNABLE code — no placeholders, no "# TODO", no "pass" stubs.
+- Write COMPLETE, RUNNABLE code — absolutely no placeholders, no "# TODO", no "pass" stubs, no "implement here", no "...". Every single feature, logic path, and utility function must be fully written out. If a file is large, write every single line of it; do not truncate!
 - Every import must either be from the standard library, listed dependencies, or the project files shown above.
 - Match import paths EXACTLY to the file paths in the project structure (e.g. if file is "utils/helpers.py", import as "from utils.helpers import ...").
 - Use proper error handling (try/except) where I/O or network calls are made.
@@ -411,6 +417,8 @@ def _run_project(run_command: str, project_dir: Path, timeout: int = 30) -> str:
             combined_parts.append(f"STDOUT:\n{stdout}")
         if stderr:
             combined_parts.append(f"STDERR:\n{stderr}")
+        if result.returncode != 0:
+            combined_parts.append(f"EXIT CODE: {result.returncode}")
 
         return "\n\n".join(combined_parts) if combined_parts else "Ran with no output."
 
@@ -507,6 +515,7 @@ Current (broken) code:
 
 Rules:
 - Output ONLY the complete fixed code. No explanation, no markdown, no backticks.
+- Write COMPLETE, RUNNABLE code — absolutely no placeholders, no "# TODO", no "pass" stubs, no "implement here", no "...". Every single feature, logic path, and utility function must be fully written out. If a file is large, write every single line of it; do not truncate!
 - Fix ALL errors visible in the error output.
 - Keep all existing correct logic — do not remove working features.
 - Ensure import paths match the actual project file structure exactly.
@@ -545,7 +554,17 @@ def _build_project(
         print(f"[DevAgent] {msg}")
         if player:
             player.write_log(f"[DevAgent] {msg}")
+        try:
+            from actions.web_hud import update_dev_status
+            update_dev_status(log=msg)
+        except Exception:
+            pass
 
+    try:
+        from actions.web_hud import update_dev_status
+        update_dev_status(active=True, step="planning", progress=15, log="Planning project structure & dependency bounds...")
+    except Exception:
+        pass
     log("Planning project structure...")
     try:
         plan = _plan_project(description, language)
@@ -560,7 +579,7 @@ def _build_project(
 
     proj_name    = project_name or plan.get("project_name", "ipprime_project")
     proj_name    = re.sub(r"[^\w\-]", "_", proj_name)
-    project_dir  = PROJECTS_DIR / proj_name
+    project_dir  = _projects_root() / proj_name
     project_dir.mkdir(parents=True, exist_ok=True)
 
     files        = plan.get("files", [])
@@ -581,6 +600,13 @@ def _build_project(
         file_path = file_info.get("path", "")
         if not file_path:
             continue
+
+        try:
+            from actions.web_hud import update_dev_status
+            progress_pct = 20 + int(50 * (sorted_files.index(file_info) / len(sorted_files)))
+            update_dev_status(step="coding", file=file_path, progress=progress_pct)
+        except Exception:
+            pass
 
         log(f"Writing {file_path}...")
         for attempt in range(2):
@@ -621,11 +647,25 @@ def _build_project(
     auto_installs = 0  
 
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
+        try:
+            from actions.web_hud import update_dev_status
+            update_dev_status(step="compiling", progress=75, log=f"Running py_compile check and test commands (Attempt {attempt})...")
+        except Exception:
+            pass
+
         log(f"Running project (attempt {attempt}/{MAX_FIX_ATTEMPTS})...")
         last_output = _run_project(run_command, project_dir, timeout)
         log(f"Output preview: {last_output[:150]}")
 
         if not _has_error(last_output, run_command):
+            try:
+                from actions.web_hud import update_dev_status
+                update_dev_status(step="success", progress=100, log=f"Success! Project '{proj_name}' is fully functional.")
+                # Turn off active state shortly
+                threading.Thread(target=lambda: (time.sleep(6), update_dev_status(active=False)), daemon=True).start()
+            except Exception:
+                pass
+
             msg = (
                 f"Project '{proj_name}' is working, sir. "
                 f"Built in {attempt} attempt{'s' if attempt > 1 else ''}. "
@@ -633,6 +673,13 @@ def _build_project(
             )
             if speak: speak(msg)
             return f"{msg}\n\nOutput:\n{last_output}"
+
+        # If it has error, we will enter debugger phase
+        try:
+            from actions.web_hud import update_dev_status
+            update_dev_status(step="debugging", progress=85, log=f"Hot-fixing compiler errors for {entry_point}...")
+        except Exception:
+            pass
 
         if attempt == MAX_FIX_ATTEMPTS:
             break
@@ -758,16 +805,256 @@ def git_assistant(action_type: str = "commit", project_path: str = "", player=No
         run_git(["add", "."])
         actions_taken.append("Staged all changes (git add .)")
         
-        commit_res = run_git(["commit", "-m", commit_msg])
+        run_git(["commit", "-m", commit_msg])
         actions_taken.append(f"Committed changes with message: '{commit_msg}'")
         
         if action_type == "push":
             run_git(["push"])
-            actions_taken.append(f"Pushed commit to remote repository.")
+            actions_taken.append("Pushed commit to remote repository.")
     else:
         actions_taken.append(f"Generated conventional commit message: '{commit_msg}' (Dry Run)")
 
-    return f"Git Assistant completed successfully, sir:\n- " + "\n- ".join(actions_taken)
+    return "Git Assistant completed successfully, sir:\n- " + "\n- ".join(actions_taken)
+
+
+# ─────────────────────────────────────────────────────────
+# Feature: Codebase Intelligence Summary (explain_project)
+# ─────────────────────────────────────────────────────────
+
+def _gather_project_source(project_path: str, max_files: int = 25, max_chars_per_file: int = 2500) -> tuple[list[dict], str]:
+    """Collect source files from a project directory."""
+    extensions = {".py", ".js", ".ts", ".java", ".cpp", ".c", ".cs", ".go", ".rb", ".php", ".rs", ".vue", ".jsx", ".tsx"}
+    p = Path(project_path).resolve()
+    if not p.exists():
+        return [], f"Path not found: {project_path}"
+
+    files = sorted(
+        f for f in p.rglob("*")
+        if f.is_file() and f.suffix in extensions
+        and not any(part.startswith(".") or part in ("__pycache__", "node_modules", "venv", ".venv", "dist", "build")
+                    for part in f.parts)
+    )[:max_files]
+
+    collected = []
+    for f in files:
+        try:
+            content = f.read_text(encoding="utf-8", errors="replace")[:max_chars_per_file]
+            collected.append({"name": str(f.relative_to(p)), "content": content})
+        except Exception:
+            pass
+    return collected, ""
+
+
+def _explain_project(project_path: str, player=None) -> str:
+    """Feature 6: Generate a comprehensive codebase intelligence summary."""
+    def log(msg: str):
+        print(f"[DevAgent] {msg}")
+        if player:
+            player.write_log(f"[DevAgent] {msg}")
+
+    log(f"Starting project intelligence analysis: {project_path}")
+
+    files, err = _gather_project_source(project_path)
+    if err:
+        return err
+    if not files:
+        return f"No supported source files found in: {project_path}"
+
+    # Build a compact file manifest
+    manifest = "\n".join(f"  [{i+1}] {f['name']}" for i, f in enumerate(files))
+    combined = "\n\n".join(
+        f"# === {f['name']} ===\n{f['content']}" for f in files
+    )[:20000]
+
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key configured, sir."
+
+    log(f"Analyzing {len(files)} files via Gemini...")
+    try:
+        from actions.prime_utils import UnifiedModelClient
+        client = UnifiedModelClient(category="coding")
+
+        prompt = f"""You are an expert software architect. Analyze this project and produce a comprehensive intelligence brief.
+
+Project files scanned ({len(files)} files):
+{manifest}
+
+Source code:
+{combined}
+
+Produce a report with these EXACT sections (use markdown headers):
+
+## 📋 Project Overview
+2-4 sentences: what this project does, who it's for, what problem it solves.
+
+## 🏗️ Architecture
+Describe the overall structure: main modules/layers, data flow, key design patterns used.
+
+## 🚀 Entry Points
+What are the main entry points (main.py, index.js, etc.)? How do you start the project?
+
+## 🔗 Module Dependency Map
+ASCII diagram or list showing which files/modules import/depend on which.
+
+## ⚙️ Key Components
+Table: | Component | File | Responsibility |
+
+## 🐛 Potential Issues
+Top 3-5 bugs, code smells, or architectural risks you can identify from the code.
+
+## ✅ Strengths
+2-3 things done well in this codebase.
+
+## 🔧 Quick Improvement Suggestions
+Top 3 highest-impact improvements to make immediately.
+
+Be specific, concise, and actionable. Reference actual file names and function names."""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        report = response.text.strip()
+
+    except Exception as e:
+        return f"Project analysis failed: {e}"
+
+    # Save report
+    try:
+        from prime_platform.ip_given_workspace import code_dir
+        out_dir = code_dir()
+    except Exception:
+        out_dir = Path(project_path)
+
+    project_name = Path(project_path).name
+    out_path = out_dir / f"{project_name}_intelligence_report.md"
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(report, encoding="utf-8")
+        log(f"Report saved: {out_path}")
+    except Exception as e:
+        log(f"Could not save report: {e}")
+
+    return (
+        f"📊 Project Intelligence Report — {project_name}\n"
+        f"Analyzed {len(files)} source files.\n"
+        f"Report saved to: {out_path}\n\n"
+        f"{report}"
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# Feature: Cross-File Smart Refactor (project-wide)
+# ─────────────────────────────────────────────────────────
+
+def _refactor_project(project_path: str, instruction: str, player=None) -> str:
+    """Perform a context-aware cross-file refactor across all source files in a project."""
+    def log(msg: str):
+        print(f"[DevAgent] {msg}")
+        if player:
+            player.write_log(f"[DevAgent] {msg}")
+
+    log(f"Starting cross-file refactor: {project_path}")
+
+    files, err = _gather_project_source(project_path, max_files=20, max_chars_per_file=3000)
+    if err:
+        return err
+    if not files:
+        return f"No source files found in: {project_path}"
+
+    api_key = _get_api_key()
+    if not api_key:
+        return "No API key configured, sir."
+
+    combined = "\n\n".join(
+        f"# === FILE: {f['name']} ===\n{f['content']}" for f in files
+    )[:18000]
+
+    log(f"Sending {len(files)} files to Gemini for refactor planning...")
+
+    try:
+        from actions.prime_utils import UnifiedModelClient
+        client = UnifiedModelClient(category="coding")
+
+        prompt = f"""You are an expert software engineer performing a project-wide code refactor.
+
+Refactor instruction: {instruction}
+
+You have access to {len(files)} source files below. Apply the refactor instruction across ALL relevant files.
+
+Return your response as a JSON array of objects:
+[
+  {{
+    "filename": "relative/path/to/file.py",
+    "changes_description": "what was changed in this file (1-2 sentences)",
+    "updated_code": "complete updated file content here"
+  }},
+  ...
+]
+
+Only include files that actually need changes. If a file needs no changes, omit it.
+Return ONLY the JSON array. No markdown, no extra text.
+
+Source files:
+{combined}"""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        raw = response.text.strip()
+        raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw).strip()
+
+        changes = json.loads(raw)
+
+    except json.JSONDecodeError as e:
+        return f"Refactor plan parsing failed: {e}\n\nRaw response (first 500 chars):\n{raw[:500]}"
+    except Exception as e:
+        return f"Refactor failed: {e}"
+
+    # Apply changes
+    project_p = Path(project_path).resolve()
+    results = []
+    changed_count = 0
+
+    for change in changes:
+        rel_path = change.get("filename", "").strip()
+        updated  = change.get("updated_code", "").strip()
+        desc     = change.get("changes_description", "")
+
+        if not rel_path or not updated:
+            continue
+
+        target = project_p / rel_path
+        try:
+            # Verify it compiles if Python
+            if target.suffix == ".py":
+                try:
+                    compile(updated, str(target), "exec")
+                except SyntaxError as se:
+                    results.append(f"  ⚠️ {rel_path} — syntax error in generated code: {se} (skipped)")
+                    continue
+
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(updated, encoding="utf-8")
+            results.append(f"  ✅ {rel_path} — {desc}")
+            changed_count += 1
+            log(f"Refactored: {rel_path}")
+        except Exception as e:
+            results.append(f"  ❌ {rel_path} — failed to write: {e}")
+
+    summary = (
+        f"Cross-file refactor complete.\n"
+        f"Files changed: {changed_count}/{len(changes)} requested.\n\n"
+        f"Changes applied:\n" + "\n".join(results)
+    )
+
+    log(f"Refactor done: {changed_count} files changed")
+    return summary
 
 
 def refactor_code(file_path: str, action: str = "refactor", player=None) -> str:
@@ -881,6 +1168,29 @@ def dev_agent(
 
     if not description:
         return "Please describe the project you want me to build, sir."
+
+    # Feature: explain_project — route when description signals project explanation
+    explain_kw = [
+        "explain project", "explain codebase", "what does this project",
+        "architecture", "codebase summary", "summarize project",
+        "how does this project work", "project overview"
+    ]
+    desc_lower = description.lower()
+    if any(kw in desc_lower for kw in explain_kw) and p.get("project_path"):
+        return _explain_project(p.get("project_path"), player=player)
+
+    # Feature: cross-file refactor — route when description signals project-wide refactor
+    refactor_kw = [
+        "refactor project", "refactor all", "refactor codebase",
+        "project-wide refactor", "cross-file refactor",
+        "rename across", "add type hints to all", "async convert all"
+    ]
+    if any(kw in desc_lower for kw in refactor_kw) and p.get("project_path"):
+        return _refactor_project(
+            p.get("project_path"),
+            description,
+            player=player
+        )
 
     return _build_project(
         description  = description,

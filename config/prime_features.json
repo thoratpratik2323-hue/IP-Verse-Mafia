@@ -1,0 +1,54 @@
+{
+  "local_first": {
+    "enabled": false,
+    "ollama_url": "http://127.0.0.1:11434",
+    "preferred_local_model": "llama3.2",
+    "fallback_to_cloud": true
+  },
+  "infinite_memory": {
+    "enabled": true,
+    "max_archive_mb": 512,
+    "prompt_recall_turns": 8
+  },
+  "realtime": {
+    "lean_prompt": true,
+    "session_turns_in_prompt": 6,
+    "calendar_days_in_prompt": 5,
+    "mic_chunk_size": 1024,
+    "play_buffer_samples": 1024,
+    "low_latency_playback": true,
+    "interruption_threshold": 2500,
+    "disable_voice_interruption": true,
+    "voice_gain": 1.8
+  },
+  "energy_metrics": {
+    "enabled": true,
+    "gemini_flash_per_1m_tokens_usd": 0.15,
+    "gemini_pro_per_1m_tokens_usd": 1.25,
+    "estimate_tokens_per_tool_call": 800
+  },
+  "messaging": {
+    "default_channel": "whatsapp"
+  },
+  "homelab": {
+    "docker_path": "docker"
+  },
+  "media": {
+    "torrent_client": "auto"
+  },
+  "tauri_desktop": {
+    "enabled": false,
+    "api_port": 18765,
+    "note": "PyQt6 remains primary UI; run python prime_api.py or see desktop-tauri/README.md"
+  },
+  "workspace": {
+    "root": "C:\\Users\\thora\\Downloads\\IP Given",
+    "auto_save_all": true
+  },
+  "gesture_control": {
+    "enabled": false,
+    "use_mediapipe": true,
+    "cooldown_sec": 1.2,
+    "camera_index": 0
+  }
+}

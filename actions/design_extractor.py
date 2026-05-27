@@ -60,7 +60,7 @@ def design_extractor(
     if player:
         player.write_log(f"[SkillUI Extractor] Starting design extraction for {target} ({source_type}) into {name}")
 
-    print(f"[SkillUI Extractor] [START] Running design extraction...")
+    print("[SkillUI Extractor] [START] Running design extraction...")
     print(f"  Source Type: {source_type}")
     print(f"  Target:      {target}")
     print(f"  Mode:        {mode}")
@@ -99,7 +99,6 @@ def design_extractor(
         )
 
         stdout_log = result.stdout or ""
-        stderr_log = result.stderr or ""
         print("[SkillUI Extractor] Command succeeded!")
         print(f"Stdout:\n{stdout_log[:1000].encode('ascii', 'replace').decode('ascii')}")
 

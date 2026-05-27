@@ -1,0 +1,1244 @@
+{
+  "sessions": [
+    {
+      "ts": "2026-05-24T19:19:18",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:21:49",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:22:57",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:24:55",
+      "tool": "prime_writing",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:34:48",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:41:29",
+      "tool": "get_awesome_repo_info",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:44:02",
+      "tool": "capture_and_analyze_screen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:46:53",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:47:16",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:47:19",
+      "tool": "computer_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:47:42",
+      "tool": "capture_and_analyze_screen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:48:52",
+      "tool": "shutdown_ip_ray",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T19:50:08",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:11:13",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:11:26",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:16:00",
+      "tool": "get_awesome_repo_info",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:16:36",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:17:04",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:17:26",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:18:55",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:19:14",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:19:26",
+      "tool": "computer_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T20:19:48",
+      "tool": "shutdown_ip_ray",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T21:12:11",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T22:59:50",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T23:06:28",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-24T23:12:45",
+      "tool": "shutdown_ip_ray",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T21:49:50",
+      "tool": "prime_infinite_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T21:52:46",
+      "tool": "prime_infinite_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T21:52:47",
+      "tool": "prime_infinite_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T21:53:03",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T21:54:43",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:02:12",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:04:44",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:06:50",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:08:59",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:11:15",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:18:17",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:31:03",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T22:31:11",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:27:39",
+      "tool": "morning_briefing",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:30:56",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:31:42",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:32:56",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:34:48",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:35:36",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:36:51",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:37:55",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:38:57",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:39:41",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:40:23",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:43:21",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-26T23:44:04",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:41:09",
+      "tool": "prime_infinite_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:41:40",
+      "tool": "focus_mode",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:42:11",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:42:15",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:43:09",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:43:50",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:44:32",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:45:00",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:57:20",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:57:47",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:58:09",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:58:27",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:59:03",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:59:35",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:59:49",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T00:59:58",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T01:09:03",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T01:09:03",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T01:11:15",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T01:11:15",
+      "tool": "voice_alarm_suite",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:30:25",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:31:11",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:32:51",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:48:07",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:48:16",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T08:58:36",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:16",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:40",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:43",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:49",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:52",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:00:57",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:01:00",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:01:01",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:01:38",
+      "tool": "computer_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:02:08",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:02:33",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:02:39",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:02:41",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:04:02",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:04:21",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:04:45",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:04:49",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:05:30",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:05:38",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:05:45",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:05:53",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:06:00",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:06:09",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:06:16",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:06:19",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:07:03",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:08:08",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T09:59:51",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:00:27",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:00:42",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:00:44",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:01:07",
+      "tool": "capture_and_analyze_screen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:01:23",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:01:50",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:02:14",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:02:16",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:02:32",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:02:55",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:03:35",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:03:55",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:04:10",
+      "tool": "computer_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:19:05",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:19:44",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:21:14",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:21:35",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:23:32",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:24:04",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:24:24",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:27:02",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:27:33",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:27:35",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:27:56",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:28:23",
+      "tool": "dev_bootstrap",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:30:53",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:32:38",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:32:53",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:34:34",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:34:56",
+      "tool": "screen_process",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:40:09",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:40:46",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:12",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:15",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:21",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:21",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:27",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:41:27",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:43:34",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:44:16",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:44:16",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:44:48",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:45:29",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:45:34",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:45:35",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:46:50",
+      "tool": "terminal_doctor",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T10:47:42",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T11:57:58",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T11:58:14",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T11:58:40",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:02:37",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:04:01",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:04:24",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:04:34",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:04:45",
+      "tool": "get_awesome_repo_info",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:05:49",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:06:37",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:07:26",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:07:30",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:07:52",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:08:22",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:10:56",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:10:57",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:11:21",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:13:35",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:13:47",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:14:01",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:14:17",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:14:19",
+      "tool": "file_controller",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:14:35",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:14:51",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:15:03",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:15:19",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:15:29",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:15:41",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:15:53",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:17:01",
+      "tool": "capture_and_analyze_screen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:17:38",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:17:43",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:18:01",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:18:17",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:18:18",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:18:34",
+      "tool": "capture_and_analyze_screen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:19:09",
+      "tool": "screenshot_code_gen",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:19:58",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:19:58",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:20:47",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:24:24",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:24:55",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:24:56",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:25:23",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:25:44",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:26:02",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:26:05",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T12:37:38",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:03:16",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    }
+  ],
+  "totals": {
+    "tool_calls": 203,
+    "est_tokens": 162400,
+    "est_usd": 0.02436
+  },
+  "by_day": {
+    "2026-05-24": {
+      "tool_calls": 27,
+      "est_tokens": 21600,
+      "est_usd": 0.00324
+    },
+    "2026-05-26": {
+      "tool_calls": 26,
+      "est_tokens": 20800,
+      "est_usd": 0.00312
+    },
+    "2026-05-27": {
+      "tool_calls": 150,
+      "est_tokens": 120000,
+      "est_usd": 0.018
+    }
+  }
+}

@@ -1,11 +1,10 @@
 # actions/web_hud.py
 import json
-import os
 import sys
+import re
 import threading
 import time
 import socket
-import webbrowser
 import urllib.parse
 import random
 from pathlib import Path
@@ -27,13 +26,37 @@ LOGS_DIR = BASE_DIR / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
 # Shared memory for command feedback and logs
+_completed_tasks = 0
+_active_tasks = []
+
 _logs_list = [
     {"time": time.strftime("%H:%M:%S"), "msg": "System Core Initialized."},
     {"time": time.strftime("%H:%M:%S"), "msg": "Cybernetic Web HUD Activated."},
     {"time": time.strftime("%H:%M:%S"), "msg": "Nezha AI Agent Cockpit Online."}
 ]
-_active_tasks = []
-_completed_tasks = 8
+_dev_status_lock = threading.Lock()
+_dev_status = {
+    "active": False,
+    "step": "idle",
+    "file": "None",
+    "progress": 0,
+    "logs": ["Developer Agent is currently idle. Spawn a task to begin."]
+}
+
+def update_dev_status(active=None, step=None, file=None, progress=None, log=None):
+    with _dev_status_lock:
+        if active is not None:
+            _dev_status["active"] = active
+        if step is not None:
+            _dev_status["step"] = step
+        if file is not None:
+            _dev_status["file"] = file
+        if progress is not None:
+            _dev_status["progress"] = progress
+        if log is not None:
+            _dev_status["logs"].append(f"[{time.strftime('%H:%M:%S')}] {log}")
+            if len(_dev_status["logs"]) > 100:
+                _dev_status["logs"].pop(0)
 
 # Nezha Multi-Agent thread-safe state memory
 _agents_lock = threading.Lock()
@@ -105,6 +128,14 @@ class WebHUDServer:
     thread = None
     port = 5000
     is_running = False
+    ui_instance = None
+
+def get_html_content():
+    try:
+        with open(BASE_DIR / "actions" / "dashboard.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"Failed to load dashboard.html: {e}"
 
 def log_event(message: str):
     """Logs an event to be displayed on the Web HUD."""
@@ -1261,7 +1292,7 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
             # CORS header just in case
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            self.wfile.write(HTML_CONTENT.encode("utf-8"))
+            self.wfile.write(get_html_content().encode("utf-8"))
             return
             
         elif parsed_url.path == "/api/stats":
@@ -1280,15 +1311,194 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
                 except Exception:
                     pass
             
+            hud_state = "LISTENING"
+            if WebHUDServer.ui_instance:
+                if getattr(WebHUDServer.ui_instance, "_muted", False):
+                    hud_state = "MUTED"
+                elif hasattr(WebHUDServer.ui_instance, "hud") and WebHUDServer.ui_instance.hud:
+                    hud_state = WebHUDServer.ui_instance.hud.state
+            
             stats = {
                 "cpu": cpu_percent,
                 "memory": memory_percent,
                 "completed_tasks": _completed_tasks,
-                "tasks_queued": len(_active_tasks)
+                "tasks_queued": len(_active_tasks),
+                "state": hud_state
             }
             self.wfile.write(json.dumps(stats).encode("utf-8"))
             return
+
+        elif parsed_url.path == "/api/memories":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
             
+            try:
+                from memory.memory_manager import load_memory
+                memory = load_memory()
+            except Exception:
+                memory = {}
+                
+            alarms = []
+            try:
+                base_dir = BASE_DIR
+                alarm_file = base_dir / "config" / "alarms.json"
+                if alarm_file.exists():
+                    alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+                
+            nodes = [{"id": "user", "label": "Pratik Sir", "group": "user"}]
+            edges = []
+            
+            categories = {
+                "identity": "Identity",
+                "preferences": "Preferences",
+                "projects": "Active Projects",
+                "relationships": "People",
+                "wishes": "Wishes / Plans",
+                "notes": "Other Notes"
+            }
+            
+            for cat_id, cat_label in categories.items():
+                cat_node_id = f"cat_{cat_id}"
+                nodes.append({"id": cat_node_id, "label": cat_label, "group": "category"})
+                edges.append({"from": "user", "to": cat_node_id})
+                
+                cat_data = memory.get(cat_id, {})
+                if isinstance(cat_data, dict):
+                    for key, entry in cat_data.items():
+                        val = entry.get("value") if isinstance(entry, dict) else entry
+                        if val:
+                            leaf_id = f"leaf_{cat_id}_{key}"
+                            nodes.append({"id": leaf_id, "label": f"{key}: {val[:30]}...", "detail": val, "key": key, "category": cat_id, "group": "leaf"})
+                            edges.append({"from": cat_node_id, "to": leaf_id})
+                            
+            if alarms:
+                nodes.append({"id": "cat_alarms", "label": "Scheduled Alarms", "group": "category"})
+                edges.append({"from": "user", "to": "cat_alarms"})
+                for idx, alarm in enumerate(alarms):
+                    alarm_time = alarm.get("time", "")
+                    if alarm_time:
+                        leaf_id = f"alarm_{idx}"
+                        nodes.append({"id": leaf_id, "label": f"Alarm {alarm_time}", "detail": f"Rings at {alarm_time}", "index": idx, "group": "alarm"})
+                        edges.append({"from": "cat_alarms", "to": leaf_id})
+                        
+            self.wfile.write(json.dumps({"nodes": nodes, "edges": edges}).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/routines":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            
+            routines = {}
+            try:
+                routines_file = BASE_DIR / "config" / "routines.json"
+                if routines_file.exists():
+                    routines = json.loads(routines_file.read_text(encoding="utf-8"))
+                else:
+                    routines = {
+                        "morning_brief": {"enabled": True, "time": "08:00", "actions": ["briefing", "weather", "broadcast"]},
+                        "workspace_check": {"enabled": True, "time": "18:00", "actions": ["compile", "broadcast"]}
+                    }
+            except Exception:
+                pass
+            self.wfile.write(json.dumps(routines).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/gestures/status":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            
+            try:
+                from prime_platform.gesture_control import GestureService
+                svc = GestureService.instance()
+                res = {
+                    "running": svc._running,
+                    "last_gesture": svc._last_gesture or "none",
+                    "cooldown": svc._cooldown
+                }
+            except Exception as e:
+                res = {"running": False, "last_gesture": "error", "msg": str(e)}
+            
+            self.wfile.write(json.dumps(res).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/dev-status":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            with _dev_status_lock:
+                status = dict(_dev_status)
+            self.wfile.write(json.dumps(status).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/broadcast/config":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            
+            config = {}
+            try:
+                config_file = BASE_DIR / "config" / "broadcast.json"
+                if config_file.exists():
+                    config = json.loads(config_file.read_text(encoding="utf-8"))
+                else:
+                    config = {
+                        "whatsapp": {"enabled": True, "group_link": ""},
+                        "telegram": {"enabled": False, "bot_token": "", "chat_id": ""},
+                        "desktop": {"enabled": True}
+                    }
+            except Exception:
+                pass
+            self.wfile.write(json.dumps(config).encode("utf-8"))
+            return
+            
+        elif parsed_url.path == "/api/window/close":
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            if WebHUDServer.ui_instance:
+                from PyQt6.QtCore import QTimer
+                win = getattr(WebHUDServer.ui_instance, "_win", WebHUDServer.ui_instance)
+                QTimer.singleShot(0, win.close)
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+            return
+            
+        elif parsed_url.path == "/api/window/minimize":
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            if WebHUDServer.ui_instance:
+                from PyQt6.QtCore import QTimer
+                win = getattr(WebHUDServer.ui_instance, "_win", WebHUDServer.ui_instance)
+                QTimer.singleShot(0, win.showMinimized)
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+            return
+            
+        elif parsed_url.path == "/api/window/maximize":
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            if WebHUDServer.ui_instance:
+                from PyQt6.QtCore import QTimer
+                win = getattr(WebHUDServer.ui_instance, "_win", WebHUDServer.ui_instance)
+                def toggle_max():
+                    if win.isMaximized():
+                        win.showNormal()
+                    else:
+                        win.showMaximized()
+                QTimer.singleShot(0, toggle_max)
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+            return
+
         elif parsed_url.path == "/api/logs":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -1315,29 +1525,112 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed_url = urllib.parse.urlparse(self.path)
+        content_length = int(self.headers.get('Content-Length', 0))
         
-        if parsed_url.path == "/api/command":
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length).decode('utf-8')
+        if parsed_url.path == "/api/upload":
+            content_type = self.headers.get('Content-Type', '')
+            if 'boundary=' in content_type:
+                boundary = content_type.split('boundary=')[1].strip().encode('utf-8')
+                raw_data = self.rfile.read(content_length)
+                
+                parts = raw_data.split(b'--' + boundary)
+                for part in parts:
+                    if b'filename="' in part:
+                        header_part, file_data = part.split(b'\r\n\r\n', 1)
+                        if file_data.endswith(b'\r\n'):
+                            file_data = file_data[:-2]
+                        
+                        fn_match = re.search(br'filename="([^"]+)"', header_part)
+                        if fn_match:
+                            filename = fn_match.group(1).decode('utf-8')
+                            upload_dir = Path("assets/uploads")
+                            upload_dir.mkdir(parents=True, exist_ok=True)
+                            save_path = upload_dir / filename
+                            with open(save_path, 'wb') as f:
+                                f.write(file_data)
+                            
+                            log_event(f"Web User uploaded file: '{filename}' to '{save_path}'")
+                            if WebHUDServer.ui_instance:
+                                from PyQt6.QtCore import QTimer
+                                win = getattr(WebHUDServer.ui_instance, "_win", WebHUDServer.ui_instance)
+                                QTimer.singleShot(0, lambda: win._on_file_selected(str(save_path.resolve())))
+                                
+                            self.send_response(200)
+                            self.send_header("Content-Type", "application/json")
+                            self.send_header("Access-Control-Allow-Origin", "*")
+                            self.end_headers()
+                            self.wfile.write(json.dumps({"status": "success", "filename": filename}).encode("utf-8"))
+                            return
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Failed to parse multipart data")
+            return
+
+        post_data = self.rfile.read(content_length).decode('utf-8')
+        try:
+            data = json.loads(post_data) if post_data else {}
+        except Exception:
+            data = {}
+
+        if parsed_url.path == "/api/change_theme":
+            theme = data.get("theme")
+            if theme and WebHUDServer.ui_instance:
+                WebHUDServer.ui_instance._change_theme_sig.emit(theme)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+            return
             
-            try:
-                data = json.loads(post_data)
-                cmd = data.get("command", "").strip()
-                if cmd:
-                    log_event(f"Web User triggered: '{cmd}'")
-                    _run_system_command_async(cmd)
+        elif parsed_url.path == "/api/personality":
+            if WebHUDServer.ui_instance:
+                try:
+                    personality = {
+                        "name": data.get("name", "Varon"),
+                        "humour": data.get("humour", 50),
+                        "energy": data.get("energy", 50),
+                        "sarcasm": data.get("sarcasm", 50),
+                        "professionalism": data.get("professionalism", 50),
+                        "creativity": data.get("creativity", 50)
+                    }
+                    arc_file = BASE_DIR / "config" / "personality.json"
+                    arc_file.parent.mkdir(parents=True, exist_ok=True)
+                    with open(arc_file, "w", encoding="utf-8") as f:
+                        json.dump(personality, f, indent=4)
+                        
+                    WebHUDServer.ui_instance._arc_name_input.setText(personality["name"])
+                    WebHUDServer.ui_instance._arc_humour_slider.setValue(personality["humour"])
+                    WebHUDServer.ui_instance._arc_energy_slider.setValue(personality["energy"])
+                    WebHUDServer.ui_instance._arc_sarcasm_slider.setValue(personality["sarcasm"])
+                    WebHUDServer.ui_instance._arc_prof_slider.setValue(personality["professionalism"])
+                    WebHUDServer.ui_instance._arc_creat_slider.setValue(personality["creativity"])
+                    WebHUDServer.ui_instance._synth_personality_sig.emit()
+                except Exception as e:
+                    print(e)
                     
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/json")
-                    self.send_header("Access-Control-Allow-Origin", "*")
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"status": "success", "msg": f"Dispatched '{cmd}'"}).encode("utf-8"))
-                    return
-            except Exception as e:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(str(e).encode("utf-8"))
-                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/command":
+            cmd = data.get("command", "").strip()
+            if cmd:
+                log_event(f"Web User triggered: '{cmd}'")
+                if WebHUDServer.ui_instance:
+                    WebHUDServer.ui_instance._web_command_sig.emit(cmd)
+                else:
+                    _run_system_command_async(cmd)
+                
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "success", "msg": f"Dispatched '{cmd}'"}).encode("utf-8"))
+            return
                 
         elif parsed_url.path == "/api/spawn":
             content_length = int(self.headers.get('Content-Length', 0))
@@ -1356,6 +1649,118 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps({"status": "success", "msg": f"Spawning pipeline for '{prompt}'"}).encode("utf-8"))
                     return
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(e).encode("utf-8"))
+                return
+        elif parsed_url.path == "/api/memories/delete":
+            try:
+                category = data.get("category")
+                key = data.get("key")
+                alarm_index = data.get("alarm_index")
+                
+                if alarm_index is not None:
+                    alarm_file = BASE_DIR / "config" / "alarms.json"
+                    if alarm_file.exists():
+                        alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+                        idx = int(alarm_index)
+                        if 0 <= idx < len(alarms):
+                            removed = alarms.pop(idx)
+                            alarm_file.write_text(json.dumps(alarms, indent=4), encoding="utf-8")
+                            log_event(f"Deleted Alarm: {removed.get('time')}")
+                            if WebHUDServer.ui_instance and hasattr(WebHUDServer.ui_instance, "_reload_alarms_sig"):
+                                WebHUDServer.ui_instance._reload_alarms_sig.emit()
+                elif category and key:
+                    from memory.memory_manager import forget
+                    forget(key, category)
+                    log_event(f"Forgot memory: {category}/{key}")
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+                return
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(e).encode("utf-8"))
+                return
+
+        elif parsed_url.path == "/api/routines/save":
+            try:
+                routines_file = BASE_DIR / "config" / "routines.json"
+                routines_file.parent.mkdir(parents=True, exist_ok=True)
+                routines_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+                log_event("Chronos-AI: Saved custom routine triggers.")
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+                return
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(e).encode("utf-8"))
+                return
+
+        elif parsed_url.path == "/api/gestures/toggle":
+            try:
+                enabled = data.get("enabled", False)
+                from prime_platform.gesture_control import GestureService
+                svc = GestureService.instance()
+                if enabled:
+                    msg = svc.start(player=WebHUDServer.ui_instance)
+                else:
+                    msg = svc.stop()
+                log_event(f"Gestures Toggled: {'ON' if enabled else 'OFF'}. {msg}")
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "msg": msg}).encode("utf-8"))
+                return
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(e).encode("utf-8"))
+                return
+
+        elif parsed_url.path == "/api/broadcast/save":
+            try:
+                config_file = BASE_DIR / "config" / "broadcast.json"
+                config_file.parent.mkdir(parents=True, exist_ok=True)
+                config_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+                log_event("Broadcast: Saved unified broadcast settings.")
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+                return
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(e).encode("utf-8"))
+                return
+
+        elif parsed_url.path == "/api/broadcast/test":
+            try:
+                from actions.broadcast_center import broadcast_notification
+                res = broadcast_notification("IP Prime: Test Channel Broadcast", "Hello Pratik Sir! Ye broadcast center ka test trigger notification hai.")
+                log_event("Broadcast: Dispatched test broadcast alerts.")
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "sent": res}).encode("utf-8"))
+                return
             except Exception as e:
                 self.send_response(400)
                 self.end_headers()
@@ -1460,7 +1865,7 @@ def _simulate_multi_agent_pipeline(prompt: str):
     with _agents_lock:
         _active_agents[1]["logs"].append(f"[{time.strftime('%H:%M:%S')}] Coding milestone complete. All files written.")
         _active_agents[1]["tokens"] += 900
-    add_commit(f"feat(coder): complete main.py layout UI and utils.py event lock callbacks")
+    add_commit("feat(coder): complete main.py layout UI and utils.py event lock callbacks")
     log_event("Nezha Coder Agent successfully wrote source code modules.")
 
     # ==================== COMPILER AGENT ====================
@@ -1568,6 +1973,24 @@ def _run_system_command_async(cmd: str):
         elif cmd.lower().startswith("agent: "):
             prompt = cmd[7:].strip()
             _simulate_multi_agent_pipeline(prompt)
+        elif cmd.lower().startswith("run routine "):
+            routine_name = cmd[12:].strip()
+            try:
+                from actions.chronos_routines import ChronosRoutines
+                routines = ChronosRoutines.instance()
+                actions = routines.load_routines().get(routine_name, {}).get("actions", [])
+                log_event(f"Chronos-AI: Triggered routine '{routine_name}' with actions: {actions}")
+                threading.Thread(target=routines.execute_routine, args=(routine_name, actions), daemon=True).start()
+            except Exception as e:
+                log_event(f"Failed to run routine: {e}")
+        elif cmd.lower().startswith("configure gesture camera "):
+            try:
+                cam_id = int(cmd[25:].strip())
+                from prime_platform.gesture_control import configure_gesture
+                configure_gesture(camera_index=cam_id)
+                log_event(f"Aero-Control: Camera index updated to: {cam_id}")
+            except Exception as e:
+                log_event(f"Failed to configure camera: {e}")
         else:
             # Fallback to simulated task execution response for complex commands
             time.sleep(1.0)
@@ -1601,8 +2024,8 @@ def web_hud(parameters: dict = None, player=None) -> str:
 
     # Start server
     if WebHUDServer.is_running:
-        webbrowser.open(f"http://localhost:{WebHUDServer.port}")
-        return f"Pratik Sir, Web HUD is already running on port {WebHUDServer.port}. Opening in browser!"
+        # webbrowser.open(f"http://localhost:{WebHUDServer.port}")
+        return f"Pratik Sir, Web HUD is already running on port {WebHUDServer.port}."
 
     # Multi-threaded server binding
     local_ip = _get_local_ip()
@@ -1635,10 +2058,11 @@ def web_hud(parameters: dict = None, player=None) -> str:
     
     log_event("Cybernetic server started successfully.")
     
-    # Open inside user's default browser
-    webbrowser.open(f"http://localhost:{bound_port}")
+    # Open inside user's default browser (disabled as requested)
+    # webbrowser.open(f"http://localhost:{bound_port}")
     
     if player:
+        WebHUDServer.ui_instance = player
         player.write_log(f"[Web HUD] Local HUD server started successfully on port {bound_port}")
 
     return (

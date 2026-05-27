@@ -104,7 +104,7 @@ def browser_news_reader(query: str = "technology") -> str:
                 res += f"{i}. {headline}\n"
             return res
         return "Scraped news feed successfully but found no headlines, sir."
-    except Exception as e:
+    except Exception:
         # Fallback to smart simulated headlines if internet is blocked/offline
         return (
             f"Offline mode: Here are simulated top stories for '{query}', sir:\n"
@@ -184,7 +184,7 @@ def expense_logger(action: str = "log", description: str = "", amount: float = 0
                         totals[cat] = totals.get(cat, 0.0) + amt
                         grand_total += amt
                         
-            res = f"Here is your expense summary, sir:\n"
+            res = "Here is your expense summary, sir:\n"
             for cat, amt in totals.items():
                 res += f"- **{cat}**: ₹{amt:.2f}\n"
             res += f"**Grand Total**: ₹{grand_total:.2f}"
@@ -228,7 +228,7 @@ def wifi_file_share(file_path: str, action: str = "start") -> str:
             FileShareServer.thread = threading.Thread(target=FileShareServer.server.serve_forever, daemon=True)
             FileShareServer.thread.start()
             FileShareServer.port = port
-        except Exception as e:
+        except Exception:
             # Try a different port
             try:
                 port = 8888
@@ -381,7 +381,7 @@ def spotify_ambient_dj(command: str = "play", playlist: str = "lofi") -> str:
     
     if cmd in ("play", "pause", "toggle"):
         pyautogui.press("playpause")
-        return f"Toggled music playback state on Spotify desktop application, sir!"
+        return "Toggled music playback state on Spotify desktop application, sir!"
     elif cmd == "next":
         pyautogui.press("nexttrack")
         return "Skipped to the next music track on Spotify, sir."

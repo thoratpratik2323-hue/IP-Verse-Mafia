@@ -2,31 +2,23 @@
 import subprocess
 import json
 import re
-import time
 import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import sys
-
-def get_base_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    return Path(__file__).resolve().parent.parent
+from actions.prime_utils import get_base_dir, get_api_key
 
 BASE_DIR = get_base_dir()
-API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 
 def _get_api_key() -> str:
-    with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
-        config = json.load(f)
-        return config.get("coding_api_key") or config.get("gemini_api_key") or ""
+    return get_api_key()
 
 def _get_genai_client():
     from google import genai
     return genai.Client(api_key=_get_api_key())
 
 def run_cmd(args: list[str], cwd: Path) -> tuple[int, str]:
-    """Runs a shell command in a specific directory and returns the exit code and output."""
+    """Runs a command securely in a specific directory and returns the exit code and output."""
     try:
         res = subprocess.run(
             args,
@@ -35,7 +27,7 @@ def run_cmd(args: list[str], cwd: Path) -> tuple[int, str]:
             stderr=subprocess.STDOUT,
             text=True,
             encoding="utf-8",
-            shell=True,
+            shell=False,
             timeout=45
         )
         return res.returncode, res.stdout

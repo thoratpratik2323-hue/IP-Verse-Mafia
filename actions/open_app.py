@@ -3,12 +3,6 @@ import subprocess
 import platform
 import shutil
 
-try:
-    import psutil
-    _PSUTIL = True
-except ImportError:
-    _PSUTIL = False
-
 _SYSTEM = platform.system()
 
 _APP_ALIASES: dict[str, dict[str, str]] = {
@@ -77,12 +71,51 @@ def _normalize(raw: str) -> str:
 
     return raw  
 
+def _windows_browser_exe(browser: str) -> str | None:
+    import os
+    low = browser.lower().strip()
+    if low in ("edge", "msedge", "microsoft edge"):
+        candidates = [
+            os.path.join(os.environ.get("PROGRAMFILES(X86)", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+            os.path.join(os.environ.get("PROGRAMFILES", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+        ]
+        for c in candidates:
+            if c and os.path.isfile(c):
+                return c
+        return shutil.which("msedge") or shutil.which("msedge.exe")
+    if low in ("firefox", "mozilla firefox"):
+        candidates = [
+            os.path.join(os.environ.get("PROGRAMFILES", ""), "Mozilla Firefox", "firefox.exe"),
+            os.path.join(os.environ.get("PROGRAMFILES(X86)", ""), "Mozilla Firefox", "firefox.exe"),
+        ]
+        for c in candidates:
+            if c and os.path.isfile(c):
+                return c
+        return shutil.which("firefox") or shutil.which("firefox.exe")
+    return None
+
+
 def _launch_windows(app_name: str) -> bool:
-    # Force Firefox for URLs
-    if '://' in app_name or app_name.startswith('www.'):
+    low = app_name.lower().strip()
+    browser_exe = _windows_browser_exe(low)
+    if browser_exe:
+        url = None
+        if "://" in app_name or app_name.startswith("www."):
+            url = app_name if "://" in app_name else f"https://{app_name}"
         try:
-            subprocess.Popen(['firefox', app_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(1.5)
+            args = [browser_exe] + ([url] if url else [])
+            subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(1.2)
+            return True
+        except Exception as e:
+            print(f"[open_app] Native browser launch failed: {e}")
+
+    # URLs in default browser
+    if "://" in app_name or app_name.startswith("www."):
+        try:
+            import webbrowser
+            webbrowser.open(app_name if "://" in app_name else f"https://{app_name}")
+            time.sleep(1.0)
             return True
         except Exception:
             pass

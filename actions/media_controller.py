@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import threading
 import pyautogui
 
 # Try to import winsdk for advanced native Windows Media session manager controls
@@ -42,7 +41,6 @@ async def _get_native_media_info():
         }
         
         # Determine playback status
-        timeline = session.get_timeline_properties()
         info["status"] = "Unknown"
         playback_info = session.get_playback_info()
         if playback_info:

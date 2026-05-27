@@ -23,3 +23,4 @@ pywinauto
 python-pptx
 pyqt6
 camoufox
+# Optional — gesture control (hand tracking): pip install mediapipe

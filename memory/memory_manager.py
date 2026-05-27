@@ -238,3 +238,254 @@ def forget(key: str, category: str = "notes") -> str:
 
 
 forget_memory = forget
+
+SESSION_LOG_PATH = BASE_DIR / "memory" / "session_log.json"
+LAST_SESSION_SUMMARY_PATH = BASE_DIR / "memory" / "last_session_summary.json"
+MAX_SESSION_TURNS = 40
+SHUTDOWN_HIGHLIGHT_TURNS = 8
+
+
+def load_session_log() -> dict:
+    default = {"last_updated": "", "turns": [], "summary": ""}
+    if not SESSION_LOG_PATH.exists():
+        return default
+    with _lock:
+        try:
+            data = json.loads(SESSION_LOG_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return {**default, **data}
+        except Exception as e:
+            print(f"[Memory] [Error] Error loading session log: {e}")
+    return default
+
+
+def append_session_turn(user: str = "", assistant: str = "") -> None:
+    user = (user or "").strip()
+    assistant = (assistant or "").strip()
+    if not user and not assistant:
+        return
+
+    log = load_session_log()
+    turns = log.get("turns", [])
+    turns.append({
+        "user": user[:500],
+        "assistant": assistant[:800],
+        "ts": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    })
+    log["turns"] = turns[-MAX_SESSION_TURNS:]
+    log["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    # Keep a short rolling summary for quick recall
+    recent = log["turns"][-5:]
+    summary_bits = []
+    for t in recent:
+        if t.get("user"):
+            summary_bits.append(f"User: {t['user'][:120]}")
+        if t.get("assistant"):
+            summary_bits.append(f"IP Prime: {t['assistant'][:160]}")
+    log["summary"] = " | ".join(summary_bits)[-2000:]
+
+    SESSION_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with _lock:
+        try:
+            SESSION_LOG_PATH.write_text(
+                json.dumps(log, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        except Exception as e:
+            print(f"[Memory] [Error] Error saving session log: {e}")
+
+    # Mirror last activity into long-term notes for cross-session recall
+    if user or assistant:
+        activity = user or assistant
+        update_memory({
+            "notes": {
+                "last_interaction": {
+                    "value": activity[:500],
+                    "updated": datetime.now().strftime("%Y-%m-%d"),
+                }
+            }
+        })
+
+    try:
+        from prime_platform.infinite_memory import archive_turn
+        archive_turn(user=user, assistant=assistant)
+    except Exception:
+        pass
+
+    try:
+        from actions.semantic_store import index_conversation_turn
+        if user:
+            index_conversation_turn(role="user", content=user)
+        if assistant:
+            index_conversation_turn(role="assistant", content=assistant)
+    except Exception as sem_e:
+        print(f"[Memory] Vector indexing skipped: {sem_e}")
+
+    try:
+        auto_capture_from_turn(user=user, assistant=assistant)
+    except Exception:
+        pass
+
+
+def auto_capture_from_turn(user: str = "", assistant: str = "") -> None:
+    """Save dated notes and explicit 'remember' phrases without waiting for the model."""
+    user = (user or "").strip()
+    if not user or len(user) < 8:
+        return
+
+    u_l = user.lower()
+    remember_triggers = (
+        "yaad rakh", "yaad rakho", "remember this", "remember that",
+        "don't forget", "mat bhoolna", "note kar", "save this",
+        "merko yaad", "mujhe yaad", "yaad hai na",
+    )
+    if any(t in u_l for t in remember_triggers):
+        update_memory({
+            "notes": {
+                f"user_said_{datetime.now().strftime('%Y%m%d_%H%M')}": {
+                    "value": user[:900],
+                    "updated": datetime.now().strftime("%Y-%m-%d"),
+                }
+            }
+        })
+
+    try:
+        from prime_platform.infinite_memory import parse_query_date, store_dated_note
+
+        when = parse_query_date(user) or datetime.now().strftime("%Y-%m-%d")
+        if any(w in u_l for w in ("yaad rakh", "remember", "us din", "on that day", "date pe")):
+            store_dated_note(when, user[:1500], topic=f"Pratik Sir said ({when})")
+        elif len(user) > 40 and any(
+            w in u_l for w in ("project", "plan", "favorite", "birthday", "kaam", "goal", "prefer")
+        ):
+            store_dated_note(
+                datetime.now().strftime("%Y-%m-%d"),
+                user[:1200],
+                topic=f"Context ({datetime.now().strftime('%Y-%m-%d %H:%M')})",
+            )
+    except Exception:
+        pass
+
+
+def format_session_for_prompt(max_turns: int = 12) -> str:
+    log = load_session_log()
+    turns = log.get("turns", [])
+    if not turns:
+        return ""
+
+    lines = [
+        "[RECENT SESSION HISTORY — remember this naturally, refer back when Pratik Sir asks what you did last time]",
+        f"Last active: {log.get('last_updated', 'unknown')}",
+        "",
+    ]
+    for t in turns[-max_turns:]:
+        ts = t.get("ts", "")
+        if t.get("user"):
+            lines.append(f"  [{ts}] Pratik Sir: {t['user']}")
+        if t.get("assistant"):
+            lines.append(f"  [{ts}] You: {t['assistant']}")
+
+    summary = log.get("summary", "")
+    if summary:
+        lines.extend(["", f"Quick recap: {summary}"])
+
+    return "\n".join(lines) + "\n"
+
+
+def save_shutdown_summary() -> bool:
+    """Write a compact recap when IP Prime stops (window close, exit, crash hook)."""
+    log = load_session_log()
+    turns = log.get("turns", [])
+    if not turns:
+        return False
+
+    recent = turns[-SHUTDOWN_HIGHLIGHT_TURNS:]
+    highlights: list[str] = []
+    for t in recent:
+        ts = t.get("ts", "")
+        if t.get("user"):
+            highlights.append(f"[{ts}] Pratik Sir: {t['user'][:280]}")
+        if t.get("assistant"):
+            highlights.append(f"[{ts}] IP Prime: {t['assistant'][:360]}")
+
+    last = recent[-1]
+    payload = {
+        "saved_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "last_active": log.get("last_updated", ""),
+        "turn_count": len(turns),
+        "summary": (log.get("summary") or "")[:2000],
+        "highlights": highlights,
+        "last_user": (last.get("user") or "")[:500],
+        "last_assistant": (last.get("assistant") or "")[:800],
+    }
+
+    LAST_SESSION_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with _lock:
+        try:
+            LAST_SESSION_SUMMARY_PATH.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            print("[Memory] [OK] Last session summary saved for next startup.")
+            return True
+        except Exception as e:
+            print(f"[Memory] [Error] Shutdown summary save failed: {e}")
+            return False
+
+
+def load_last_session_summary() -> dict:
+    default = {
+        "saved_at": "",
+        "last_active": "",
+        "turn_count": 0,
+        "summary": "",
+        "highlights": [],
+        "last_user": "",
+        "last_assistant": "",
+    }
+    if not LAST_SESSION_SUMMARY_PATH.exists():
+        return default
+    with _lock:
+        try:
+            data = json.loads(LAST_SESSION_SUMMARY_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return {**default, **data}
+        except Exception as e:
+            print(f"[Memory] [Error] Error loading last session summary: {e}")
+    return default
+
+
+def format_last_session_for_prompt() -> str:
+    data = load_last_session_summary()
+    if not data.get("saved_at") and not data.get("summary") and not data.get("highlights"):
+        return ""
+
+    lines = [
+        "[LAST SESSION BEFORE SHUTDOWN — use when Pratik Sir asks what you did last time or to continue work]",
+        f"Saved when IP Prime closed: {data.get('saved_at', 'unknown')}",
+        f"Last active: {data.get('last_active', 'unknown')} · {data.get('turn_count', 0)} turns in log",
+        "",
+    ]
+    summary = (data.get("summary") or "").strip()
+    if summary:
+        lines.append(f"Session recap: {summary}")
+        lines.append("")
+
+    highlights = data.get("highlights") or []
+    if highlights:
+        lines.append("Recent highlights from that run:")
+        for h in highlights[-6:]:
+            lines.append(f"  • {h}")
+        lines.append("")
+
+    last_u = (data.get("last_user") or "").strip()
+    last_a = (data.get("last_assistant") or "").strip()
+    if last_u or last_a:
+        lines.append("Last exchange before close:")
+        if last_u:
+            lines.append(f"  Pratik Sir: {last_u[:400]}")
+        if last_a:
+            lines.append(f"  You: {last_a[:500]}")
+
+    return "\n".join(lines) + "\n"

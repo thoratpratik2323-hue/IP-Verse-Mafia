@@ -16,7 +16,6 @@ Supported types:
   pptx    → summarize, extract_text, to_pdf
 """
 
-import os
 import re
 import json
 import shutil
@@ -25,24 +24,32 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 
-import google.generativeai as genai
+from actions.prime_utils import get_api_key
 
+class GeminiWrapper:
+    def __init__(self, model_name: str):
+        self.model_name = model_name
+        self._client = None
 
-def _get_api_key() -> str:
-    config_path = Path(__file__).resolve().parent.parent / "config" / "api_keys.json"
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
-        return config.get("coding_api_key") or config["gemini_api_key"]
+    @property
+    def client(self):
+        if self._client is None:
+            from google import genai
+            self._client = genai.Client(api_key=get_api_key())
+        return self._client
 
+    def generate_content(self, contents, **kwargs):
+        return self.client.models.generate_content(
+            model=self.model_name,
+            contents=contents,
+            **kwargs
+        )
 
 def _gemini_client():
-    genai.configure(api_key=_get_api_key())
-    return genai.GenerativeModel("gemini-2.5-flash")
-
+    return GeminiWrapper("gemini-2.5-flash")
 
 def _gemini_lite_client():
-    genai.configure(api_key=_get_api_key())
-    return genai.GenerativeModel("gemini-2.5-flash-lite")
+    return GeminiWrapper("gemini-2.5-flash-lite")
 
 INDEX_FILE_PATH = Path(__file__).resolve().parent.parent / "memory" / "resources_index.json"
 
@@ -830,7 +837,7 @@ def _process_video(path: Path, action: str, params: dict, speak=None) -> str:
         end   = params.get("end",   "")
         if not _ffmpeg_available():
             return "ffmpeg not found."
-        out = _output_path(path, f"trim", path.suffix)
+        out = _output_path(path, "trim", path.suffix)
         try:
             cmd = ["ffmpeg", "-i", str(path), "-ss", str(start)]
             if end:
@@ -1009,7 +1016,7 @@ Follow these rules perfectly:
             try:
                 print(f"[FileProcessor] Uploading {path.name} to Gemini API for parsing...")
                 uploaded_file = genai.upload_file(path=str(path))
-                print(f"[FileProcessor] Upload complete. Waiting for parsing processing...")
+                print("[FileProcessor] Upload complete. Waiting for parsing processing...")
                 response = model.generate_content([PARSER_PROMPT, uploaded_file])
                 parsed_text = response.text.strip()
             except Exception as upload_err:

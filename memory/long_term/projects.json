@@ -2,5 +2,21 @@
   "webpage_design": {
     "value": "profile page for Pratik Thorat with black and red colors and liquid fuel design, including name and personal description",
     "updated": "2026-05-21"
+  },
+  "ai_chatbot_key": {
+    "value": "AIzaSyD5lK2JCKUdDXAMjxjXte9kQDmwPTvWJyE",
+    "updated": "2026-05-27"
+  },
+  "Ai Chatbot Key": {
+    "value": "AIzaSyD5lK2JCKUdDXAMjxjXte9kQDmwPTvWJyE",
+    "updated": "2026-05-27"
+  },
+  "ai_feature_comparison": {
+    "value": "Compared AI projects (IRIS-AI, Open Interpreter, Aider AI). Noted potential gaps: IRIS-AI (local-first OS layer, Groq/LanceDB integration), Aider AI (deep native git-based autonomous workflow).",
+    "updated": "2026-05-27"
+  },
+  "rename_task": {
+    "value": "Rename 'prateek new ai advancements' (double 'e') and 'prateek ai future vision' (double 'e') files to 'pratik' (single 'i') format. Path is likely in Downloads/IP Given/code. Auto-rename when quota resets.",
+    "updated": "2026-05-27"
   }
 }

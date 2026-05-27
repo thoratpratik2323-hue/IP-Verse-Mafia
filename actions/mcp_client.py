@@ -4,7 +4,6 @@ import json
 import subprocess
 import threading
 import queue
-import time
 from pathlib import Path
 
 class MCPServerConnection:

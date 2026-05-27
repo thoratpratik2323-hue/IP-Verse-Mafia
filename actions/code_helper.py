@@ -13,7 +13,12 @@ def get_base_dir():
 
 BASE_DIR           = get_base_dir()
 API_CONFIG_PATH    = BASE_DIR / "config" / "api_keys.json"
-DESKTOP            = Path.home() / "Desktop"
+def _default_code_dir() -> Path:
+    try:
+        from prime_platform.ip_given_workspace import code_dir
+        return code_dir()
+    except Exception:
+        return Path.home() / "Desktop"
 MAX_BUILD_ATTEMPTS = 3
 GEMINI_MODEL       = "gemini-2.5-flash"
 
@@ -24,10 +29,21 @@ def _get_api_key() -> str:
         return config.get("coding_api_key") or config["gemini_api_key"]
 
 
-def _get_gemini(model: str = GEMINI_MODEL):
-    import google.generativeai as genai
-    genai.configure(api_key=_get_api_key())
-    return genai.GenerativeModel(model)
+def _get_gemini(model: str = None, prompt: str = None):
+    from actions.prime_utils import UnifiedGenerativeModel
+    
+    if model is None:
+        if prompt:
+            try:
+                from actions.semantic_router import route_model
+                model = route_model(prompt)
+            except Exception as e:
+                print(f"[Varon Router] Error importing or executing semantic router: {e}")
+                model = GEMINI_MODEL
+        else:
+            model = GEMINI_MODEL
+            
+    return UnifiedGenerativeModel(model, category="coding")
 
 
 def _clean_code(text: str) -> str:
@@ -47,11 +63,20 @@ def _resolve_save_path(output_path: str, language: str) -> Path:
         "bash": ".sh", "shell": ".sh", "powershell": ".ps1",
         "sql": ".sql", "json": ".json", "rust": ".rs", "go": ".go",
     }
-    if output_path:
-        p = Path(output_path)
-        return p if p.is_absolute() else DESKTOP / p
     ext = ext_map.get((language or "python").lower(), ".py")
-    return DESKTOP / f"ipprime_code{ext}"
+    try:
+        from prime_platform.ip_given_workspace import resolve_save_path
+        return resolve_save_path(
+            output_path,
+            category="code",
+            default_name=f"ipprime_code{ext}" if not output_path else "",
+            extension=ext,
+        )
+    except Exception:
+        if output_path:
+            p = Path(output_path)
+            return p if p.is_absolute() else _default_code_dir() / p
+        return _default_code_dir() / f"ipprime_code{ext}"
 
 
 def _read_file(file_path: str) -> tuple[str, str]:
@@ -158,7 +183,7 @@ def _detect_intent(description: str, file_path: str, code: str) -> str:
 
 def _write(description: str, language: str, output_path: str, player=None) -> tuple[str, Path]:
     lang  = language or "python"
-    model = _get_gemini()
+    model = _get_gemini(prompt=description)
 
     prompt = f"""You are an expert {lang} developer.
 Write clean, working, well-commented {lang} code for the description below.
@@ -181,7 +206,7 @@ Code:"""
 
 
 def _fix_code(code: str, error_output: str, description: str) -> str:
-    model  = _get_gemini()
+    model  = _get_gemini(prompt=description)
     prompt = f"""You are an expert debugger.
 The code below failed with the following error. Fix it.
 Return ONLY the corrected code — no explanation, no markdown, no backticks.
@@ -300,9 +325,61 @@ def _write_action(description, language, output_path, player) -> str:
     if player:
         player.write_log("[Code] Writing code...")
     try:
-        code, path = _write(description, language, output_path, player)
+        lang = language or "python"
+        code, path = _write(description, lang, output_path, player)
         print(f"[Code] ✅ Written: {path}")
-        return f"Code written. Saved to: {path}\n\nInfo: You are fully authorized to run it automatically using the 'run' action if needed for verification or execution. Otherwise, let Pratik Sir know it has been successfully written.\n\nPreview:\n{_preview(code)}"
+        
+        # AUTO-RUN VERIFICATION & SELF-HEALING LOOP
+        print(f"[Code] 🔄 Auto-verifying execution for: {path.name}...")
+        if player:
+            player.write_log(f"[Code] Auto-verifying execution...")
+            
+        last_output = _run_file(path, [], 20)
+        
+        # Check for pip missing dependencies (e.g. ModuleNotFoundError)
+        missing_module = re.search(r"ModuleNotFoundError:\s+No\s+module\s+named\s+['\"]([^'\"]+)['\"]", last_output)
+        if missing_module:
+            module_name = missing_module.group(1)
+            print(f"[Code] 📦 Detected missing module '{module_name}'. Attempting pip install...")
+            if player:
+                player.write_log(f"[Code] Installing missing dependency: {module_name}...")
+            subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
+            last_output = _run_file(path, [], 20)
+
+        # Self-healing loop if errors found
+        if _has_error(last_output):
+            print("[Code] ⚠️ Execution error detected during write verification, entering self-healing...")
+            if player:
+                player.write_log("[Code] Error detected, self-healing...")
+            
+            for attempt in range(1, MAX_BUILD_ATTEMPTS + 1):
+                try:
+                    code = _fix_code(code, last_output, description)
+                    _save_file(path, code)
+                    last_output = _run_file(path, [], 20)
+                    
+                    # Recheck missing module
+                    missing_module = re.search(r"ModuleNotFoundError:\s+No\s+module\s+named\s+['\"]([^'\"]+)['\"]", last_output)
+                    if missing_module:
+                        module_name = missing_module.group(1)
+                        subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
+                        last_output = _run_file(path, [], 20)
+
+                    if not _has_error(last_output):
+                        break
+                except Exception as e:
+                    print(f"[Code] Self-healing attempt {attempt} failed: {e}")
+                    
+        execution_status = ""
+        if _has_error(last_output):
+            execution_status = f"\n\n⚠️ Self-verification executed with errors:\n{last_output[:800]}"
+        else:
+            execution_status = f"\n\n✅ Self-verification succeeded! Execution Output:\n{last_output[:800]}"
+
+        return (
+            f"Code written and verified. Saved to: {path}{execution_status}\n\n"
+            f"Preview:\n{_preview(code)}"
+        )
     except Exception as e:
         return f"Could not generate code: {e}"
 
@@ -320,7 +397,7 @@ def _edit_action(file_path, instruction, player) -> str:
     if player:
         player.write_log("[Code] Editing file...")
 
-    model  = _get_gemini()
+    model  = _get_gemini(prompt=instruction)
     prompt = f"""You are an expert code editor.
 Apply the following change to the code below.
 Return ONLY the complete updated code — no explanation, no markdown, no backticks.
@@ -354,7 +431,7 @@ def _explain_action(file_path, code, player) -> str:
     if player:
         player.write_log("[Code] Analyzing code...")
 
-    model  = _get_gemini()
+    model  = _get_gemini(prompt=code)
     prompt = f"""Explain what this code does in simple, clear language.
 Focus on: what it does, how it works, and any important details.
 Be concise — 3 to 6 sentences maximum.
@@ -395,7 +472,7 @@ def _optimize_action(file_path, code, language, output_path, player) -> str:
         player.write_log("[Code] Optimizing code...")
 
     lang  = language or "python"
-    model = _get_gemini()
+    model = _get_gemini(prompt=code)
 
     prompt = f"""You are an expert {lang} developer and code reviewer.
 Optimize the following code for:
@@ -458,13 +535,12 @@ def _screen_debug_action(description, file_path, player, speak=None) -> str:
             print(f"[Code] ⚠️ Could not read file: {err}")
 
     try:
-        from google import genai
+        from actions.prime_utils import UnifiedModelClient
         from google.genai import types
 
-        client = genai.Client(api_key=_get_api_key())
+        client = UnifiedModelClient(category="coding")
 
         image_bytes  = screenshot_path.read_bytes()
-        image_base64 = _image_to_base64(screenshot_path)
 
         user_question = description or "What error or problem do you see on the screen? How can it be fixed?"
 
@@ -495,7 +571,7 @@ Be specific and actionable. If you see an error message, quote it exactly."""
         )
 
         analysis = response.text.strip()
-        print(f"[Code] ✅ Screen analysis complete")
+        print("[Code] ✅ Screen analysis complete")
 
         try:
             screenshot_path.unlink()
@@ -521,6 +597,190 @@ Be specific and actionable. If you see an error message, quote it exactly."""
         except Exception:
             pass
         return f"Screen analysis failed: {e}"
+
+
+# ─────────────────────────────────────────────────────────
+# Feature: Surgical Patch Engine (prime_diff)
+# ─────────────────────────────────────────────────────────
+
+def _patch_action(file_path: str, instruction: str, player=None) -> str:
+    """Apply a surgical minimal-diff patch instead of rewriting the whole file.
+    Generates a unified diff via Gemini, applies it with difflib, falls back to
+    full rewrite only if patch application fails."""
+    if not file_path:
+        return "Please provide a file path to patch, sir."
+    if not instruction:
+        return "Please describe what change to apply, sir."
+
+    content, err = _read_file(file_path)
+    if err:
+        return err
+
+    if player:
+        player.write_log("[Code] Generating surgical patch...")
+
+    model = _get_gemini(prompt=instruction)
+
+    prompt = f"""You are an expert code editor. Generate a MINIMAL unified diff to apply the following change.
+
+Change requested: {instruction}
+
+Return ONLY a valid unified diff in the standard format:
+--- a/{Path(file_path).name}
++++ b/{Path(file_path).name}
+@@ line_info @@
+ context lines prefixed with a space
+-removed lines prefixed with -
++added lines prefixed with +
+
+IMPORTANT:
+- Change as few lines as possible. Do NOT rewrite sections that don't need to change.
+- Each hunk must have correct @@ markers.
+- Return ONLY the diff, nothing else.
+
+Original file ({Path(file_path).name}):
+{content}
+
+Unified diff:"""
+
+    try:
+        response = model.generate_content(prompt)
+        diff_text = response.text.strip()
+        # Strip markdown fences
+        diff_text = re.sub(r"^```[a-zA-Z]*\n?", "", diff_text)
+        diff_text = re.sub(r"\n?```$", "", diff_text).strip()
+    except Exception as e:
+        return f"Could not generate patch: {e}"
+
+    # Try to apply the patch using difflib
+    try:
+        import difflib
+        patched_lines = list(difflib.restore(
+            [line + "\n" for line in diff_text.splitlines()],
+            2  # 2 = second file (after patch)
+        ))
+        # Validate difflib result has meaningful content
+        if len(patched_lines) < 3:
+            raise ValueError("difflib restore produced too little content")
+        patched = "".join(patched_lines)
+    except Exception:
+        # Fallback: full rewrite
+        print("[Code] Patch apply failed, falling back to full rewrite...")
+        if player:
+            player.write_log("[Code] Patch failed — using full rewrite fallback.")
+        try:
+            rewrite_prompt = f"""Apply this change to the code: {instruction}
+Return ONLY the complete updated code — no markdown, no backticks.
+
+Original:
+{content}
+
+Updated:"""
+            response2 = model.generate_content(rewrite_prompt)
+            patched = _clean_code(response2.text)
+        except Exception as e2:
+            return f"Could not apply patch or fallback rewrite: {e2}"
+
+    status = _save_file(Path(file_path), patched)
+
+    # Compute and display a human-readable diff summary
+    patched_lines_list = patched.splitlines()
+    original_lines_list = content.splitlines()
+    added   = sum(1 for l in patched_lines_list if l not in original_lines_list)
+    removed = sum(1 for l in original_lines_list if l not in patched_lines_list)
+
+    print(f"[Code] ✅ Patch applied: {file_path}")
+    return (
+        f"Surgical patch applied. {status}\n"
+        f"Diff: +{added} added / -{removed} removed lines (minimal change).\n"
+        f"Preview:\n{_preview(patched)}"
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# Feature: Auto Unit Test Generator (prime_test)
+# ─────────────────────────────────────────────────────────
+
+def _generate_tests_action(file_path: str, output_path: str, run_after: bool, player=None) -> str:
+    """Generate pytest unit tests for a Python file, run them, report results."""
+    if not file_path:
+        return "Please provide a Python file path to generate tests for, sir."
+
+    content, err = _read_file(file_path)
+    if err:
+        return err
+
+    if player:
+        player.write_log("[Code] Generating unit tests...")
+
+    model = _get_gemini(prompt=content)
+
+    prompt = f"""You are an expert Python test engineer. Generate comprehensive pytest unit tests for the code below.
+
+Rules:
+- Generate tests for ALL public functions/methods/classes.
+- Cover: happy path, edge cases (empty input, None, 0, max values), failure cases.
+- Use pytest style (no unittest.TestCase unless necessary).
+- Mock external dependencies (file I/O, network, subprocess) using pytest-mock or unittest.mock.
+- Add descriptive test function names (test_<function>_<scenario>).
+- Add a module-level docstring explaining what is being tested.
+- Return ONLY the test code — no markdown, no backticks, no explanation.
+- Import the module under test properly (use relative or absolute import).
+
+File being tested: {Path(file_path).name}
+
+Source code:
+{content[:8000]}
+
+Test file:"""
+
+    try:
+        response = model.generate_content(prompt)
+        test_code = _clean_code(response.text)
+    except Exception as e:
+        return f"Could not generate tests: {e}"
+
+    # Determine test file save path
+    src_path = Path(file_path)
+    if output_path:
+        test_path = Path(output_path)
+    else:
+        test_path = src_path.parent / f"test_{src_path.name}"
+
+    save_status = _save_file(test_path, test_code)
+    print(f"[Code] ✅ Tests written: {test_path}")
+
+    result_text = f"Test file generated. {save_status}\n\nPreview:\n{_preview(test_code)}"
+
+    if run_after:
+        if player:
+            player.write_log("[Code] Running tests with pytest...")
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", str(test_path), "--tb=short", "-v"],
+                capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+                timeout=60, cwd=str(src_path.parent)
+            )
+            output = (proc.stdout + proc.stderr).strip()
+
+            # Extract summary line
+            summary_lines = [l for l in output.splitlines() if "passed" in l or "failed" in l or "error" in l]
+            summary = summary_lines[-1] if summary_lines else output[-300:]
+
+            result_text += f"\n\n🧪 pytest results:\n{summary}"
+
+            if "failed" in output.lower() or "error" in output.lower():
+                result_text += "\n\nYou are authorized to auto-fix failing tests with the 'edit' action if needed."
+
+        except FileNotFoundError:
+            result_text += "\n\n⚠️ pytest not found. Install with: pip install pytest"
+        except subprocess.TimeoutExpired:
+            result_text += "\n\n⚠️ pytest timed out after 60s."
+        except Exception as e:
+            result_text += f"\n\n⚠️ Test run failed: {e}"
+
+    return result_text
 
 
 def code_helper(
@@ -582,5 +842,20 @@ def code_helper(
     elif action == "screen_debug":
         return _screen_debug_action(description, file_path, player, speak)
 
+    elif action == "patch":
+        return _patch_action(
+            file_path,
+            description or p.get("instruction", ""),
+            player
+        )
+
+    elif action in ("test", "generate_tests"):
+        return _generate_tests_action(
+            file_path,
+            output_path,
+            run_after=bool(p.get("run", True)),
+            player=player
+        )
+
     else:
-        return f"Unknown action: '{action}'. Use write, edit, explain, run, build, optimize, or screen_debug."
+        return f"Unknown action: '{action}'. Use write, edit, patch, test, explain, run, build, optimize, or screen_debug."

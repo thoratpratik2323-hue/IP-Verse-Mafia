@@ -1,4 +1,3 @@
-import os
 import re
 import json
 import time
@@ -169,15 +168,15 @@ class WhatsAppListenerService:
                 self.processed_commands[chat_name] = last_msg_id
 
                 result = execute_ip_prime_command(last_msg, player=self.player)
-                self._log(f"Execution done. Sending response...")
+                self._log("Execution done. Sending response...")
 
-                page.evaluate(f"""(text) => {{
+                page.evaluate("""(text) => {
                     const input = document.querySelector('div[contenteditable="true"][data-tab="10"]') || document.querySelector('div[contenteditable="true"]');
-                    if (input) {{
+                    if (input) {
                         input.focus();
                         document.execCommand('insertText', false, text);
-                    }}
-                }}""", f"🤖 *IP PRIME BOT RESPONSE* 🤖\n\n{result}")
+                    }
+                }""", f"🤖 *IP PRIME BOT RESPONSE* 🤖\n\n{result}")
                 time.sleep(0.5)
                 page.keyboard.press("Enter")
                 self._log(f"Response dispatched successfully to '{chat_name}'.")
@@ -606,3 +605,158 @@ Return JSON format:
             
     except Exception as e:
         return f"Failed to execute command: {e}"
+
+class WhatsAppAutoReplyService:
+    """Background service that monitors WhatsApp Web for new messages and sends auto-replies when busy mode is active."""
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        with cls._lock:
+            if not cls._instance:
+                cls._instance = super(WhatsAppAutoReplyService, cls).__new__(cls)
+                cls._instance.is_running = False
+                cls._instance.auto_reply_message = "Pratik bhai abhi thode busy hain, sir. Baad mein reply karenge, sir!"
+                cls._instance.busy_mode = False
+                cls._instance.replied_to = set()
+                cls._instance.thread = None
+                cls._instance.player = None
+            return cls._instance
+
+    def start(self, auto_reply_msg: str = "", player=None) -> str:
+        with self._lock:
+            if self.is_running:
+                return "WhatsApp Auto-Reply Service is already active, sir."
+                
+            if auto_reply_msg:
+                self.auto_reply_message = auto_reply_msg
+                
+            self.player = player
+            self.busy_mode = True
+            self.is_running = True
+            self.replied_to.clear()
+            
+            self.thread = threading.Thread(target=self._run_auto_reply_loop, daemon=True, name="WhatsAppAutoReplyThread")
+            self.thread.start()
+            
+            return f"WhatsApp Auto-Reply Service started, sir! Busy Mode is ON. Message set: '{self.auto_reply_message}'"
+
+    def stop(self) -> str:
+        with self._lock:
+            if not self.is_running:
+                return "WhatsApp Auto-Reply Service active nahi hai, sir."
+                
+            self.is_running = False
+            self.busy_mode = False
+            return "WhatsApp Auto-Reply Service stopped, sir. Busy Mode is OFF."
+
+    def set_message(self, message: str) -> str:
+        if not message:
+            return "Message content empty hai, sir."
+        self.auto_reply_message = message
+        return f"Auto-reply message successfully updated to: '{message}', sir."
+
+    def _log(self, msg: str):
+        print(f"[WhatsAppAutoReply] {msg}")
+        if self.player:
+            self.player.write_log(f"[WhatsAppAutoReply] {msg}")
+
+    def _run_auto_reply_loop(self):
+        self._log("Auto-reply background thread spawned.")
+        try:
+            with sync_playwright() as p:
+                cfg = _load_stealth_config()
+                # Determine proxy
+                proxy_dict = None
+                proxy_str = cfg.get("whatsapp_proxy", "").strip()
+                if proxy_str:
+                    proxy_dict = _parse_proxy_string(proxy_str)
+                    
+                user_data_dir = str(Path.home() / ".ipprime" / "whatsapp_session")
+                
+                self._log("Launching persistent context in headless mode...")
+                context = p.chromium.launch_persistent_context(
+                    user_data_dir,
+                    headless=True,
+                    proxy=proxy_dict,
+                    viewport={"width": 1280, "height": 720}
+                )
+                page = context.new_page() if not context.pages else context.pages[0]
+                page.goto("https://web.whatsapp.com")
+                
+                # Give it time to load or detect login
+                for i in range(15):
+                    if not self.is_running:
+                        break
+                    time.sleep(1)
+                    
+                self._log("Loop active. Scanning for unread incoming messages...")
+                
+                while self.is_running and self.busy_mode:
+                    try:
+                        # Find and click any unread chat badge
+                        unread_clicked = page.evaluate("""() => {
+                            const badge = document.querySelector('span[aria-label*="unread"], span[aria-label*="Unread"]');
+                            if (badge) {
+                                const card = badge.closest('[role="row"]');
+                                if (card) {
+                                    card.click();
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }""")
+                        
+                        if unread_clicked:
+                            time.sleep(2.0)
+                            
+                            # Get chat name
+                            chat_name = page.evaluate("""() => {
+                                const header = document.querySelector('header');
+                                if (header) {
+                                    const span = header.querySelector('span[title]');
+                                    return span ? span.getAttribute('title') : 'Unknown';
+                                }
+                                return 'Unknown';
+                            }""")
+                            
+                            if chat_name and chat_name not in self.replied_to:
+                                self._log(f"Auto-replying to new incoming message from '{chat_name}'...")
+                                
+                                # Input and send message
+                                page.focus('div[contenteditable="true"]')
+                                page.keyboard.type(self.auto_reply_message)
+                                page.keyboard.press("Enter")
+                                
+                                self.replied_to.add(chat_name)
+                                self._log(f"Replied successfully to '{chat_name}'!")
+                                
+                        time.sleep(5)
+                    except Exception as le:
+                        # loop warning silently
+                        time.sleep(5)
+                        
+                context.close()
+        except Exception as e:
+            self._log(f"Crash in auto-reply loop: {e}")
+            self.is_running = False
+
+# Module level exports
+def enable_whatsapp_auto_reply(message: str = "Pratik bhai abhi busy hain, baad mein baat karo, sir!", player=None) -> str:
+    """Starts the auto-reply background service."""
+    return WhatsAppAutoReplyService().start(message, player)
+
+def disable_whatsapp_auto_reply(player=None) -> str:
+    """Stops the auto-reply background service."""
+    return WhatsAppAutoReplyService().stop()
+
+def set_auto_reply_message(message: str, player=None) -> str:
+    """Updates the message sent by the auto-reply service."""
+    return WhatsAppAutoReplyService().set_message(message)
+
+def get_auto_reply_status(player=None) -> str:
+    """Returns current auto-reply service status and configured message."""
+    service = WhatsAppAutoReplyService()
+    status = "ACTIVE (Busy Mode)" if service.is_running else "INACTIVE"
+    return f"WhatsApp Auto-Reply Status: {status} | Configured Message: '{service.auto_reply_message}', sir."
+

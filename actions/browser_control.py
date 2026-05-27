@@ -37,6 +37,48 @@ def _normalize_url(url: str) -> str:
     return "https://" + url
 
 
+import re
+import json
+from google import genai
+from google.genai import types as gtypes
+
+def _find_element_in_screenshot(image_bytes: bytes, description: str, api_key: str, width: int, height: int) -> tuple[int, int] | None:
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        prompt = (
+            f"Locate the UI element described as: '{description}'.\n"
+            f"Return the exact 2D bounding box of the element as standard normalized coordinates in the form [ymin, xmin, ymax, xmax] on a scale of 0 to 1000 "
+            f"(where ymin, xmin, ymax, xmax represent the percentage of height and width from the top-left corner, multiplied by 1000).\n"
+            f"Reply with ONLY the coordinates in the format [ymin, xmin, ymax, xmax]. If not found, reply NOT_FOUND."
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                gtypes.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+                prompt,
+            ],
+        )
+
+        text = (response.text or "").strip()
+        if "NOT_FOUND" in text.upper():
+            return None
+
+        bbox_match = re.search(r"[\[\(]\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*[\]\)]", text)
+        if bbox_match:
+            ymin = int(bbox_match.group(1))
+            xmin = int(bbox_match.group(2))
+            ymax = int(bbox_match.group(3))
+            xmax = int(bbox_match.group(4))
+            
+            cx = int(((xmin + xmax) / 2.0) / 1000.0 * width)
+            cy = int(((ymin + ymax) / 2.0) / 1000.0 * height)
+            return cx, cy
+    except Exception as e:
+        print(f"[Browser] Visual grounding locator exception: {e}")
+    return None
+
 def _user_agent() -> str:
     if _OS == "Windows":
         return (
@@ -191,17 +233,52 @@ def _find_opera_windows() -> Optional[str]:
 
     return shutil.which("opera") or None
 
-def _find_exe_windows(prog_name: str) -> Optional[str]:
+_WINDOWS_EXE = {
+    "edge": "msedge.exe",
+    "firefox": "firefox.exe",
+    "chrome": "chrome.exe",
+    "brave": "brave.exe",
+    "vivaldi": "vivaldi.exe",
+}
+
+
+def _find_exe_windows(browser: str) -> Optional[str]:
+    browser = _ALIASES.get(browser.lower().strip(), browser.lower().strip())
+    exe_name = _WINDOWS_EXE.get(browser, f"{browser}.exe")
+
+    if browser == "edge":
+        for p in (
+            Path(os.environ.get("PROGRAMFILES(X86)", "")) / "Microsoft/Edge/Application/msedge.exe",
+            Path(os.environ.get("PROGRAMFILES", "")) / "Microsoft/Edge/Application/msedge.exe",
+        ):
+            if p.exists():
+                return str(p)
+    if browser == "firefox":
+        for p in (
+            Path(os.environ.get("PROGRAMFILES", "")) / "Mozilla Firefox/firefox.exe",
+            Path(os.environ.get("PROGRAMFILES(X86)", "")) / "Mozilla Firefox/firefox.exe",
+        ):
+            if p.exists():
+                return str(p)
+
+    found = shutil.which(exe_name.replace(".exe", "")) or shutil.which(exe_name)
+    if found:
+        return found
+
     try:
         import winreg
         paths_to_try = [
-            rf"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{prog_name}.exe",
-            rf"SOFTWARE\Clients\StartMenuInternet\{prog_name}\shell\open\command",
+            rf"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{exe_name}",
+            rf"SOFTWARE\Clients\StartMenuInternet\{browser}\shell\open\command",
         ]
+        if browser == "edge":
+            paths_to_try.append(r"SOFTWARE\Clients\StartMenuInternet\MSEdgeHTM\shell\open\command")
+        if browser == "firefox":
+            paths_to_try.append(r"SOFTWARE\Clients\StartMenuInternet\FirefoxURL\shell\open\command")
         for key_path in paths_to_try:
             for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
                 try:
-                    k   = winreg.OpenKey(hive, key_path)
+                    k = winreg.OpenKey(hive, key_path)
                     val = winreg.QueryValue(k, None)
                     winreg.CloseKey(k)
                     exe = val.strip().strip('"').split('"')[0].split(" --")[0].strip()
@@ -212,6 +289,52 @@ def _find_exe_windows(prog_name: str) -> Optional[str]:
     except Exception:
         pass
     return None
+
+
+def launch_native_browser(browser_name: str, url: str = "") -> str:
+    """Open Edge/Firefox/Chrome as a normal desktop app (no Playwright profile lock)."""
+    name = _ALIASES.get((browser_name or "").lower().strip(), (browser_name or "chrome").lower().strip())
+    target_url = _normalize_url(url) if (url or "").strip() else ""
+
+    if _OS == "Windows":
+        exe = _find_exe_windows(name)
+        if exe:
+            args = [exe]
+            if target_url and target_url != "about:blank":
+                args.append(target_url)
+            subprocess.Popen(
+                args,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if target_url and target_url != "about:blank":
+                return f"Opened {name} at {target_url}"
+            return f"Opened {name}, Sir."
+        return f"Could not find {name} on this PC. Is it installed?"
+
+    if _OS == "Darwin":
+        app_map = {
+            "chrome": "Google Chrome",
+            "edge": "Microsoft Edge",
+            "firefox": "Firefox",
+            "safari": "Safari",
+            "brave": "Brave Browser",
+        }
+        app = app_map.get(name, browser_name)
+        cmd = ["open", "-a", app]
+        if target_url and target_url != "about:blank":
+            cmd.append(target_url)
+        subprocess.Popen(cmd)
+        return f"Opened {app}."
+
+    exe = shutil.which(name) or shutil.which(_WINDOWS_EXE.get(name, name))
+    if exe:
+        args = [exe]
+        if target_url and target_url != "about:blank":
+            args.append(target_url)
+        subprocess.Popen(args)
+        return f"Opened {name}."
+    return f"Could not find browser: {browser_name}"
 
 _BROWSER_SPECS: dict[str, dict] = {
     "Windows": {
@@ -275,7 +398,7 @@ def _resolve_browser(name: str) -> dict | None:
     if spec.get("special") == "opera_windows":
         exe = _find_opera_windows()
         if not exe:
-            print(f"[Browser] ⚠️  Opera executable not found on Windows.")
+            print("[Browser] ⚠️  Opera executable not found on Windows.")
         return {"engine": engine, "exe": exe, "channel": channel}
 
     for b in bins:
@@ -507,7 +630,7 @@ class _BrowserSession:
                     self._context = await engine_obj.launch_persistent_context(profile, **kwargs)
                     await asyncio.sleep(0.5)
                     self._page = await self._context.new_page()
-                    print(f"[Browser] 🕶️ CloakBrowser launched successfully!")
+                    print("[Browser] 🕶️ CloakBrowser launched successfully!")
                     return
                 except Exception as e:
                     print(f"[Browser] ⚠️ CloakBrowser launch failed: {e}. Falling back to standard browser.")
@@ -570,7 +693,7 @@ class _BrowserSession:
                 self._context = await self._camou_manager.__aenter__()
                 await asyncio.sleep(0.5)
                 self._page = await self._context.new_page()
-                print(f"[Browser] 🕷 Camoufox Stealth launched successfully!")
+                print("[Browser] 🕷 Camoufox Stealth launched successfully!")
                 return
             except ImportError:
                 print("[Browser] ⚠️ Camoufox package not installed. Falling back to standard browser.")
@@ -610,7 +733,12 @@ class _BrowserSession:
 
             await asyncio.sleep(0.5)  
             self._page = await self._context.new_page()
-            print(f"[Browser] ✅ Firefox launched")
+            try:
+                from playwright_stealth import stealth_async
+                await stealth_async(self._page)
+            except Exception as se:
+                print(f"[Browser] Stealth applied failed: {se}")
+            print("[Browser] ✅ Firefox launched")
             return
 
         if engine_name == "webkit":
@@ -625,10 +753,20 @@ class _BrowserSession:
             self._context = await engine_obj.launch_persistent_context(safari_profile, **kwargs)
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
-            print(f"[Browser] ✅ Safari launched")
+            try:
+                from playwright_stealth import stealth_async
+                await stealth_async(self._page)
+            except Exception as se:
+                print(f"[Browser] Stealth applied failed: {se}")
+            print("[Browser] ✅ Safari launched")
             return
 
-        profile = _real_profile_dir(self.browser_name)
+        try:
+            from prime_platform.ip_given_workspace import browser_profiles_dir
+            profile = str(browser_profiles_dir() / self.browser_name)
+        except Exception:
+            profile = str(Path.home() / ".ip_ray_profiles" / self.browser_name)
+        Path(profile).mkdir(parents=True, exist_ok=True)
 
         kwargs = {
             "headless":    False,
@@ -657,9 +795,24 @@ class _BrowserSession:
 
         try:
             self._context = await engine_obj.launch_persistent_context(profile, **kwargs)
-            await asyncio.sleep(0.5) 
+            await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
-            print(f"[Browser] ✅ Launched [{label}] profile={profile}")
+            try:
+                from playwright_stealth import stealth_async
+                await stealth_async(self._page)
+            except Exception as se:
+                print(f"[Browser] Stealth applied failed: {se}")
+            print(f"[Browser] ✅ Launched [{label}] IP Given profile={profile}")
+            return
+        except Exception as e:
+            print(f"[Browser] ⚠️  IP Given profile failed for {label}: {e}")
+
+        real_profile = _real_profile_dir(self.browser_name)
+        try:
+            self._context = await engine_obj.launch_persistent_context(real_profile, **kwargs)
+            await asyncio.sleep(0.5)
+            self._page = await self._context.new_page()
+            print(f"[Browser] ✅ Launched [{label}] real profile={real_profile}")
             return
         except Exception as e:
             print(f"[Browser] ⚠️  Real profile failed for {label}: {e}")
@@ -672,10 +825,37 @@ class _BrowserSession:
             self._context = await engine_obj.launch_persistent_context(ip_ray_profile, **kwargs)
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
+            try:
+                from playwright_stealth import stealth_async
+                await stealth_async(self._page)
+            except Exception as se:
+                print(f"[Browser] Stealth applied failed: {se}")
             print(f"[Browser] ✅ Launched [{label}] with IP PRIME profile")
         except Exception as e2:
             raise RuntimeError(f"Could not launch {self.browser_name}: {e2}") from e2
 
+
+    async def _apply_stealth(self):
+        if self._context:
+            try:
+                evasions = """
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                window.chrome = { runtime: {}, loadTimes: function() {}, csi: function() {}, app: {} };
+                Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+                Object.defineProperty(navigator, 'plugins', { get: () => [
+                    { name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer' },
+                    { name: 'Chromium PDF Viewer', filename: 'internal-pdf-viewer' }
+                ]});
+                """
+                await self._context.add_init_script(evasions)
+                try:
+                    from playwright_stealth import stealth_async
+                    if self._page:
+                        await stealth_async(self._page)
+                except Exception:
+                    pass
+            except Exception as e:
+                print(f"[Browser] Custom stealth setup failed: {e}")
 
     async def _get_page(self) -> Page:
         await self._launch()
@@ -683,6 +863,7 @@ class _BrowserSession:
         if self._page is None or self._page.is_closed():
             self._page = await self._context.new_page()
             await asyncio.sleep(0.2)
+        await self._apply_stealth()
         return self._page
 
     async def go_to(self, url: str) -> str:
@@ -802,23 +983,40 @@ class _BrowserSession:
             try:
                 loc = page.get_by_role(role, name=description)
                 if await loc.count() > 0:
-                    await loc.first.click(timeout=5_000)
+                    await loc.first.click(timeout=3_000)
                     return f"Clicked ({role}): '{description}'"
             except Exception:
                 pass
         for attempt in (
-            lambda: page.get_by_text(description, exact=False).first.click(timeout=5_000),
-            lambda: page.get_by_placeholder(description, exact=False).first.click(timeout=5_000),
+            lambda: page.get_by_text(description, exact=False).first.click(timeout=3_000),
+            lambda: page.get_by_placeholder(description, exact=False).first.click(timeout=3_000),
             lambda: page.locator(
                 f'[alt*="{description}" i],[title*="{description}" i],'
                 f'[aria-label*="{description}" i]'
-            ).first.click(timeout=5_000),
+            ).first.click(timeout=3_000),
         ):
             try:
                 await attempt()
                 return f"Clicked: '{description}'"
             except Exception:
                 pass
+
+        # 2-Stage Visual Grounding Fallback Click
+        try:
+            from actions.computer_control import _get_api_key
+            api_key = _get_api_key()
+            if api_key:
+                print(f"[Browser] Locators failed for '{description}'. Running Visual Grounding Clicker...")
+                png_bytes = await page.screenshot(type="png")
+                vp = page.viewport_size or {"width": 1280, "height": 720}
+                coords = _find_element_in_screenshot(png_bytes, description, api_key, vp["width"], vp["height"])
+                if coords:
+                    cx, cy = coords
+                    await page.mouse.click(cx, cy)
+                    return f"Visually located and clicked '{description}' at ({cx}, {cy}) inside browser tab, sir."
+        except Exception as ve:
+            print(f"[Browser] Visual clicker fallback failed: {ve}")
+
         return f"Could not find element: '{description}'"
 
     async def smart_type(self, description: str, text: str) -> str:
@@ -840,6 +1038,27 @@ class _BrowserSession:
                 return f"Typed into ({method}): '{description}'"
             except Exception:
                 continue
+
+        # 2-Stage Visual Grounding Fallback Type
+        try:
+            from actions.computer_control import _get_api_key
+            api_key = _get_api_key()
+            if api_key:
+                print(f"[Browser] Locators failed for typing '{description}'. Running Visual Grounding Typer...")
+                png_bytes = await page.screenshot(type="png")
+                vp = page.viewport_size or {"width": 1280, "height": 720}
+                coords = _find_element_in_screenshot(png_bytes, description, api_key, vp["width"], vp["height"])
+                if coords:
+                    cx, cy = coords
+                    await page.mouse.click(cx, cy)
+                    await asyncio.sleep(0.2)
+                    await page.keyboard.press("Control+A")
+                    await page.keyboard.press("Delete")
+                    await page.keyboard.type(text, delay=40)
+                    return f"Visually focused and typed '{text}' into '{description}' at ({cx}, {cy}) inside browser tab, sir."
+        except Exception as ve:
+            print(f"[Browser] Visual typing fallback failed: {ve}")
+
         return f"Could not find input: '{description}'"
 
     async def new_tab(self, url: str = "") -> str:
@@ -864,7 +1083,13 @@ class _BrowserSession:
     async def screenshot(self, path: str = None) -> str:
         page = await self._get_page()
         try:
-            save_path = path or str(Path.home() / "Desktop" / "ipprime_screenshot.png")
+            if not path:
+                try:
+                    from prime_platform.ip_given_workspace import resolve_save_path
+                    path = str(resolve_save_path("", category="screenshots", extension=".png"))
+                except Exception:
+                    path = str(Path.home() / "Desktop" / "ipprime_screenshot.png")
+            save_path = path
             await page.screenshot(path=save_path, full_page=False)
             return f"Screenshot saved: {save_path}"
         except Exception as e:
@@ -992,16 +1217,30 @@ def browser_control(
         _log(player, result)
         return result
 
+    if action in ("launch", "open", "start"):
+        target = browser or params.get("browser", "") or _detect_default_browser()
+        result = launch_native_browser(target, params.get("url", ""))
+        _log(player, result)
+        return result
+
     try:
         sess = _registry.get(browser)
     except Exception as e:
-        result = f"Could not start browser session: {e}"
+        native = launch_native_browser(browser or "chrome", params.get("url", ""))
+        if "Could not find" not in native:
+            result = f"{native} (Playwright unavailable: {e})"
+        else:
+            result = f"Could not start browser session: {e}"
         _log(player, result)
         return result
 
     try:
         if action == "go_to":
-            result = sess.run(sess.go_to(params.get("url", "")))
+            try:
+                result = sess.run(sess.go_to(params.get("url", "")))
+            except Exception as e:
+                native = launch_native_browser(sess.browser_name, params.get("url", ""))
+                result = native if "Could not find" not in native else f"Navigation failed: {e}"
         elif action == "search":
             result = sess.run(sess.search(params.get("query", ""), params.get("engine", "google")))
         elif action == "click":
@@ -1056,4 +1295,4 @@ def _log(player, text: str):
     if player:
         player.write_log(f"[browser] {short[:60]}")
         if hasattr(player, "write_thought"):
-            player.write_thought(f"Browser: {short[:90]}")
+            player.write_thought(f"Browser: {short[:90]}")

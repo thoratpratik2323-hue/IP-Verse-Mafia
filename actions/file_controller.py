@@ -71,6 +71,12 @@ def _get_videos() -> Path:
 
 
 def _resolve_path(raw: str) -> Path:
+    try:
+        from prime_platform.ip_given_workspace import ensure_workspace
+        ip_given = ensure_workspace()
+    except Exception:
+        ip_given = None
+
     shortcuts: dict[str, Path] = {
         "desktop":   _get_desktop(),
         "downloads": _get_downloads(),
@@ -80,6 +86,11 @@ def _resolve_path(raw: str) -> Path:
         "videos":    _get_videos(),
         "home":      Path.home(),
     }
+    if ip_given is not None:
+        shortcuts["ip given"] = ip_given
+        shortcuts["ip_given"] = ip_given
+        shortcuts["ipgiven"] = ip_given
+        shortcuts["prime_workspace"] = ip_given
     lower = raw.strip().lower()
     if lower in shortcuts:
         return shortcuts[lower]

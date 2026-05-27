@@ -166,6 +166,35 @@ def _smart_type(text: str, clear_first: bool = True) -> str:
     return f"Smart-typed: {text[:60]}{'…' if len(text) > 60 else ''}"
 
 
+def phantom_type(prompt: str) -> str:
+    """God-Mode inline typing. Uses Gemini to generate text from a prompt and simulates keyboard typing or clipboard pasting."""
+    api_key = _get_api_key()
+    if not api_key:
+        return "Phantom failed: Gemini API key not found in config."
+        
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        
+        system_instruction = "You are Phantom, an inline code/text generator. Output ONLY the raw text or code requested. NO markdown formatting blocks like ```python. NO conversational text. Just the exact string."
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"Request: {prompt}",
+            config=genai.types.GenerateContentConfig(
+                system_instruction=system_instruction
+            )
+        )
+        
+        text = response.text or ""
+        if not text:
+            return "Phantom failed: Empty response from AI."
+            
+        return _smart_type(text, clear_first=False)
+    except Exception as e:
+        return f"Phantom failed: {e}"
+
+
 def _click(x=None, y=None, button: str = "left", clicks: int = 1) -> str:
     _require_pyautogui()
     if x is not None and y is not None:
@@ -308,7 +337,6 @@ def _find_element_on_screen(description: str, api_key: str) -> tuple[int, int] |
     try:
         from google import genai
         from google.genai import types as gtypes
-        from PIL import Image
 
         _require_pyautogui()
         w, h = pyautogui.size()
