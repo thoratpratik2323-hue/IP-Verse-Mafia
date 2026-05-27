@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-# Database of the 23 premium coding repositories, including Claude, MCP, and IP Verse tools
+# Database of the 24 premium coding repositories, including Claude, MCP, and IP Verse tools
 AWESOME_REPOS = [
     {
         "id": 1,
@@ -301,14 +301,27 @@ AWESOME_REPOS = [
             "Rust-powered Claw CLI execution binary",
             "Real-time token and filesystem telemetry logs"
         ]
+    },
+    {
+        "id": 24,
+        "name": "OpenHuman AI Agent",
+        "author": "tinyhumansai",
+        "url": "https://github.com/tinyhumansai/openhuman",
+        "description": "An open-source, UI-first personal AI desktop agent designed with Rust (Tauri) and React. It acts as a local-first memory companion, indexing and searching your digital footprint (GitHub, Gmail, Slack) into a secure Markdown Memory Tree.",
+        "features": [
+            "Local-first memory tree indexing & search",
+            "Tauri desktop interface architecture (Rust + React)",
+            "Third-party workspace app sync integrations",
+            "Privacy-focused and secure local compression loops"
+        ]
     }
 ]
 
 def get_awesome_repo_info(query: str = None) -> str:
-    """Retrieves beautifully formatted information or a listing of the 23 Claude/MCP/IP repositories."""
+    """Retrieves beautifully formatted information or a listing of the 24 Claude/MCP/IP repositories."""
     if not query or query.strip().lower() in ("list", "all", "show", "help"):
         res = [
-            "## 🌟 23 Claude, MCP & IP Verse GitHub Repos That Can Completely Change Your Life\n",
+            "## 🌟 24 Claude, MCP & IP Verse GitHub Repos That Can Completely Change Your Life\n",
             "Here is the premium catalog of essential agentic, developer, and ecosystem tools:\n"
         ]
         for r in AWESOME_REPOS:
@@ -337,13 +350,13 @@ def get_awesome_repo_info(query: str = None) -> str:
                 break
 
     if not matching:
-        return f"I couldn't find a repository in the list of 23 matching '{query}'. Try asking for a specific name like 'IP Codemaker Agent', 'Aider AI', 'Cline', 'Nezha Agent-First IDE', 'Open Interpreter', or 'IRIS-AI'."
+        return f"I couldn't find a repository in the list of 24 matching '{query}'. Try asking for a specific name like 'OpenHuman AI Agent', 'IP Codemaker Agent', 'Aider AI', 'Cline', 'Nezha Agent-First IDE', 'Open Interpreter', or 'IRIS-AI'."
 
     res = [
         f"### 📦 Repository Info: **{matching['name']}**",
         f"- **GitHub Link**: {matching['url']}",
         f"- **Author**: {matching['author']}",
-        f"- **Index No.**: {matching['id']}/23",
+        f"- **Index No.**: {matching['id']}/24",
         "",
         f"**Description**:\n{matching['description']}",
         "",
@@ -356,7 +369,7 @@ def get_awesome_repo_info(query: str = None) -> str:
     return "\n".join(res)
 
 def clone_awesome_repo(repo_name: str, dest_dir: str = None) -> str:
-    """Clones one of the 22 premium repositories directly to the system workspace for exploration."""
+    """Clones one of the 24 premium repositories directly to the system workspace for exploration."""
     q = repo_name.strip().lower()
     
     matching = None
