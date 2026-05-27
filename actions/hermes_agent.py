@@ -1,3 +1,9 @@
+"""
+hermes_agent.py — Multi-agent research loop compiling comprehensive semantic reports.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/hermes_agent.py
 # IP Prime — Hermes-Style Agentic Intelligence Engine
 # Implements Hermes agent capabilities via Gemini:

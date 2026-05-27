@@ -1,3 +1,9 @@
+"""
+media_controller.py — Controls media keys, sound outputs, and desktop players.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import sys
 import asyncio
 import pyautogui

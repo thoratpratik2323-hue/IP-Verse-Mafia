@@ -1,3 +1,9 @@
+"""
+live_code_reviewer.py — Reviews code files for performance, security, and logical bugs.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import time

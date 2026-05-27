@@ -1,3 +1,9 @@
+"""
+computer_control.py — Low-level OS controller wrapper simulating clicks, hotkeys, and cursor movements.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #computer_control.py
 import io
 import json

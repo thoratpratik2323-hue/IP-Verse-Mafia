@@ -1,3 +1,9 @@
+"""
+ghost_coder.py — Stealth pair-programming code advisor.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import keyboard
 import threading
 import time

@@ -1,3 +1,9 @@
+"""
+soap2soap_helper.py — SOAP migration helper rewriting legacy services.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/soap2soap_helper.py
 import json
 import time

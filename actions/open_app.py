@@ -1,3 +1,9 @@
+"""
+open_app.py — System search utility that boots and opens applications on command.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import time
 import subprocess
 import platform

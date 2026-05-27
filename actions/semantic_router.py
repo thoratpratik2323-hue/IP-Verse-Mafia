@@ -1,3 +1,9 @@
+"""
+semantic_router.py — Routes text queries to the most appropriate action module.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import re
 import socket
 import json

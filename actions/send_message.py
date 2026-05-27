@@ -1,3 +1,9 @@
+"""
+send_message.py — Automates sending WhatsApp, Telegram, or system notifications.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import subprocess
 import sys

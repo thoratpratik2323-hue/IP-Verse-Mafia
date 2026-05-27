@@ -1,3 +1,9 @@
+"""
+pascal_3d_designer.py — Draws and renders basic 3D structures.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # pascal_3d_designer.py
 import io
 import json

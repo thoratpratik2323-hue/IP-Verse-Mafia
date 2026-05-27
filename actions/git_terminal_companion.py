@@ -1,3 +1,9 @@
+"""
+git_terminal_companion.py — Console companion writing commit messages and resolving branch merges.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/git_terminal_companion.py
 import os
 import subprocess

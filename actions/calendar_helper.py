@@ -1,3 +1,9 @@
+"""
+calendar_helper.py — Manages calendars, appointment schedulers, and time management entries.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import uuid
 from datetime import datetime

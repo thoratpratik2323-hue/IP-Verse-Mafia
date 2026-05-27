@@ -1,3 +1,9 @@
+"""
+file_explorer.py — Disk usage explorer mapping recursive tree models and locating duplicate files.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/file_explorer.py
 # IP Prime - Full File Explorer Automation
 # Features: browse, search, copy, move, delete, rename, compress, watch, preview, duplicates & more

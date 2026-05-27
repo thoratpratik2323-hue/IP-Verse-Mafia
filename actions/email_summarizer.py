@@ -1,3 +1,9 @@
+"""
+email_summarizer.py — Parses local folders and Outlook directories to build email action logs.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import subprocess

@@ -1,4 +1,13 @@
+"""
+mobile_telekinesis.py — Android ADB remote controller executing taps, text typings, and screen mirroring.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import subprocess
+import os
+import time
+from pathlib import Path
 
 def _run_adb(args: list) -> tuple[int, str, str]:
     """Runs an adb command and returns exit_code, stdout, stderr."""

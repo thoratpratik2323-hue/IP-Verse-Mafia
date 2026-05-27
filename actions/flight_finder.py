@@ -1,3 +1,9 @@
+"""
+flight_finder.py — Fares analyzer scraping flight options using Playwright-stealth.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #flight_finder.py
 import json
 import re

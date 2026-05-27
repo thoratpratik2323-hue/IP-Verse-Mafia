@@ -1,3 +1,9 @@
+"""
+prime_utils.py — Core utility helper functions used across action modules.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/prime_utils.py
 import sys
 import json

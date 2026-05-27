@@ -1,3 +1,9 @@
+"""
+computer_settings.py — Manages clipboard, hardware metrics, running windows, and general PC settings.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #computer_settings.py
 import json
 import re

@@ -1,3 +1,9 @@
+"""
+screen_overlay.py — Glassmorphic PyQT overlay displaying active speaking hud notifications.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/screen_overlay.py
 import sys
 import io

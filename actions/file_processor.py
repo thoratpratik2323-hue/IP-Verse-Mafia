@@ -1001,6 +1001,8 @@ Follow these rules perfectly:
 5. If there are multiple pages or slides, use '<!-- page -->' or '<!-- slide -->' to demarcate boundaries where applicable.
 """
 
+    import google.generativeai as genai
+    genai.configure(api_key=get_api_key())
     model = genai.GenerativeModel("gemini-2.5-flash")
     uploaded_file = None
     

@@ -1,3 +1,9 @@
+"""
+desktop.py — Desktop clean-up scripts, wallpaper updates, and telemetry logs parser.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #desktop.py
 import os
 import sys

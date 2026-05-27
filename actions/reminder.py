@@ -1,3 +1,9 @@
+"""
+reminder.py — Desktop notification alarms scheduler utilizing Task Scheduler.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import shutil
 import subprocess

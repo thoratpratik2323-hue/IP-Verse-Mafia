@@ -1,3 +1,9 @@
+"""
+morning_briefer.py — Aggregates weather, news, system stats, and pending task updates.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import sys
 import re

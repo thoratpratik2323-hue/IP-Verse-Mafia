@@ -1,3 +1,9 @@
+"""
+obsidian_helper.py — Manages Obsidian vaults, logs markdown pages, and appends task notes.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import sqlite3

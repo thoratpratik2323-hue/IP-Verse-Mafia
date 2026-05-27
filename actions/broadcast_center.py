@@ -1,3 +1,9 @@
+"""
+broadcast_center.py — Central audio/visual notification broadcast hub.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import threading
 from pathlib import Path

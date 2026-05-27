@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ip-prime"
+version = "2.0.0"
+description = "Advanced Gemini-powered Voice + Vision AI personal desktop assistant"
+readme = "readme.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Pratik Thorat", email = "thora@example.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "sounddevice",
+    "google-genai",
+    "google-generativeai",
+    "pillow",
+    "requests",
+    "beautifulsoup4",
+    "duckduckgo-search",
+    "playwright",
+    "pyautogui",
+    "pyperclip",
+    "pygetwindow",
+    "opencv-python",
+    "numpy",
+    "mss",
+    "psutil",
+    "comtypes",
+    "pycaw",
+    "win10toast",
+    "send2trash",
+    "youtube-transcript-api",
+    "pywinauto",
+    "python-pptx",
+    "pyqt6",
+    "camoufox",
+    "playwright-stealth",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyflakes",
+    "pytest",
+]

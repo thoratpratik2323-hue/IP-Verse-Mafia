@@ -1,3 +1,9 @@
+"""
+github_assistant.py — Interacts with GitHub API to manage repositories, PRs, and commit branches.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import subprocess
 from pathlib import Path

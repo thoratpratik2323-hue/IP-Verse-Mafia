@@ -1,3 +1,9 @@
+"""
+autonomous_autopilot.py — Programmatic OS mouse/keyboard actions planner and Aider self-healing refactor engine.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/autonomous_autopilot.py
 import os
 import sys

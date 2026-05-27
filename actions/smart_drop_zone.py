@@ -1,3 +1,9 @@
+"""
+smart_drop_zone.py — Listens for drag-and-drop file inputs.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import time
 import shutil
 import threading

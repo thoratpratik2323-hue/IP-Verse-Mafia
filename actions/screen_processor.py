@@ -1,3 +1,9 @@
+"""
+screen_processor.py — Captures screen or camera and executes visual analysis.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 from __future__ import annotations
 
 import asyncio

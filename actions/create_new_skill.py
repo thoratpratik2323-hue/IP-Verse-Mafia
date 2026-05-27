@@ -1,3 +1,9 @@
+"""
+create_new_skill.py — Bootstraps and writes custom action modules to expand assistant capabilities.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import re
 import sys

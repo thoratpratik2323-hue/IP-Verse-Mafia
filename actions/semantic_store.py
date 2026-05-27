@@ -1,3 +1,9 @@
+"""
+semantic_store.py — Stores and retrieves context vectors locally.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 from pathlib import Path

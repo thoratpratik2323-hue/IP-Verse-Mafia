@@ -1,3 +1,9 @@
+"""
+token_juice.py — Smart token compression engine stripping HTML boilerplates.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import re
 import urllib.parse
 from bs4 import BeautifulSoup

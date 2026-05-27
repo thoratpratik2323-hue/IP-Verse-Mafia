@@ -1,3 +1,9 @@
+"""
+task_planner.py — Manages structured tasks database and creates AI-generated goal milestones.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import uuid

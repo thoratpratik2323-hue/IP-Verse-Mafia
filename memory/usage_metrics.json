@@ -1217,12 +1217,96 @@
       "tool": "computer_settings",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:49:40",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:50:29",
+      "tool": "browser_news_reader",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:51:33",
+      "tool": "prime_media",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:52:29",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:54:58",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:55:03",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T16:55:41",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T17:01:47",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T17:03:39",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T17:04:53",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T17:04:55",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T18:49:58",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T18:51:15",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T18:51:49",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 203,
-    "est_tokens": 162400,
-    "est_usd": 0.02436
+    "tool_calls": 217,
+    "est_tokens": 173600,
+    "est_usd": 0.02604
   },
   "by_day": {
     "2026-05-24": {
@@ -1236,9 +1320,9 @@
       "est_usd": 0.00312
     },
     "2026-05-27": {
-      "tool_calls": 150,
-      "est_tokens": 120000,
-      "est_usd": 0.018
+      "tool_calls": 164,
+      "est_tokens": 131200,
+      "est_usd": 0.01968
     }
   }
 }

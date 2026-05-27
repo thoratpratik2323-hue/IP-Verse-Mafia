@@ -1,3 +1,9 @@
+"""
+code_companion.py — Interactive pair-programmer assistant providing real-time code explanations.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/code_companion.py
 import os
 import ast

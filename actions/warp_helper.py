@@ -1,3 +1,9 @@
+"""
+warp_helper.py — Automates Warp terminal commands chains.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/warp_helper.py
 import os
 import sys

@@ -1,3 +1,9 @@
+"""
+aider_helper.py — Wrapper and executor helper for Aider-style AI code refactoring.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import sys
 import json

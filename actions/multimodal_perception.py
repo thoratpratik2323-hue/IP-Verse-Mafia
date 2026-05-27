@@ -1,3 +1,9 @@
+"""
+multimodal_perception.py — Vision telemetry loop capturing screenshots and webcam presence.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/multimodal_perception.py
 import os
 import time

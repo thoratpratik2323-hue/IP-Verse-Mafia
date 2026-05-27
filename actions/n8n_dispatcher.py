@@ -1,3 +1,9 @@
+"""
+n8n_dispatcher.py — Orchestrates background n8n automation flows.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import json
 import requests
 from pathlib import Path

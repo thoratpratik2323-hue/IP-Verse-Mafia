@@ -1,3 +1,9 @@
+"""
+project_debug_companion.py — Scans workspace tracebacks and suggests programmatic code fixes.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/project_debug_companion.py
 import os
 import sys

@@ -1,3 +1,9 @@
+"""
+agent_orchestrator.py — Orchestrates multi-agent pipelines and programmatic code execution loops.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/agent_orchestrator.py
 import subprocess
 import json

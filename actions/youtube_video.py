@@ -1,3 +1,9 @@
+"""
+youtube_video.py — YouTube video player, info aggregator, and visual transcriber.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #youtube_video.py
 import json
 import re

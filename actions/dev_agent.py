@@ -1,3 +1,9 @@
+"""
+dev_agent.py — Compiles and boots complete multi-file programming projects autonomously.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import subprocess
 import sys
 import json

@@ -1,3 +1,9 @@
+"""
+mcp_client.py — Model Context Protocol client managing external tool connections.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import sys
 import json

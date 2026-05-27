@@ -1,3 +1,9 @@
+"""
+terminal_doctor.py — Diagnoses terminal commands failures and prints recommendations.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/terminal_doctor.py
 import sys
 import os

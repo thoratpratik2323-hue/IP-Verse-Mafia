@@ -1,3 +1,9 @@
+"""
+chronos_routines.py — Time-tracking analytics and automated productivity routine scheduler.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/chronos_routines.py
 import json
 import time

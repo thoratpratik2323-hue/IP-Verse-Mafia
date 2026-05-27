@@ -1,3 +1,9 @@
+"""
+premium_utilities.py — Premium action utilities including expense loggers and alarm suites.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # premium_utilities.py
 import csv
 import json

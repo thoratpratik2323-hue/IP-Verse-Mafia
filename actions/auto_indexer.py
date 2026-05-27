@@ -1,3 +1,9 @@
+"""
+auto_indexer.py — Programmatic workspace parser that indexes all target directories and project catalogs.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/auto_indexer.py
 import os
 import sys

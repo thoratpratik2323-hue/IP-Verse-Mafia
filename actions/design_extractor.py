@@ -1,3 +1,9 @@
+"""
+design_extractor.py — Parses and packages web design systems directly from URLs or local projects.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # design_extractor.py
 import json
 import sys

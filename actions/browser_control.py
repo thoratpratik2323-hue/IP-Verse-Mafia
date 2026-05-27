@@ -1,3 +1,9 @@
+"""
+browser_control.py — Premium stealth browser automation engine powered by Playwright and Camoufox.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 from __future__ import annotations
 import sys
 # Force console streams to use UTF-8 to prevent charmap Unicode crashes on Windows
@@ -154,12 +160,12 @@ def _real_profile_dir(browser: str) -> str:
 
     for p in candidates:
         if p.exists():
-            print(f"[Browser] ✅ Real profile found for {browser}: {p}")
+            print(f"[Browser] [OK] Real profile found for {browser}: {p}")
             return str(p)
 
     fallback = home / ".ip_ray_profiles" / browser
     fallback.mkdir(parents=True, exist_ok=True)
-    print(f"[Browser] ⚠️  Real profile not found for {browser}, using: {fallback}")
+    print(f"[Browser] [WARN] Real profile not found for {browser}, using: {fallback}")
     return str(fallback)
 
 def _firefox_profile_dir() -> Optional[str]:
@@ -407,7 +413,7 @@ def _resolve_browser(name: str) -> dict | None:
     if spec.get("special") == "opera_windows":
         exe = _find_opera_windows()
         if not exe:
-            print("[Browser] ⚠️  Opera executable not found on Windows.")
+            print("[Browser] [WARN] Opera executable not found on Windows.")
         return {"engine": engine, "exe": exe, "channel": channel}
 
     for b in bins:
@@ -574,7 +580,16 @@ class _BrowserSession:
 
     def close(self):
         if self._loop:
-            asyncio.run_coroutine_threadsafe(self._async_close(), self._loop).result(10)
+            try:
+                asyncio.run_coroutine_threadsafe(self._async_close(), self._loop).result(10)
+            except Exception as e:
+                print(f"[Browser] Close async error: {e}")
+            finally:
+                # Stop the event loop so the daemon thread exits cleanly
+                try:
+                    self._loop.call_soon_threadsafe(self._loop.stop)
+                except Exception:
+                    pass
 
     async def _async_close(self):
         if hasattr(self, "_camou_manager") and self._camou_manager:
@@ -638,16 +653,16 @@ class _BrowserSession:
                     if proxy_dict:
                         kwargs["proxy"] = proxy_dict
                         
-                    print(f"[Browser] 🕶️ Launching CloakBrowser (stealth Chromium) from: {cloak_path}")
+                    print(f"[Browser] [STEALTH] Launching CloakBrowser (stealth Chromium) from: {cloak_path}")
                     self._context = await engine_obj.launch_persistent_context(profile, **kwargs)
                     await asyncio.sleep(0.5)
                     self._page = await self._context.new_page()
-                    print("[Browser] 🕶️ CloakBrowser launched successfully!")
+                    print("[Browser] [STEALTH] CloakBrowser launched successfully!")
                     return
                 except Exception as e:
-                    print(f"[Browser] ⚠️ CloakBrowser launch failed: {e}. Falling back to standard browser.")
+                    print(f"[Browser] [WARN] CloakBrowser launch failed: {e}. Falling back to standard browser.")
             else:
-                print(f"[Browser] ⚠️ CloakBrowser path empty or not found: '{cloak_path}'. Falling back.")
+                print(f"[Browser] [WARN] CloakBrowser path empty or not found: '{cloak_path}'. Falling back.")
 
         if use_camou:
             try:
@@ -687,7 +702,7 @@ class _BrowserSession:
                 profile = str(Path.home() / ".ipprime_camoufox_profile")
                 Path(profile).mkdir(parents=True, exist_ok=True)
                 
-                print(f"[Browser] 🕷 Launching Camoufox Stealth (headless={headless}, os={os_spoof}, block_images={block_assets}, humanize={humanize}, proxy={proxy_str}, block_webrtc={block_webrtc}, allow_webgl={allow_webgl}, geoip={geoip}, addons={len(addons_list)} found)...")
+                print(f"[Browser] [STEALTH] Launching Camoufox (headless={headless}, os={os_spoof}, block_images={block_assets}, humanize={humanize}, proxy={proxy_str}, block_webrtc={block_webrtc}, allow_webgl={allow_webgl}, geoip={geoip}, addons={len(addons_list)} found)...")
                 
                 self._camou_manager = AsyncCamoufox(
                     persistent_context=True,
@@ -705,12 +720,12 @@ class _BrowserSession:
                 self._context = await self._camou_manager.__aenter__()
                 await asyncio.sleep(0.5)
                 self._page = await self._context.new_page()
-                print("[Browser] 🕷 Camoufox Stealth launched successfully!")
+                print("[Browser] [STEALTH] Camoufox launched successfully!")
                 return
             except ImportError:
-                print("[Browser] ⚠️ Camoufox package not installed. Falling back to standard browser.")
+                print("[Browser] [WARN] Camoufox package not installed. Falling back to standard browser.")
             except Exception as e:
-                print(f"[Browser] ⚠️ Camoufox launch failed: {e}. Falling back to standard browser.")
+                print(f"[Browser] [WARN] Camoufox launch failed: {e}. Falling back to standard browser.")
 
         if self._spec is None:
             raise RuntimeError(
@@ -746,11 +761,11 @@ class _BrowserSession:
             await asyncio.sleep(0.5)  
             self._page = await self._context.new_page()
             try:
-                from playwright_stealth import stealth_async
-                await stealth_async(self._page)
+                from playwright_stealth import Stealth
+                await Stealth().apply_stealth_async(self._page)
             except Exception as se:
-                print(f"[Browser] Stealth applied failed: {se}")
-            print("[Browser] ✅ Firefox launched")
+                print(f"[Browser] Stealth applied (non-critical): {se}")
+            print("[Browser] [OK] Firefox launched")
             return
 
         if engine_name == "webkit":
@@ -766,11 +781,11 @@ class _BrowserSession:
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
             try:
-                from playwright_stealth import stealth_async
-                await stealth_async(self._page)
+                from playwright_stealth import Stealth
+                await Stealth().apply_stealth_async(self._page)
             except Exception as se:
-                print(f"[Browser] Stealth applied failed: {se}")
-            print("[Browser] ✅ Safari launched")
+                print(f"[Browser] Stealth applied (non-critical): {se}")
+            print("[Browser] [OK] Safari launched")
             return
 
         try:
@@ -810,24 +825,24 @@ class _BrowserSession:
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
             try:
-                from playwright_stealth import stealth_async
-                await stealth_async(self._page)
+                from playwright_stealth import Stealth
+                await Stealth().apply_stealth_async(self._page)
             except Exception as se:
-                print(f"[Browser] Stealth applied failed: {se}")
-            print(f"[Browser] ✅ Launched [{label}] IP Given profile={profile}")
+                print(f"[Browser] Stealth applied (non-critical): {se}")
+            print(f"[Browser] [OK] Launched [{label}] IP Given profile={profile}")
             return
         except Exception as e:
-            print(f"[Browser] ⚠️  IP Given profile failed for {label}: {e}")
+            print(f"[Browser] [WARN] IP Given profile failed for {label}: {e}")
 
         real_profile = _real_profile_dir(self.browser_name)
         try:
             self._context = await engine_obj.launch_persistent_context(real_profile, **kwargs)
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
-            print(f"[Browser] ✅ Launched [{label}] real profile={real_profile}")
+            print(f"[Browser] [OK] Launched [{label}] real profile={real_profile}")
             return
         except Exception as e:
-            print(f"[Browser] ⚠️  Real profile failed for {label}: {e}")
+            print(f"[Browser] [WARN] Real profile failed for {label}: {e}")
 
         ip_ray_profile = str(Path.home() / ".ip_ray_profiles" / self.browser_name)
         Path(ip_ray_profile).mkdir(parents=True, exist_ok=True)
@@ -838,11 +853,11 @@ class _BrowserSession:
             await asyncio.sleep(0.5)
             self._page = await self._context.new_page()
             try:
-                from playwright_stealth import stealth_async
-                await stealth_async(self._page)
+                from playwright_stealth import Stealth
+                await Stealth().apply_stealth_async(self._page)
             except Exception as se:
-                print(f"[Browser] Stealth applied failed: {se}")
-            print(f"[Browser] ✅ Launched [{label}] with IP PRIME profile")
+                print(f"[Browser] Stealth applied (non-critical): {se}")
+            print(f"[Browser] [OK] Launched [{label}] with IP PRIME profile")
         except Exception as e2:
             raise RuntimeError(f"Could not launch {self.browser_name}: {e2}") from e2
 
@@ -861,9 +876,9 @@ class _BrowserSession:
                 """
                 await self._context.add_init_script(evasions)
                 try:
-                    from playwright_stealth import stealth_async
+                    from playwright_stealth import Stealth
                     if self._page:
-                        await stealth_async(self._page)
+                        await Stealth().apply_stealth_async(self._page)
                 except Exception:
                     pass
             except Exception as e:
@@ -1303,6 +1318,7 @@ def browser_control(
 
 def _log(player, text: str):
     short = str(text)[:80]
+    short = short.encode("ascii", errors="replace").decode("ascii")
     print(f"[Browser] {short}")
     if player:
         player.write_log(f"[browser] {short[:60]}")

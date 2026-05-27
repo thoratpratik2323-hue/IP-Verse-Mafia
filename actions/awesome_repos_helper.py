@@ -1,3 +1,9 @@
+"""
+awesome_repos_helper.py — Inspects open-source projects and fetches popular developer GitHub repositories.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import subprocess
 from pathlib import Path
 

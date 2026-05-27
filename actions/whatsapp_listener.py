@@ -1,3 +1,9 @@
+"""
+whatsapp_listener.py — Playwright listener monitoring incoming WhatsApp Web messages.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import re
 import json
 import time

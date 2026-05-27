@@ -1,3 +1,9 @@
+"""
+code_helper.py — Interactive python code execution loop, code tester, and script compiler.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import subprocess
 import sys
 import json

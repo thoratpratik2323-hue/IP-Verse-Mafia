@@ -1,3 +1,9 @@
+"""
+humanoid_brain.py — Coordinates context queues and active assistant conversational memories.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/humanoid_brain.py
 import json
 import os

@@ -1,3 +1,9 @@
+"""
+web_hud.py — Configures glassmorphic PyQt interactive HUD windows.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/web_hud.py
 import json
 import sys

@@ -1,3 +1,9 @@
+"""
+game_updater.py — Steam and Epic Games library updater and download scheduler.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import re
 import sys

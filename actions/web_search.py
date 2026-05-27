@@ -1,3 +1,9 @@
+"""
+web_search.py — Scrapes Google search results and compiles answers summaries.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 #web_search.py
 import json
 import sys

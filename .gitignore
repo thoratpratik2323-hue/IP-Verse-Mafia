@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
 
 # C extensions
 *.so
@@ -26,8 +28,6 @@ share/python-wheels/
 *.egg
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so they can be ignored.
 *.manifest
 *.spec
 
@@ -71,3 +71,8 @@ tmp/
 # Cloned awesome repositories
 awesome_repos/*
 !awesome_repos/.gitkeep
+
+# Sensitive config and personal data — NEVER commit these
+config/api_keys.json
+contacts.json
+audit_report.md

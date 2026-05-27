@@ -1,3 +1,9 @@
+"""
+spotify_helper.py — Integrates Spotify desktop player control and plays mood-based tracks.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import base64

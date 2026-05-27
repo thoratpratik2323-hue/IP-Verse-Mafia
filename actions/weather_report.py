@@ -1,3 +1,9 @@
+"""
+weather_report.py — Fetches current weather logs from direct wttr.in endpoints.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import webbrowser
 from urllib.parse import quote_plus
 

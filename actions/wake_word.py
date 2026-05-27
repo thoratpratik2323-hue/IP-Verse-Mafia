@@ -1,3 +1,9 @@
+"""
+wake_word.py — Listen loop checking audio frequencies for assistant wake words.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/wake_word.py
 import time
 import threading

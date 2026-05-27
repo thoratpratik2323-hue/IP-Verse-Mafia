@@ -1,3 +1,9 @@
+"""
+advanced_communicator.py — Voice rendering and multi-lingual Indic translation/transliteration module.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 # actions/advanced_communicator.py
 import os
 import json

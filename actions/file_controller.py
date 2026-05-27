@@ -1,3 +1,9 @@
+"""
+file_controller.py — Direct filesystem manager executing moves, copies, deletions, and updates.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import shutil
 import platform

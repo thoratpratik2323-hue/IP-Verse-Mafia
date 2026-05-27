@@ -1,3 +1,9 @@
+"""
+audio_mixer.py — Advanced volume mixer controls, audio channel configurations, and SFX players.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
 def list_active_audio_sessions() -> str:

@@ -1,3 +1,9 @@
+"""
+screen_vision.py — AI-guided visual locator mapping elements on the active monitor screen.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 from pathlib import Path

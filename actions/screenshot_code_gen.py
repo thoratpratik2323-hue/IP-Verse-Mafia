@@ -1,3 +1,9 @@
+"""
+screenshot_code_gen.py — Screenshot-to-code cloning tool utilizing Gemini Vision.
+
+This is a standard action module for the IP Prime personal assistant suite.
+"""
+
 import os
 import json
 import time
