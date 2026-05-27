@@ -1,5 +1,14 @@
-
 from __future__ import annotations
+import sys
+# Force console streams to use UTF-8 to prevent charmap Unicode crashes on Windows
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
+
+
 
 import asyncio
 import concurrent.futures
@@ -426,6 +435,9 @@ def _resolve_browser(name: str) -> dict | None:
 
     if not exe and _OS == "Windows" and not channel:
         exe = _find_exe_windows(name)
+
+    if exe and "WindowsApps" in exe:
+        exe = None
 
     return {"engine": engine, "exe": exe, "channel": channel}
 
