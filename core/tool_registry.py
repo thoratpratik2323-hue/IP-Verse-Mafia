@@ -1618,6 +1618,47 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "force_nvidia",
+        "description": "Forces all query responses through NVIDIA NIM models until reset, sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "force_gemini",
+        "description": "Forces all query responses through Gemini until reset, sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "auto_route",
+        "description": "Restores smart automatic routing mode (NVIDIA for coding, Gemini for other tasks), sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "set_coding_model",
+        "description": "Changes the specific NVIDIA model used for coding queries, sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "model_name": {
+                    "type": "STRING",
+                    "description": "NVIDIA model name, e.g. nvidia/llama-3.1-nemotron-70b-instruct | meta/codellama-70b | mistralai/codestral-22b-instruct-v0.1 | google/codegemma-7b"
+                }
+            },
+            "required": ["model_name"]
+        }
+    },
+    {
         "name": "habit_tracker",
         "description": "AI Daily Habit Tracker module. Register, track streaks, check daily goals.",
         "parameters": {

@@ -1338,6 +1338,7 @@ class MainWindow(QMainWindow):
     _web_command_sig = pyqtSignal(str)
     _pulse_highlight_sig = pyqtSignal(int, int, float, str)
     _ocr_translate_sig = pyqtSignal(list)
+    _router_badge_sig  = pyqtSignal(str)
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -1364,6 +1365,7 @@ class MainWindow(QMainWindow):
         self._change_theme_sig.connect(self._set_theme_by_name)
         self._synth_personality_sig.connect(self._arc_synthesize_core)
         self._web_command_sig.connect(lambda cmd: self.on_text_command(cmd) if self.on_text_command else None)
+        self._router_badge_sig.connect(self._on_router_badge_updated)
 
         self._central_widget = QWidget()
         self._central_widget.setStyleSheet(f"background: {C.BG};")
@@ -1648,6 +1650,16 @@ class MainWindow(QMainWindow):
             f"<span style='color: {C.CYAN}; font-weight: 800;'>PRIME</span>"
         )
         lay.addWidget(self._title_lbl)
+
+        # Add Smart Router pill badge indicator next to Title
+        self._router_badge = QLabel("🟢 Gemini")
+        self._router_badge.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._router_badge.setStyleSheet(
+            "color: #10b981; background: rgba(16, 185, 129, 0.1); "
+            "border: 1px solid #10b981; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
+        )
+        self._router_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(self._router_badge)
 
         lay.addStretch()
 
@@ -2573,6 +2585,22 @@ class MainWindow(QMainWindow):
         self._settings_anim.start()
         icon = "✕" if self._settings_panel_visible else "⚙"
         self._settings_gear_btn.setText(icon)
+
+    def _on_router_badge_updated(self, model: str):
+        if not hasattr(self, "_router_badge"):
+            return
+        if model.upper() == "NVIDIA":
+            self._router_badge.setText("🟩 NVIDIA")
+            self._router_badge.setStyleSheet(
+                "color: #76B900; background: rgba(118, 185, 0, 0.1); "
+                "border: 1px solid #76B900; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
+            )
+        else:
+            self._router_badge.setText("🟢 Gemini")
+            self._router_badge.setStyleSheet(
+                "color: #10b981; background: rgba(16, 185, 129, 0.1); "
+                "border: 1px solid #10b981; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
+            )
 
     def write_log(self, text: str):
         self._log_sig.emit(text)
@@ -3597,3 +3625,6 @@ class IPRayUI:
 
     def show_ocr_translation(self, items: list):
         self._win._ocr_translate_sig.emit(items)
+
+    def set_router_badge(self, model: str):
+        self._win._router_badge_sig.emit(model)

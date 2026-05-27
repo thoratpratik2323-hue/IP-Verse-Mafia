@@ -233,18 +233,24 @@ ip-prime/
 
 ---
 
-## 🔑 API Key Setup
+## 🔑 API Keys Required
 
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Create a free Gemini API key
-3. Set it as an environment variable:
-   ```bash
-   # Windows
-   setx GEMINI_API_KEY "your_api_key_here"
+Set these environment variables before running IP Prime:
 
-   # macOS / Linux
-   export GEMINI_API_KEY="your_api_key_here"
-   ```
+### Windows:
+```bash
+setx GEMINI_API_KEY "your_gemini_key"
+setx NVIDIA_API_KEY "your_nvidia_nim_key"
+```
+
+### Linux/Mac:
+```bash
+export GEMINI_API_KEY="your_gemini_key"
+export NVIDIA_API_KEY="your_nvidia_nim_key"
+```
+
+- Get your Gemini API key from: [Google AI Studio](https://aistudio.google.com)
+- Get your NVIDIA NIM API key from: [NVIDIA Build](https://build.nvidia.com) (Free tier available — $50 free credits on signup)
 
 ---
 

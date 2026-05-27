@@ -449,10 +449,7 @@ class IPRayLive:
             self.ui.write_log("SYS: Pratik Sir, aapka text message queue kar liya hai. IP Prime ke bolne ke baad response milega.")
             return
 
-        asyncio.run_coroutine_threadsafe(
-            self.session.send_realtime_input(text=text),
-            self._loop
-        )
+        self.route_user_message(text, is_voice=False)
 
     def set_speaking(self, value: bool):
         with self._speaking_lock:
@@ -469,6 +466,80 @@ class IPRayLive:
             self.session.send_realtime_input(text=text),
             self._loop
         )
+
+    def route_user_message(self, user_message: str, is_voice: bool = False):
+        """
+        Smart intent router that routes coding tasks to NVIDIA NIM API and general tasks to Gemini.
+        """
+        try:
+            from core.intent_router import is_coding_task
+            from core.nvidia_client import ask_nvidia
+            from actions.model_switcher import load_model_preference
+            
+            pref = load_model_preference()
+            routing_mode = pref.get("routing_mode", "auto")
+            
+            is_code = False
+            if routing_mode == "nvidia":
+                is_code = True
+            elif routing_mode == "gemini":
+                is_code = False
+            else:  # auto
+                is_code = is_coding_task(user_message)
+                
+            if is_code:
+                source = "NVIDIA"
+                if hasattr(self.ui, "set_router_badge"):
+                    self.ui.set_router_badge("NVIDIA")
+                    
+                print(f"[Router] '{user_message[:40]}...' -> handled by {source}")
+                logger.info("[Router] '%s...' -> handled by %s", user_message[:40], source)
+                
+                # Interrupt Gemini if vocal query
+                if is_voice:
+                    self._trigger_immediate_interruption()
+                    
+                # Run NVIDIA client in background thread to keep event loop responsive
+                def run_nvidia():
+                    try:
+                        resp = ask_nvidia(
+                            prompt=user_message,
+                            system_prompt="You are IP Prime's coding engine. Give clean, well-commented code with brief explanations."
+                        )
+                        self.ui.write_log(f"IP Prime (NVIDIA): {resp}")
+                        self.speak(resp)
+                    except Exception as err:
+                        logger.error("NVIDIA NIM query failed: %s", err)
+                        self.ui.write_log(f"SYS: NVIDIA routing failure: {err}")
+                        self.speak(f"NVIDIA API request failed, sir. {err}")
+                
+                threading.Thread(target=run_nvidia, daemon=True, name="NvidiaQueryThread").start()
+                
+            else:
+                source = "Gemini"
+                if hasattr(self.ui, "set_router_badge"):
+                    self.ui.set_router_badge("Gemini")
+                    
+                print(f"[Router] '{user_message[:40]}...' -> handled by {source}")
+                logger.info("[Router] '%s...' -> handled by %s", user_message[:40], source)
+                
+                if not is_voice:
+                    # For text, send to Gemini Live session
+                    asyncio.run_coroutine_threadsafe(
+                        self.session.send_realtime_input(text=user_message),
+                        self._loop
+                    )
+                else:
+                    # For voice, Gemini has already processed the audio, so do nothing.
+                    pass
+                    
+        except Exception as e:
+            logger.error("Error in intent routing pipeline: %s", e)
+            if not is_voice:
+                asyncio.run_coroutine_threadsafe(
+                    self.session.send_realtime_input(text=user_message),
+                    self._loop
+                )
 
     def speak_error(self, tool_name: str, error: str):
         short = str(error)[:120]
@@ -1365,6 +1436,13 @@ class IPRayLive:
                 r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args, player=self.ui))
                 result = r or "Done."
 
+            elif name in ["force_nvidia", "force_gemini", "auto_route", "set_coding_model"]:
+                from actions.model_switcher import model_switcher
+                args_copy = dict(args)
+                args_copy["action"] = name
+                r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args_copy, player=self.ui))
+                result = r or "Done."
+
             elif name == "habit_tracker":
                 from actions.habit_tracker import habit_tracker
                 r = await loop.run_in_executor(None, lambda: habit_tracker(parameters=args, player=self.ui))
@@ -1658,6 +1736,7 @@ class IPRayLive:
                             if not self._quiet_mode:
                                 if full_in:
                                     self.ui.write_log(f"You: {full_in}")
+                                    self.route_user_message(full_in, is_voice=True)
                                 if full_out:
                                     self.ui.write_log(f"IP Prime: {full_out}")
                                 if full_in or full_out:

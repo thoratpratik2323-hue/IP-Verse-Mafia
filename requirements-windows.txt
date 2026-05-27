@@ -33,3 +33,4 @@ python-telegram-bot
 PyGithub
 docker
 mediapipe
+openai>=1.0.0
