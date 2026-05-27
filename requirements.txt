@@ -24,3 +24,11 @@ python-pptx
 pyqt6
 camoufox
 # Optional — gesture control (hand tracking): pip install mediapipe
+yfinance
+deep-translator
+speedtest-cli
+discord.py
+python-telegram-bot
+PyGithub
+docker
+mediapipe

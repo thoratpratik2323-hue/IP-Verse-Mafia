@@ -1593,5 +1593,369 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "local_llm",
+        "description": "Switch active intelligence engine to local offline LLM (Ollama) or back online.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "switch_offline | switch_online | status"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "model_switcher",
+        "description": "Toggles active model config settings (Gemini, Claude, GPT-4o, local Ollama).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "switch | status"},
+                "model_name": {"type": "STRING", "description": "Target model: gemini | claude | gpt-4o | ollama"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "habit_tracker",
+        "description": "AI Daily Habit Tracker module. Register, track streaks, check daily goals.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "add | check | report | delete | evening_check"},
+                "name": {"type": "STRING", "description": "Habit name to register or check off"},
+                "frequency": {"type": "STRING", "description": "daily (default) | weekly"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "emotion_detector",
+        "description": "Biometric face emotion watcher. Matches webcam expressions to personality adjustments.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "detect | get_mood"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "tutor_mode",
+        "description": "Spaced repetition Leitner box tutoring cards and study logs.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "add | start | quiz | outcome | report | reminder"},
+                "topic": {"type": "STRING", "description": "Learning topic name"},
+                "question": {"type": "STRING", "description": "Quiz question payload"},
+                "answer": {"type": "STRING", "description": "Quiz answer key"},
+                "correct": {"type": "BOOLEAN", "description": "User quiz outcome result indicator"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "email_ai",
+        "description": "Gmail & Outlook inbox scanner, digest compiler, and auto draft responder.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "read | summary | draft | reply | search | digest"},
+                "source": {"type": "STRING", "description": "Inbox source: gmail | outlook | all"},
+                "count": {"type": "INTEGER", "description": "Number of email updates to pull"},
+                "to": {"type": "STRING", "description": "Recipient address"},
+                "subject": {"type": "STRING", "description": "Email subject string"},
+                "body": {"type": "STRING", "description": "Email body content"},
+                "email_id": {"type": "STRING", "description": "Reply thread ID target"},
+                "message": {"type": "STRING", "description": "Reply email body text"},
+                "query": {"type": "STRING", "description": "Search keyword phrase"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "discord_helper",
+        "description": "Discord channel reader, servers manager, and userbot dispatcher.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "read | send | servers | mentions"},
+                "channel": {"type": "STRING", "description": "Target channel name key (default: general)"},
+                "message": {"type": "STRING", "description": "Text body to dispatch"},
+                "count": {"type": "INTEGER", "description": "History logs cap listing limit"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "telegram_bot",
+        "description": "Telegram remote control bot daemon manager. Status/Run/Screenshot hooks.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "start | stop | send | poll"},
+                "message": {"type": "STRING", "description": "Push notification text content"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "live_translator",
+        "description": "Real-time translation, OCR screen translation, and live voice translations.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "translate | screen | set_lang | mic"},
+                "text": {"type": "STRING", "description": "Payload to translate"},
+                "target": {"type": "STRING", "description": "Target ISO lang code (e.g. hi, fr)"},
+                "source": {"type": "STRING", "description": "Source ISO lang code (e.g. en, auto)"},
+                "target_lang": {"type": "STRING", "description": "Set active target lang"},
+                "source_lang": {"type": "STRING", "description": "Set active source lang"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "docker_controller",
+        "description": "Docker and Virtual Machine (VirtualBox/VMware) manager.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "list_containers | control_container | logs | list_vms | control_vm"},
+                "name": {"type": "STRING", "description": "Container name or ID for Docker"},
+                "container_action": {"type": "STRING", "description": "start | stop | restart"},
+                "vm_name": {"type": "STRING", "description": "Hypervisor virtual machine title"},
+                "vm_action": {"type": "STRING", "description": "start | stop"},
+                "tail": {"type": "INTEGER", "description": "Logs rows tailing (default: 20)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "clipboard_manager",
+        "description": "Clipboard logger & categorizer. Search, restore, clear copied history.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "start | stop | search | history | restore | clear"},
+                "query": {"type": "STRING", "description": "Search copied data history query"},
+                "count": {"type": "INTEGER", "description": "History logs cap listing limit"},
+                "value": {"type": "STRING", "description": "Exact text or index value to restore to clipboard"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "pr_reviewer",
+        "description": "AI-automated GitHub pull request code reviewer. Scans diffs, posts review comments.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "list | review"},
+                "repo": {"type": "STRING", "description": "Target repository (e.g. 'owner/repo')"},
+                "pr_number": {"type": "INTEGER", "description": "PR number ID"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "venv_manager",
+        "description": "Local virtualenv and Conda environments manager.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "list | create | delete | packages | install"},
+                "name": {"type": "STRING", "description": "Local folder path name or Conda target env name"},
+                "mode": {"type": "STRING", "description": "venv (default) | conda"},
+                "package": {"type": "STRING", "description": "Target pip package name to install"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "presentation_generator",
+        "description": "AI PowerPoint presentation deck generator.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "generate"},
+                "topic": {"type": "STRING", "description": "Target presentation subject"},
+                "slides": {"type": "INTEGER", "description": "Target slides count (default: 5)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "health_monitor",
+        "description": "Posture slouch checker and break interval reminder tracker.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "start | stop | stats"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "journal",
+        "description": "Mood analytics journal. Logs daily vocal thoughts and calculates mood trends.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "add | read | search | trends | summary"},
+                "text": {"type": "STRING", "description": "Vocal / text journal entry body"},
+                "mood": {"type": "STRING", "description": "Mood tag: happy | sad | stressed | neutral"},
+                "date": {"type": "STRING", "description": "Target log date: YYYY-MM-DD"},
+                "query": {"type": "STRING", "description": "Search keyword phrase"},
+                "tags": {"type": "STRING", "description": "Comma-separated tag strings"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "screen_time",
+        "description": "Active window usage screen-time log system and daily app limit alerts.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "start | stop | get | report | set_limit | top"},
+                "app": {"type": "STRING", "description": "Application package name key"},
+                "limit": {"type": "INTEGER", "description": "Usage threshold limit in minutes"},
+                "count": {"type": "INTEGER", "description": "Top items listing cap limit"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "health_tracker",
+        "description": "Daily consumption logger. Track meals, water ML volume, and sleep hours.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "log_water | set_goal | log_meal | log_sleep | summary"},
+                "value": {"type": "INTEGER", "description": "Water volume logged in ml"},
+                "goal": {"type": "INTEGER", "description": "Target daily water goal in ml"},
+                "meal": {"type": "STRING", "description": "Meal description string"},
+                "calories": {"type": "INTEGER", "description": "Estimated calorie intake (kcal)"},
+                "sleep_hours": {"type": "NUMBER", "description": "Sleep hours duration today"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "finance_tracker",
+        "description": "Stock and crypto watchlist portfolio price watcher with alert limits.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "add | remove | summary | set_alert"},
+                "ticker": {"type": "STRING", "description": "Stock ticker or crypto ID (e.g. TCS.NS, BTC-USD)"},
+                "target": {"type": "NUMBER", "description": "Price alert target valuation"},
+                "direction": {"type": "STRING", "description": "above (default) | below"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "order_tracker",
+        "description": "Courier shipping parcel package tracker (Amazon, BlueDart, Delhivery).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "add | track | list | scan_text"},
+                "tracking_number": {"type": "STRING", "description": "Package parcel code string"},
+                "carrier": {"type": "STRING", "description": "Amazon | BlueDart | Delhivery"},
+                "text": {"type": "STRING", "description": "E-mail body search string"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "bill_splitter",
+        "description": "Receipt parsing splitter. Debt allocations and split summaries WhatsApp dispatching.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "split | whatsapp | balances"},
+                "bill_text": {"type": "STRING", "description": "Bill receipt raw text details"},
+                "people": {"type": "STRING", "description": "Comma-separated participant names list"},
+                "person": {"type": "STRING", "description": "WhatsApp dispatch recipient name"},
+                "assignments": {"type": "STRING", "description": "Individual items mapping (e.g. Rahul:pizza|Priya:salad)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "network_monitor",
+        "description": "Bandwidth speed counters and local connected network device discovery.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "stats | speed | list | set_alert | top_apps"},
+                "alert_active": {"type": "BOOLEAN", "description": "Enable unknown device triggers"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "face_recognition",
+        "description": "Offline facial recognition enrollment and unlock lock security system.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "register | verify | enable | disable"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "wifi_speed_logger",
+        "description": "Automated speedtest logger. Logs bandwidth diagnostics to speed_log.csv.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "test | history | average | set_threshold | start | stop"},
+                "threshold": {"type": "NUMBER", "description": "Speed alert download threshold (Mbps)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "second_monitor_overlay",
+        "description": "Glassmorphic transparent second monitor HUD status overlay.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "enable | disable | update_tasks"},
+                "value": {"type": "STRING", "description": "HUD checklist tasks string update"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "deepfake_detector",
+        "description": "Deepfake forensics media analyzer. GAN fingerprinting and JPEG artifacts detector.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "image | video | report"},
+                "file_path": {"type": "STRING", "description": "File path target to check"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "printer_3d_controller",
+        "description": "OctoPrint 3D printer status tracking, temperatures checking, and job controls.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "status | temps | start | pause | cancel | files"},
+                "file_name": {"type": "STRING", "description": "Target Gcode file to print"}
+            },
+            "required": ["action"]
+        }
     }
 ]

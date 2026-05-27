@@ -1355,6 +1355,141 @@ class IPRayLive:
                 r = await loop.run_in_executor(None, lambda: token_juice(parameters=args, player=self.ui))
                 result = r or "Done."
 
+            elif name == "local_llm":
+                from actions.local_llm import local_llm
+                r = await loop.run_in_executor(None, lambda: local_llm(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "model_switcher":
+                from actions.model_switcher import model_switcher
+                r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "habit_tracker":
+                from actions.habit_tracker import habit_tracker
+                r = await loop.run_in_executor(None, lambda: habit_tracker(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "emotion_detector":
+                from actions.emotion_detector import emotion_detector
+                r = await loop.run_in_executor(None, lambda: emotion_detector(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "tutor_mode":
+                from actions.tutor_mode import tutor_mode
+                r = await loop.run_in_executor(None, lambda: tutor_mode(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "email_ai":
+                from actions.email_ai import email_ai
+                r = await loop.run_in_executor(None, lambda: email_ai(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "discord_helper":
+                from actions.discord_helper import discord_helper
+                r = await loop.run_in_executor(None, lambda: discord_helper(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "telegram_bot":
+                from actions.telegram_bot import telegram_bot
+                r = await loop.run_in_executor(None, lambda: telegram_bot(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "live_translator":
+                from actions.live_translator import live_translator
+                r = await loop.run_in_executor(None, lambda: live_translator(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "docker_controller":
+                from actions.docker_controller import docker_controller
+                r = await loop.run_in_executor(None, lambda: docker_controller(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "clipboard_manager":
+                from actions.clipboard_manager import clipboard_manager
+                r = await loop.run_in_executor(None, lambda: clipboard_manager(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "pr_reviewer":
+                from actions.pr_reviewer import pr_reviewer
+                r = await loop.run_in_executor(None, lambda: pr_reviewer(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "venv_manager":
+                from actions.venv_manager import venv_manager
+                r = await loop.run_in_executor(None, lambda: venv_manager(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "presentation_generator":
+                from actions.presentation_generator import presentation_generator
+                r = await loop.run_in_executor(None, lambda: presentation_generator(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "health_monitor":
+                from actions.health_monitor import health_monitor
+                r = await loop.run_in_executor(None, lambda: health_monitor(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "journal":
+                from actions.journal import journal
+                r = await loop.run_in_executor(None, lambda: journal(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "screen_time":
+                from actions.screen_time import screen_time
+                r = await loop.run_in_executor(None, lambda: screen_time(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "health_tracker":
+                from actions.health_tracker import health_tracker
+                r = await loop.run_in_executor(None, lambda: health_tracker(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "finance_tracker":
+                from actions.finance_tracker import finance_tracker
+                r = await loop.run_in_executor(None, lambda: finance_tracker(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "order_tracker":
+                from actions.order_tracker import order_tracker
+                r = await loop.run_in_executor(None, lambda: order_tracker(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "bill_splitter":
+                from actions.bill_splitter import bill_splitter
+                r = await loop.run_in_executor(None, lambda: bill_splitter(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "network_monitor":
+                from actions.network_monitor import network_monitor
+                r = await loop.run_in_executor(None, lambda: network_monitor(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "face_recognition":
+                from actions.face_recognition import face_recognition
+                r = await loop.run_in_executor(None, lambda: face_recognition(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "wifi_speed_logger":
+                from actions.wifi_speed_logger import wifi_speed_logger
+                r = await loop.run_in_executor(None, lambda: wifi_speed_logger(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "second_monitor_overlay":
+                from actions.second_monitor_overlay import second_monitor_overlay
+                r = await loop.run_in_executor(None, lambda: second_monitor_overlay(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "deepfake_detector":
+                from actions.deepfake_detector import deepfake_detector
+                r = await loop.run_in_executor(None, lambda: deepfake_detector(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "printer_3d_controller":
+                from actions.printer_3d_controller import printer_3d_controller
+                r = await loop.run_in_executor(None, lambda: printer_3d_controller(parameters=args, player=self.ui))
+                result = r or "Done."
+
             elif name == "shutdown_ip_ray":
 
                 self.ui.write_log("SYS: Shutdown requested.")

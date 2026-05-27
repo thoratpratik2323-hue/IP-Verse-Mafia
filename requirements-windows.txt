@@ -25,3 +25,11 @@ camoufox
 playwright-stealth
 pyflakes
 pytest
+yfinance
+deep-translator
+speedtest-cli
+discord.py
+python-telegram-bot
+PyGithub
+docker
+mediapipe
