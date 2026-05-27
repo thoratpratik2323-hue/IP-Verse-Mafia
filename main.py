@@ -79,6 +79,7 @@ from actions.project_debug_companion import project_debug_companion
 from actions.multimodal_perception import multimodal_perception
 from actions.autonomous_autopilot import autonomous_autopilot
 from actions.advanced_communicator import advanced_communicator
+from actions.token_juice import token_juice
 
 
 
@@ -1785,6 +1786,19 @@ TOOL_DECLARATIONS = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "token_juice",
+        "description": "Smart token compression engine based on OpenHuman design. Strips HTML boilerplates, simplifies URL parameters, and de-duplicates redundant strings to optimize Gemini API efficiency by up to 80%.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "compress (strips and simplifies input) | stats (returns status details)"},
+                "text": {"type": "STRING", "description": "Raw HTML or text payload to simplify and compress"},
+                "content_type": {"type": "STRING", "description": "html | text | auto (default is auto)"}
+            },
+            "required": ["action"]
+        }
     }
 ]
 
@@ -3033,6 +3047,10 @@ class IPRayLive:
 
             elif name == "advanced_communicator":
                 r = await loop.run_in_executor(None, lambda: advanced_communicator(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "token_juice":
+                r = await loop.run_in_executor(None, lambda: token_juice(parameters=args, player=self.ui))
                 result = r or "Done."
 
             elif name == "shutdown_ip_ray":
