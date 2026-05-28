@@ -55,12 +55,22 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 ### 🧠 AI & Intelligence
 | Feature | Details |
 |---|---|
+| Smart AI Routing | Routes coding requests to NVIDIA NIM & general to Gemini |
 | Screen Vision | Analyze and describe what's on your screen in real-time |
 | Webcam Vision | See the world through your camera |
 | File Processor | Analyze PDFs, images, source code, and documents |
 | Semantic Memory | Persistent memory of your projects and preferences |
 | Semantic Router | Intelligently routes intent to the right action module |
 | Agent Orchestrator | Autonomous multi-step task planning and execution |
+
+### 🛡️ Security & Hacking
+| Feature | Details |
+|---|---|
+| Hacker Mode | Red skull UI badge with ethical hacking persona |
+| Cybersecurity Tutor | Quizzes, learning roadmaps (CEH, OSCP), progress tracking |
+| CTF Helper | Base64/Hex decoders, hash identifier, stego checks |
+| Password Toolkit | Generator, strength checker, and Pwned password check |
+| Encryption Tools | AES encrypt/decrypt and secure key generation |
 
 ### 🌐 Web & Research
 | Feature | Details |
@@ -221,6 +231,8 @@ ip-prime/
 ## 🆕 Changelog — Latest Updates
 
 ### v3.x — *Current*
+- 🛡️ **Cybersecurity & Ethical Hacking** — Added Cyber Tutor, CTF Helper, Password Toolkit, and Hacker Mode persona.
+- 🧠 **NVIDIA NIM Smart Routing** — Intelligent NLP router that sends coding queries to NVIDIA models and general queries to Gemini.
 - 📂 **Advanced File Handling** — Drop PDFs, source code, or images directly into IP Prime for instant AI analysis and editing
 - 🎨 **Adaptive Glassmorphic UI** — Full UI overhaul with resizable, transparent, blur-effect panels and customizable layouts
 - 🪟 **GUI Window Switcher** — Switch IP Prime's view to any running application's window on-the-fly
