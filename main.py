@@ -697,7 +697,7 @@ class IPRayLive:
         args = dict(fc.args or {})
 
         print(f"[IP PRIME] 🔧 {name}  {args}")
-        self.ui.set_state("THINKING")
+        self.ui.set_state("PROCESSING")
 
         try:
             from prime_platform.energy_metrics import record_tool_call
@@ -747,7 +747,7 @@ class IPRayLive:
                 )
 
         print(f"[IP PRIME] 🔧 {name}  {args}")
-        self.ui.set_state("THINKING")
+        self.ui.set_state("PROCESSING")
         # NLA Thought Stream: broadcast tool initiation to HUD
         _thought_labels = {
             "browser_control":   "Initialising stealth browser neural pathway...",

@@ -1,4 +1,6 @@
 <div align="center">
+ 
+<img src="assets/ip_prime_logo.png" alt="IP Prime Logo" width="220" style="border-radius: 50%;">
 
 # 🤖 IP Prime
 ### *Intelligent Partner Prime*
@@ -231,6 +233,11 @@ ip-prime/
 ## 🆕 Changelog — Latest Updates
 
 ### v3.x — *Current*
+- 🌌 **Space-Themed HUD Overhaul** — Premium deep dark glassmorphic UI (`BG: #010510`, `PANEL: rgba(10, 18, 36, 0.72)`) featuring a stunning, customized **Sky Blue & White** palette with high-contrast tactical styling.
+- 🧭 **Symmetrical Vertical Layout** — Floating Left Status log panel and Right widget stack (Live Chronometer clock + Asynchronous meteorological Weather probe querying `wttr.in` in a background thread) perfectly centered vertically (`AlignVCenter`) next to the central orb.
+- 🌟 **Cyberpunk Neon Box Shadow Glows** — 60-FPS hardware-accelerated glowing 3D box shadows behind each floating card (Cyan for Status, Cobalt Blue for Clock, Royal Violet for Weather).
+- 🏷️ **Tactical Glowing Capsule Badges** & Brackets — Styled system details inside monospaced tactical brackets (`[ ONLINE ]`, `[ ACTIVE ]`, `[ STANDBY ]`) and fine-bordered glowing pill badges.
+- 🎙️ **Balanced State Visualizer & "PROCESSING" State** — Pulsating status badge (`L I S T E N I N G`, `S P E A K I N G`, `T H I N K I N G`, `P R O C E S S I N G`) moved from the bottom of the HUD orb to the top (`sy = cy - fw * 0.40`) for absolute visual symmetry, leaving high-fidelity rippling waveforms anchored at the bottom. Fully integrated a responsive `"PROCESSING"` state when executing tools or MCP handlers.
 - 🛡️ **Cybersecurity & Ethical Hacking** — Added Cyber Tutor, CTF Helper, Password Toolkit, and Hacker Mode persona.
 - 🧠 **NVIDIA NIM Smart Routing** — Intelligent NLP router that sends coding queries to NVIDIA models and general queries to Gemini.
 - 📂 **Advanced File Handling** — Drop PDFs, source code, or images directly into IP Prime for instant AI analysis and editing

@@ -604,7 +604,7 @@ class HudCanvas(QWidget):
 
         # 8. Translucent State Pill Badge
         if not self.compact_mode:
-            sy = cy + fw * 0.38
+            sy = cy - fw * 0.40
             p.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             
             if self.muted:
@@ -636,7 +636,7 @@ class HudCanvas(QWidget):
             p.drawText(QRectF(pill_x, pill_y, pill_w, pill_h), Qt.AlignmentFlag.AlignCenter, spaced_txt)
 
             # 9. Three anti-aliased rippling bezier waveforms
-            wy = sy + 38
+            wy = cy + fw * 0.46
             p.setPen(Qt.PenStyle.NoPen)
             
             waves = [
