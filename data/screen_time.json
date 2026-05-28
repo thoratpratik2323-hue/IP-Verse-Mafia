@@ -1,9 +1,14 @@
 {
-    "date": "2026-05-27",
+    "date": "2026-05-29",
     "apps": {
-        "chrome": 3600,
-        "code": 7200,
-        "terminal": 1200
+        "antigravity": 1530,
+        "python": 250,
+        "explorer": 90,
+        "firefox": 220,
+        "applicationframehost": 10,
+        "msedge": 10,
+        "searchhost": 10,
+        "shellexperiencehost": 10
     },
     "limits": {
         "chrome": 7200
