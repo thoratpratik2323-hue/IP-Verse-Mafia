@@ -1375,7 +1375,15 @@ class MainWindow(QMainWindow):
         self._router_badge_sig.connect(self._on_router_badge_updated)
 
         self._central_widget = QWidget()
-        self._central_widget.setStyleSheet(f"background: {C.BG};")
+        self._central_widget.setObjectName("CentralWidget")
+        self._central_widget.setStyleSheet(f"""
+            QWidget#CentralWidget {{
+                background: qradialgradient(cx:0.5, cy:0.4, radius:0.8, fx:0.5, fy:0.4,
+                    stop:0 {C.PRI_GHO},
+                    stop:0.4 rgba(3, 7, 18, 0.95),
+                    stop:1 {C.BG});
+            }}
+        """)
         self.setCentralWidget(self._central_widget)
 
         root = QVBoxLayout(self._central_widget)
@@ -2915,7 +2923,14 @@ class MainWindow(QMainWindow):
     def _apply_theme(self):
         # 1. Main Window / Central widget background
         self.setStyleSheet(f"QMainWindow {{ background-color: {C.BG}; }}")
-        self._central_widget.setStyleSheet(f"background: {C.BG};")
+        self._central_widget.setStyleSheet(f"""
+            QWidget#CentralWidget {{
+                background: qradialgradient(cx:0.5, cy:0.4, radius:0.8, fx:0.5, fy:0.4,
+                    stop:0 {C.PRI_GHO},
+                    stop:0.4 rgba(3, 7, 18, 0.95),
+                    stop:1 {C.BG});
+            }}
+        """)
 
         # 2. Header
         self._header_widget.setStyleSheet(f"""
