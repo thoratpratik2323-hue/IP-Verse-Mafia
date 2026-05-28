@@ -336,6 +336,15 @@ CORE_TOOLS = {
         "module": "actions.repowire_mesh",
         "func": "repowire_mesh",
         "pass_speak": True
+    },
+    "ask_antigravity": {
+        "description": "Delegate a complex task or code generation prompt to Antigravity (your master assistant).",
+        "parameters": {
+            "instruction": "string (required) - Complete description of what to delegate to Antigravity"
+        },
+        "module": "actions.ask_antigravity",
+        "func": "ask_antigravity",
+        "pass_speak": False
     }
 }
 

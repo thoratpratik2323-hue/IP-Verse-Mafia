@@ -34,6 +34,7 @@ from actions.premium_utilities import (
 from actions.warp_helper import warp_helper
 from actions import ghost_coder
 from actions import smart_drop_zone
+from actions.ask_antigravity import ask_antigravity
 
 # Premium Actions Suite 2026
 from actions.task_planner import task_planner
@@ -75,6 +76,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "file_controller":
             r = await loop.run_in_executor(None, lambda: file_controller(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "ask_antigravity":
+            r = await loop.run_in_executor(None, lambda: ask_antigravity(parameters=args, player=player))
             result = r or "Done."
 
         elif name == "send_message":

@@ -2076,5 +2076,19 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "ask_antigravity",
+        "description": "Delegates complex coding tasks, code refactoring, full project building, or advanced programming logic to Antigravity (your master AI assistant). Use this whenever the user asks you to write code, do software engineering, or delegate logic to Antigravity.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "instruction": {
+                    "type": "STRING",
+                    "description": "The specific coding task, prompt, or instruction to delegate to Antigravity (e.g. 'write a python calculator app and save it in the output folder')"
+                }
+            },
+            "required": ["instruction"]
+        }
     }
 ]
