@@ -496,118 +496,7 @@ class HudCanvas(QWidget):
             path.addEllipse(QRectF(cx - fw/2, cy - fw/2, fw, fw))
             p.setClipPath(path)
         
-        # 1. Base deep dark cosmic background
-        p.fillRect(self.rect(), qcol("#020308"))
 
-        # Slow-drifting cosmic purple nebula clouds
-        purp_angle = self._tick * 0.002
-        purp_cx = cx + math.cos(purp_angle) * (W * 0.15)
-        purp_cy = cy + math.sin(purp_angle * 1.3) * (H * 0.12)
-        purp_grad = QRadialGradient(purp_cx, purp_cy, fw * 0.65)
-        purp_grad.setColorAt(0.0, qcol("#1f0a3d", 85))  # Soft violet glow
-        purp_grad.setColorAt(0.5, qcol("#08031d", 35))
-        purp_grad.setColorAt(1.0, qcol("#020308", 0))
-        p.fillRect(self.rect(), QBrush(purp_grad))
-
-        # Slow-drifting cosmic cyan/teal nebula clouds
-        teal_angle = -self._tick * 0.0035
-        teal_cx = cx + math.cos(teal_angle) * (W * 0.18)
-        teal_cy = cy + math.sin(teal_angle * 0.7) * (H * 0.15)
-        teal_grad = QRadialGradient(teal_cx, teal_cy, fw * 0.55)
-        teal_grad.setColorAt(0.0, qcol("#03253a", 75))  # Soft space teal nebula
-        teal_grad.setColorAt(0.6, qcol("#010d18", 30))
-        teal_grad.setColorAt(1.0, qcol("#020308", 0))
-        p.fillRect(self.rect(), QBrush(teal_grad))
-
-        # Deep center core space aura
-        bg_grad = QRadialGradient(cx, cy, fw * 0.5)
-        bg_grad.setColorAt(0.0, qcol("#060b18", 110))
-        bg_grad.setColorAt(0.7, qcol(C.BG, 70))
-        bg_grad.setColorAt(1.0, qcol("#010206", 0))
-        p.fillRect(self.rect(), QBrush(bg_grad))
-
-        # 2. Ambient starfield particles with colors and twinkle modulation
-        p.setPen(Qt.PenStyle.NoPen)
-        for pt in self._ambient_particles:
-            # pt layout: [X, Y, Size, Speed, BaseOpacity, ColorType, TwinkleOffset, TwinkleSpeed]
-            size = pt[2]
-            base_opacity = pt[4] if len(pt) > 4 else 0.3
-            color_type = pt[5] if len(pt) > 5 else 0
-            twinkle_offset = pt[6] if len(pt) > 6 else 0.0
-            twinkle_speed = pt[7] if len(pt) > 7 else 0.03
-            
-            # Twinkle modulation
-            twinkle = math.sin(self._tick * twinkle_speed + twinkle_offset)
-            opacity_factor = 0.55 + 0.45 * twinkle
-            opacity = int(max(0, min(255, base_opacity * opacity_factor * 255)))
-            
-            # Select cosmic color
-            if color_type == 1:
-                c_str = C.CYAN if self.state in ("THINKING", "PROCESSING") else "#8ce3ff"
-            elif color_type == 2:
-                c_str = "#ffd88c"
-            else:
-                c_str = "#ffffff"
-                
-            col = qcol(c_str, opacity)
-            p.setBrush(QBrush(col))
-            p.drawEllipse(QPointF(pt[0], pt[1]), size, size)
-            
-            # Cross star flare glow for bright, larger stars at twinkle peak
-            if size > 1.7 and twinkle > 0.82:
-                flare_len = size * 2.2
-                p.setPen(QPen(qcol(c_str, int(opacity * 0.35)), 0.6))
-                p.drawLine(QPointF(pt[0] - flare_len, pt[1]), QPointF(pt[0] + flare_len, pt[1]))
-                p.drawLine(QPointF(pt[0], pt[1] - flare_len), QPointF(pt[0], pt[1] + flare_len))
-                p.setPen(Qt.PenStyle.NoPen)
-
-        # 2b. Cosmic Shooting Stars (Meteors) rendering
-        for star in self._shooting_stars:
-            sx_val, sy_val, dx, dy, length, life, max_life, base_op = star
-            life_pct = life / max_life
-            opacity = int(255 * life_pct * base_op)
-            if opacity <= 0:
-                continue
-                
-            # Star head
-            p.setBrush(QBrush(qcol("#ffffff", opacity)))
-            p.drawEllipse(QPointF(sx_val, sy_val), 1.4, 1.4)
-            
-            # Gradient trailing tail
-            trail_grad = QLinearGradient(QPointF(sx_val, sy_val), QPointF(sx_val - dx * 2.2, sy_val - dy * 2.2))
-            trail_grad.setColorAt(0.0, qcol("#aae5ff", opacity))
-            trail_grad.setColorAt(0.4, qcol("#8556ff", int(opacity * 0.6)))
-            trail_grad.setColorAt(1.0, qcol("#020308", 0))
-            
-            p.setPen(QPen(QBrush(trail_grad), 1.2))
-            p.drawLine(QPointF(sx_val, sy_val), QPointF(sx_val - dx * 2.2, sy_val - dy * 2.2))
-            p.setPen(Qt.PenStyle.NoPen)
-
-        # Constellation network lines
-        max_dist = 85.0
-        for i in range(len(self._ambient_particles)):
-            p1 = self._ambient_particles[i]
-            for j in range(i + 1, len(self._ambient_particles)):
-                p2 = self._ambient_particles[j]
-                dx = p1[0] - p2[0]
-                dy = p1[1] - p2[1]
-                dist = math.hypot(dx, dy)
-                if dist < max_dist:
-                    alpha = int(35 * (1.0 - dist / max_dist))
-                    p.setPen(QPen(qcol(C.BORDER, alpha), 0.75))
-                    p.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0], p2[1]))
-            
-            # Interactive mouse highlight
-            if hasattr(self, "_mouse_pos") and self._mouse_pos.x() > -500:
-                mdx = p1[0] - self._mouse_pos.x()
-                mdy = p1[1] - self._mouse_pos.y()
-                mdist = math.hypot(mdx, mdy)
-                if mdist < 120.0:
-                    m_alpha = int(45 * (1.0 - mdist / 120.0))
-                    p.setPen(QPen(qcol(C.CYAN, m_alpha), 0.8))
-                    p.drawLine(QPointF(p1[0], p1[1]), self._mouse_pos)
-                    p.setBrush(QBrush(qcol(C.CYAN, m_alpha * 2)))
-                    p.drawEllipse(QPointF(p1[0], p1[1]), p1[2] * 1.5, p1[2] * 1.5)
 
         # 3. Soft background glowing aura behind the core
         aura_rad = fw * 0.44 * self._scale
@@ -1519,6 +1408,196 @@ class SetupOverlay(QWidget):
         self.done.emit(key, self._sel_os)
 
 
+class SpaceCentralWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
+        self._tick = 0
+        self._ambient_particles = []
+        for _ in range(95):  # High density starfield covering the entire window!
+            self._ambient_particles.append([
+                random.uniform(0, 1920),  # X
+                random.uniform(0, 1080),  # Y
+                random.uniform(0.7, 2.3), # Size
+                random.uniform(0.06, 0.2), # Slow drifting speed
+                random.uniform(0.15, 0.55),# Opacity
+                random.choice([0, 1, 2]), # Color Type: 0=White, 1=Cyan/Blue, 2=Gold
+                random.uniform(0, 2 * math.pi), # Twinkle Phase Offset
+                random.uniform(0.015, 0.04) # Twinkle Speed
+            ])
+        self._shooting_stars = []
+        
+        # Start a lightweight background timer for the space background animation (20 FPS is plenty for smooth background nebulae/stars!)
+        self._tmr = QTimer(self)
+        self._tmr.timeout.connect(self._step)
+        self._tmr.start(50) # 50ms = 20 FPS (ultra low CPU footprint!)
+
+        self.setMouseTracking(True)
+        self._mouse_pos = QPointF(-1000.0, -1000.0)
+
+    def mouseMoveEvent(self, event):
+        self._mouse_pos = event.position()
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        self._mouse_pos = QPointF(-1000.0, -1000.0)
+        super().leaveEvent(event)
+
+    def _step(self):
+        self._tick += 1
+        W, H = self.width(), self.height()
+        
+        # Drifting stars
+        for p in self._ambient_particles:
+            p[1] -= p[3] # Upward motion
+            if p[1] < 0:
+                p[1] = H if H > 0 else 800
+                p[0] = random.uniform(0, W if W > 0 else 1200)
+
+        # Update shooting stars
+        updated_stars = []
+        for star in self._shooting_stars:
+            star[0] += star[2] # Update X
+            star[1] += star[3] # Update Y
+            star[5] -= 1       # Decrease life
+            if star[5] > 0:
+                updated_stars.append(star)
+        self._shooting_stars = updated_stars
+
+        # Randomly spawn a shooting star
+        if len(self._shooting_stars) < 2 and random.random() < 0.003:
+            s_w = W if W > 0 else 1200
+            s_h = H if H > 0 else 800
+            start_x = random.uniform(0, s_w)
+            start_y = random.uniform(0, s_h * 0.3)
+            dx = random.uniform(5.0, 11.0) * random.choice([-1.0, 1.0])
+            dy = random.uniform(3.5, 7.5)
+            life = random.randint(18, 30)
+            length = random.uniform(40.0, 80.0)
+            self._shooting_stars.append([start_x, start_y, dx, dy, length, life, life, 1.0])
+
+        self.update()
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        W, H = self.width(), self.height()
+        cx, cy = W / 2, H / 2
+        fw = min(W, H)
+        
+        # 1. Base deep dark cosmic background
+        p.fillRect(self.rect(), qcol("#020308"))
+
+        # Slow-drifting cosmic purple nebula clouds
+        purp_angle = self._tick * 0.0018
+        purp_cx = cx + math.cos(purp_angle) * (W * 0.18)
+        purp_cy = cy + math.sin(purp_angle * 1.2) * (H * 0.14)
+        purp_grad = QRadialGradient(purp_cx, purp_cy, W * 0.6)
+        purp_grad.setColorAt(0.0, qcol("#1e0c3a", 85))  # Soft violet glow
+        purp_grad.setColorAt(0.5, qcol("#08031d", 35))
+        purp_grad.setColorAt(1.0, qcol("#020308", 0))
+        p.fillRect(self.rect(), QBrush(purp_grad))
+
+        # Slow-drifting cosmic teal/cyan nebula clouds
+        teal_angle = -self._tick * 0.003
+        teal_cx = cx + math.cos(teal_angle) * (W * 0.22)
+        teal_cy = cy + math.sin(teal_angle * 0.6) * (H * 0.18)
+        teal_grad = QRadialGradient(teal_cx, teal_cy, W * 0.5)
+        teal_grad.setColorAt(0.0, qcol("#032235", 75))  # Soft space teal nebula
+        teal_grad.setColorAt(0.6, qcol("#010b18", 30))
+        teal_grad.setColorAt(1.0, qcol("#020308", 0))
+        p.fillRect(self.rect(), QBrush(teal_grad))
+
+        # Deep center core space aura
+        bg_grad = QRadialGradient(cx, cy * 0.8, fw * 0.65)
+        bg_grad.setColorAt(0.0, qcol("#060b18", 120))
+        bg_grad.setColorAt(0.6, qcol(C.BG if hasattr(C, 'BG') else "#030712", 70))
+        bg_grad.setColorAt(1.0, qcol("#020308", 0))
+        p.fillRect(self.rect(), QBrush(bg_grad))
+
+        # 2. Ambient starfield particles
+        p.setPen(Qt.PenStyle.NoPen)
+        for pt in self._ambient_particles:
+            size = pt[2]
+            base_opacity = pt[4]
+            color_type = pt[5]
+            twinkle_offset = pt[6]
+            twinkle_speed = pt[7]
+            
+            # Twinkle modulation
+            twinkle = math.sin(self._tick * twinkle_speed + twinkle_offset)
+            opacity_factor = 0.55 + 0.45 * twinkle
+            opacity = int(max(0, min(255, base_opacity * opacity_factor * 255)))
+            
+            # Select cosmic color
+            if color_type == 1:
+                c_str = C.CYAN if hasattr(C, 'CYAN') else "#8ce3ff"
+            elif color_type == 2:
+                c_str = "#ffd88c"
+            else:
+                c_str = "#ffffff"
+                
+            col = qcol(c_str, opacity)
+            p.setBrush(QBrush(col))
+            p.drawEllipse(QPointF(pt[0], pt[1]), size, size)
+            
+            # Cross star flare glow for bright, larger stars at twinkle peak
+            if size > 1.6 and twinkle > 0.82:
+                flare_len = size * 2.2
+                p.setPen(QPen(qcol(c_str, int(opacity * 0.35)), 0.6))
+                p.drawLine(QPointF(pt[0] - flare_len, pt[1]), QPointF(pt[0] + flare_len, pt[1]))
+                p.drawLine(QPointF(pt[0], pt[1] - flare_len), QPointF(pt[0], pt[1] + flare_len))
+                p.setPen(Qt.PenStyle.NoPen)
+
+        # 2b. Cosmic Shooting Stars (Meteors) rendering
+        for star in self._shooting_stars:
+            sx_val, sy_val, dx, dy, length, life, max_life, base_op = star
+            life_pct = life / max_life
+            opacity = int(255 * life_pct * base_op)
+            if opacity <= 0:
+                continue
+                
+            p.setBrush(QBrush(qcol("#ffffff", opacity)))
+            p.drawEllipse(QPointF(sx_val, sy_val), 1.4, 1.4)
+            
+            # Gradient trailing tail
+            trail_grad = QLinearGradient(QPointF(sx_val, sy_val), QPointF(sx_val - dx * 2.2, sy_val - dy * 2.2))
+            trail_grad.setColorAt(0.0, qcol("#aae5ff", opacity))
+            trail_grad.setColorAt(0.4, qcol("#8556ff", int(opacity * 0.6)))
+            trail_grad.setColorAt(1.0, qcol("#020308", 0))
+            
+            p.setPen(QPen(QBrush(trail_grad), 1.2))
+            p.drawLine(QPointF(sx_val, sy_val), QPointF(sx_val - dx * 2.2, sy_val - dy * 2.2))
+            p.setPen(Qt.PenStyle.NoPen)
+
+        # 3. Constellation network lines
+        max_dist = 85.0
+        for i in range(len(self._ambient_particles)):
+            p1 = self._ambient_particles[i]
+            for j in range(i + 1, len(self._ambient_particles)):
+                p2 = self._ambient_particles[j]
+                dx = p1[0] - p2[0]
+                dy = p1[1] - p2[1]
+                dist = math.hypot(dx, dy)
+                if dist < max_dist:
+                    alpha = int(30 * (1.0 - dist / max_dist))
+                    p.setPen(QPen(qcol(C.BORDER if hasattr(C, 'BORDER') else "#1e293b", alpha), 0.75))
+                    p.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0], p2[1]))
+            
+            # Interactive mouse highlight
+            if hasattr(self, "_mouse_pos") and self._mouse_pos.x() > -500:
+                mdx = p1[0] - self._mouse_pos.x()
+                mdy = p1[1] - self._mouse_pos.y()
+                mdist = math.hypot(mdx, mdy)
+                if mdist < 120.0:
+                    m_alpha = int(40 * (1.0 - mdist / 120.0))
+                    p.setPen(QPen(qcol(C.CYAN if hasattr(C, 'CYAN') else "#06b6d4", m_alpha), 0.8))
+                    p.drawLine(QPointF(p1[0], p1[1]), self._mouse_pos)
+                    p.setBrush(QBrush(qcol(C.CYAN if hasattr(C, 'CYAN') else "#06b6d4", m_alpha * 2)))
+                    p.drawEllipse(QPointF(p1[0], p1[1]), p1[2] * 1.5, p1[2] * 1.5)
+
+
 class MainWindow(QMainWindow):
     _log_sig        = pyqtSignal(str)
     _state_sig      = pyqtSignal(str)
@@ -1558,14 +1637,12 @@ class MainWindow(QMainWindow):
         self._web_command_sig.connect(lambda cmd: self.on_text_command(cmd) if self.on_text_command else None)
         self._router_badge_sig.connect(self._on_router_badge_updated)
 
-        self._central_widget = QWidget()
+        self._central_widget = SpaceCentralWidget()
         self._central_widget.setObjectName("CentralWidget")
         self._central_widget.setStyleSheet(f"""
             QWidget#CentralWidget {{
-                background: qradialgradient(cx:0.5, cy:0.4, radius:0.8, fx:0.5, fy:0.4,
-                    stop:0 {C.PRI_GHO},
-                    stop:0.4 rgba(3, 7, 18, 0.95),
-                    stop:1 {C.BG});
+                background: transparent;
+                border: none;
             }}
         """)
         self.setCentralWidget(self._central_widget)
@@ -3112,10 +3189,8 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(f"QMainWindow {{ background-color: {C.BG}; }}")
         self._central_widget.setStyleSheet(f"""
             QWidget#CentralWidget {{
-                background: qradialgradient(cx:0.5, cy:0.4, radius:0.8, fx:0.5, fy:0.4,
-                    stop:0 {C.PRI_GHO},
-                    stop:0.4 rgba(3, 7, 18, 0.95),
-                    stop:1 {C.BG});
+                background: transparent;
+                border: none;
             }}
         """)
 
