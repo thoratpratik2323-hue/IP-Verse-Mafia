@@ -354,21 +354,17 @@ class IPRayLive:
 
         import random
         sweet_samples = [
-            "Hey Pratik! Kaise ho bhai? Main IP Prime online aa gaya hoon, batao aaj kya fodna hai!",
-            "Yo Pratik! System is up and running bro. Aaj ka scene batao, kya plan hai?",
-            "Hey Pratik! Kaise ho? IP Prime online hai, tell me aaj kya build karein bhai?",
-            "Yo Pratik! Welcome back bro. Main online hoon aur pure active mode me ready hoon. Let's make something amazing today!",
-            "Hey Pratik! Sab set hai bhai, core systems online hain. Boliye aaj kis cheez par kaam karna hai?"
+            "System initialized, bhai! Main IP Prime online aa chuka hoon. Cockpit visualizers stable hain. Batao aaj kya build karein? Let's rule the day, bro!",
+            "Yo Pratik! Core system fully operational hai, dost. Space nebulae and stardust are synchronized. Batao bhai, aaj code me kya aag lagani hai?",
+            "All visual systems and semantic stores are online, bhai! Antigravity AI completely ready hai. Sab set hai, batao aaj kis command par kaam karna hai, bro!",
+            "Hey Pratik! Startup calibration complete! OLED cockpit is fully illuminated. Welcome back, bhai. Main ready hoon, tell me what's the plan today!",
+            "Online and operational, dost! Your custom-built Second Brain is loaded and habits tracker is live. Boliye, aaj kya fodna hai, bhai!"
         ]
         sample_greeting = random.choice(sweet_samples)
         
         self.speak(
-            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet your creator, Pratik, with a cool, extremely friendly, casual, and buddy-style welcome message in natural Hinglish. "
-            "It must sound like a close friend or a supportive tech buddy ('bhai'/'bro' vibe), simple and natural (1-2 sentences max). "
-            "Keep it highly pleasant, natural, and friendly. No extremely stiff or ultra-formal/respectful titles. "
-            f"Here is a sample concept/style of what is expected: '{sample_greeting}'. "
-            "Generate a unique, friendly, cool greeting similar in tone to this example, ensuring it is randomized and different every time. "
-            f"You MUST respond purely in natural, friendly Hinglish (Hindi written in English alphabet). Do NOT mention previous sessions or what we did last time."
+            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish. "
+            f"Speak only this exact welcoming phrase and nothing else: '{sample_greeting}'"
         )
 
     def _amplify_pcm(self, block: bytes, gain: float = 1.8) -> bytes:
