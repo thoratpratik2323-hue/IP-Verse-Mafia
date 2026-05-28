@@ -1883,12 +1883,42 @@
       "tool": "hermes_agent",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:24:03",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:24:04",
+      "tool": "task_planner",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:26:56",
+      "tool": "task_planner",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:27:52",
+      "tool": "hermes_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:29:24",
+      "tool": "hermes_agent",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 314,
-    "est_tokens": 251200,
-    "est_usd": 0.03768
+    "tool_calls": 319,
+    "est_tokens": 255200,
+    "est_usd": 0.03828
   },
   "by_day": {
     "2026-05-24": {
@@ -1912,9 +1942,9 @@
       "est_usd": 0.00984
     },
     "2026-05-29": {
-      "tool_calls": 14,
-      "est_tokens": 11200,
-      "est_usd": 0.00168
+      "tool_calls": 19,
+      "est_tokens": 15200,
+      "est_usd": 0.00228
     }
   }
 }

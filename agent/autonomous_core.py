@@ -5,6 +5,7 @@ from agent.error_handler import analyze_error, generate_fix
 from agent.autonomous_planner import AutonomousPlanner
 from agent.emotion_context import EmotionContextDetector
 from agent.proactive_monitor import ProactiveMonitor
+from agent.learning_system import LearningSystem
 from brain.core_intelligence import IPBrain
 
 class AutonomousCore:
@@ -22,8 +23,9 @@ class AutonomousCore:
         self.emotion_detector = EmotionContextDetector(self.memory)
         self.monitor = ProactiveMonitor(self)
         
-        # Phase 3: The 6-Layer Brain Architecture
+        # Phase 3: The 6-Layer Brain Architecture and Learning System
         self.brain = IPBrain()
+        self.learning_system = LearningSystem()  # Phase 3 Learning System
         
         self.running = False
         print("[AutonomousCore] Initialized 100% Autonomous Engine with Proactive Intelligence.")
@@ -185,6 +187,12 @@ class AutonomousCore:
         """Stops the autonomous loop."""
         self.running = False
         self.monitor.stop()
+        print("[AutonomousCore] 🧠 Compiling self-learning optimization review before shutdown...")
+        try:
+            review = self.learning_system.daily_review()
+            print(f"[AutonomousCore] 🧠 Self-Learning Summary: {review}")
+        except Exception as e:
+            print(f"[AutonomousCore] 🧠 Self-Learning failed: {e}")
         print("[AutonomousCore] 🛑 Heartbeat stopped.")
 
 if __name__ == "__main__":
