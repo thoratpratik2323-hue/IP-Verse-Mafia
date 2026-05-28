@@ -52,15 +52,15 @@ class C:
     BG        = "#000000"  # Pure pitch-black background for maximum contrast
     PANEL     = "rgba(4, 7, 14, 0.90)"  # Ultra-dark premium glassmorphic panel
     PANEL2    = "rgba(10, 16, 28, 0.60)"  # Soft glassmorphic secondary panel
-    BORDER    = "rgba(59, 130, 246, 0.15)" # Delicate neon-blue translucent border
+    BORDER    = "rgba(39, 200, 245, 0.22)" # Elegant electric cyan border
     BORDER_B  = "rgba(139, 92, 246, 0.25)" # Elegant neon-purple translucent border
-    BORDER_A  = "rgba(6, 182, 212, 0.2)"  # Electric cyan border highlight
-    PRI       = "#3B82F6"  # Electric cobalt blue
-    PRI_DIM   = "#1D4ED8"  # Darker cobalt blue
-    PRI_GHO   = "rgba(59, 130, 246, 0.12)" # Deep blue glowing halo
+    BORDER_A  = "rgba(39, 200, 245, 0.28)"  # Electric cyan border highlight
+    PRI       = "#27C8F5"  # Glowing electric cyan
+    PRI_DIM   = "#029fcb"  # Dimmed electric cyan
+    PRI_GHO   = "rgba(39, 200, 245, 0.12)" # Cyan glowing halo
     ACC       = "#8B5CF6"  # Premium royal purple/violet
-    ACC2      = "#A78BFA"  # Radiant violet highlight
-    CYAN      = "#06B6D4"  # Futuristic electric cyan accent
+    ACC2      = "#9ae8ff"  # Radiant electric cyan highlight
+    CYAN      = "#27C8F5"  # Futuristic electric cyan accent
     GREEN     = "#10B981"  # Neon emerald green (active)
     GREEN_D   = "#059669"  # Deep emerald green
     RED       = "#EF4444"  # Crimson warnings
@@ -79,7 +79,7 @@ def _load_theme():
             with open(theme_file, "r") as f:
                 idx = json.load(f).get("theme_idx", 0)
                 themes = [
-                    {"BG": "#000000", "PANEL": "rgba(4, 7, 14, 0.90)", "PRI": "#0369A1", "PRI_DIM": "#075985", "PRI_GHO": "rgba(3, 105, 161, 0.10)", "BORDER": "rgba(3, 105, 161, 0.22)", "ACC": "#FFFFFF", "ACC2": "#7dd3fc", "CYAN": "#0369A1", "GREEN": "#FFFFFF"},
+                    {"BG": "#000000", "PANEL": "rgba(4, 7, 14, 0.90)", "PRI": "#27C8F5", "PRI_DIM": "#029fcb", "PRI_GHO": "rgba(39, 200, 245, 0.12)", "BORDER": "rgba(39, 200, 245, 0.22)", "ACC": "#FFFFFF", "ACC2": "#9ae8ff", "CYAN": "#27C8F5", "GREEN": "#FFFFFF"},
                     {"BG": "#1a0505", "PANEL": "rgba(40, 10, 10, 0.65)", "PRI": "#EF4444", "PRI_DIM": "#B91C1C", "PRI_GHO": "rgba(239, 68, 68, 0.12)", "BORDER": "rgba(239, 68, 68, 0.15)", "ACC": "#F43F5E", "ACC2": "#FB7185", "CYAN": "#FCA5A5", "GREEN": "#10B981"},
                     {"BG": "#020a05", "PANEL": "rgba(5, 30, 15, 0.65)", "PRI": "#10B981", "PRI_DIM": "#047857", "PRI_GHO": "rgba(16, 185, 129, 0.12)", "BORDER": "rgba(16, 185, 129, 0.15)", "ACC": "#34D399", "ACC2": "#6EE7B7", "CYAN": "#A7F3D0", "GREEN": "#3B82F6"},
                     {"BG": "#0a0014", "PANEL": "rgba(25, 10, 45, 0.65)", "PRI": "#D946EF", "PRI_DIM": "#C026D3", "PRI_GHO": "rgba(217, 70, 239, 0.12)", "BORDER": "rgba(217, 70, 239, 0.15)", "ACC": "#06B6D4", "ACC2": "#22D3EE", "CYAN": "#F472B6", "GREEN": "#10B981"},
