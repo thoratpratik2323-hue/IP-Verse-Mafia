@@ -1,0 +1,138 @@
+{
+  "topics": {
+    "networking": {
+      "title": "Networking Basics",
+      "description": "Understanding TCP/IP, the OSI model, DNS, and HTTP protocols. The structural backbone of the web and network operations.",
+      "content": "Networking is the foundation of all computer communications and hacking. The OSI (Open Systems Interconnection) model defines 7 layers: Physical, Data Link, Network (IP), Transport (TCP/UDP), Session, Presentation, and Application (HTTP, DNS). TCP is connection-oriented and uses a 3-way handshake (SYN, SYN-ACK, ACK), while UDP is connectionless and fast. DNS (Domain Name System) translates domain names into IP addresses, and HTTP/HTTPS acts as the application protocol for transferring web data. Secure networks utilize firewalls, secure protocols (like HTTPS/TLS), and segmented architectures to defend against malicious traffic.",
+      "roadmap": "Beginner \u2192 CEH path"
+    },
+    "linux": {
+      "title": "Linux Fundamentals for Security Professionals",
+      "description": "Essential Linux commands, standard file permissions, processes, and terminal navigation.",
+      "content": "Linux is the operating system of choice for both attackers (using distributions like Kali Linux or Parrot OS) and servers. Key concepts include file permissions (Read/Write/Execute mapped to User/Group/Others, e.g., chmod 755), processes (ps, top, kill), and bash scripting for automation. Defensive security relies heavily on auditing Linux configuration files, managing access control lists (ACLs), and configuring PAM (Pluggable Authentication Modules) to enforce secure authentication controls.",
+      "roadmap": "Beginner \u2192 CEH path"
+    },
+    "web_security": {
+      "title": "Web Security & OWASP Top 10",
+      "description": "Theoretical review of common web vulnerabilities: SQLi, XSS, CSRF, IDOR, and SSRF.",
+      "content": "Web applications are highly targeted attack vectors. The OWASP Top 10 list details the most critical risks:\n1. SQL Injection (SQLi): Attackers inject malicious SQL commands to bypass authentication or extract database data. Fixed by using Parameterized Queries.\n2. Cross-Site Scripting (XSS): Malicious scripts are injected into trusted websites and executed in user browsers. Fixed by Context-Aware Input Sanitization and Output Encoding.\n3. Broken Access Control (IDOR): Insecure Direct Object References allow users to access files or resources belonging to others by simply altering parameter IDs. Fixed by robust authorization checks.\n4. SSRF (Server-Side Request Forgery): The server is coerced into making unauthorized HTTP requests to internal or external systems. Fixed by strict URL whitelisting.",
+      "roadmap": "Web Pentesting \u2192 OSCP web path"
+    },
+    "cryptography": {
+      "title": "Cryptography Foundations",
+      "description": "Symmetric encryption, asymmetric encryption, secure hashing functions, and SSL/TLS handshakes.",
+      "content": "Cryptography is the science of securing data from unauthorized access. Symmetric encryption uses a single shared secret key for encryption and decryption (e.g., AES). Asymmetric encryption uses a public key to encrypt and a private key to decrypt (e.g., RSA). Hashing is a one-way mathematical function that converts inputs into a fixed-length string (e.g., SHA-256 or bcrypt) and is used to store passwords securely. SSL/TLS handshakes use asymmetric cryptography to exchange keys securely, establishing an encrypted symmetric tunnel for subsequent web traffic.",
+      "roadmap": "Defensive Security \u2192 SOC Analyst path"
+    },
+    "defensive_security": {
+      "title": "Defensive Security & Blue Team Operations",
+      "description": "Theoretical guide to Firewalls, IDS/IPS, SIEM analytics, and Security Operation Center (SOC) workflows.",
+      "content": "Blue Teams focus on detecting and responding to active threats. Firewalls control network ingress and egress based on rulesets. Intrusion Detection/Prevention Systems (IDS/IPS) inspect packet contents for signatures of known attacks (like Snort rules). Security Information and Event Management (SIEM) systems ingest log streams from servers, endpoints, and firewalls to run correlation rules and raise alerts. Security Operation Centers (SOCs) employ analysts who investigate SIEM alerts, isolate affected endpoints, and initiate threat containment playbooks.",
+      "roadmap": "Blue Team / Defensive \u2192 SOC Analyst path"
+    },
+    "bug_bounty": {
+      "title": "Bug Bounty & Vulnerability Disclosure",
+      "description": "Understanding legal scope, discovery methodology, clean reporting, and responsible disclosure platforms.",
+      "content": "Bug bounty programs allow security researchers to legally test systems for vulnerabilities and receive rewards. The core phase is establishing scope: researchers MUST only test domain assets explicitly listed in the scope, using accepted testing limits. Reports are submitted through platforms like HackerOne or Bugcrowd, structured clearly with: Title, Description, Proof of Concept (PoC) steps, Impact analysis, and suggested Remediation. Good reports prioritize clarity and highlight how a vulnerability affects business confidentiality, integrity, or availability.",
+      "roadmap": "Bug Bounty Hunter \u2192 HackerOne path"
+    }
+  },
+  "quizzes": [
+    {
+      "id": "q1",
+      "topic": "networking",
+      "question": "Which layer of the OSI model does the TCP protocol operate on?",
+      "options": [
+        "Network Layer",
+        "Transport Layer",
+        "Data Link Layer",
+        "Application Layer"
+      ],
+      "answer": "Transport Layer"
+    },
+    {
+      "id": "q2",
+      "topic": "networking",
+      "question": "What sequence of packets constitutes the TCP 3-way handshake?",
+      "options": [
+        "SYN, ACK, SYN-ACK",
+        "SYN, SYN-ACK, ACK",
+        "HELO, EHLO, ACK",
+        "FIN, FIN-ACK, ACK"
+      ],
+      "answer": "SYN, SYN-ACK, ACK"
+    },
+    {
+      "id": "q3",
+      "topic": "linux",
+      "question": "What octal value represents read, write, and execute permissions (rwx) for a single user class in chmod?",
+      "options": [
+        "5",
+        "6",
+        "7",
+        "4"
+      ],
+      "answer": "7"
+    },
+    {
+      "id": "q4",
+      "topic": "web_security",
+      "question": "What is the primary method to prevent SQL Injection vulnerabilities?",
+      "options": [
+        "Using regular expressions to filter input",
+        "Utilizing parameterized queries (Prepared Statements)",
+        "Turning off database error logs",
+        "Encrypting database connections"
+      ],
+      "answer": "Utilizing parameterized queries (Prepared Statements)"
+    },
+    {
+      "id": "q5",
+      "topic": "web_security",
+      "question": "An attacker alters an ID parameter in a URL (from user=1001 to user=1002) and successfully views another user's invoice. What class of vulnerability is this?",
+      "options": [
+        "Cross-Site Scripting (XSS)",
+        "Insecure Direct Object Reference (IDOR / Broken Access Control)",
+        "Server-Side Request Forgery (SSRF)",
+        "SQL Injection"
+      ],
+      "answer": "Insecure Direct Object Reference (IDOR / Broken Access Control)"
+    },
+    {
+      "id": "q6",
+      "topic": "cryptography",
+      "question": "Which cryptographic method uses a single shared secret key for both encryption and decryption?",
+      "options": [
+        "Asymmetric Encryption",
+        "Symmetric Encryption",
+        "Hashing Function",
+        "Digital Signature Scheme"
+      ],
+      "answer": "Symmetric Encryption"
+    },
+    {
+      "id": "q7",
+      "topic": "cryptography",
+      "question": "Why are secure hashing algorithms like bcrypt used instead of SHA-256 for password storage?",
+      "options": [
+        "They are faster and consume less memory",
+        "They are intentionally slower and computationally expensive, making brute-force attacks much harder",
+        "They encrypt passwords so they can be decrypted back to plaintext",
+        "They produce shorter hashes"
+      ],
+      "answer": "They are intentionally slower and computationally expensive, making brute-force attacks much harder"
+    },
+    {
+      "id": "q8",
+      "topic": "defensive_security",
+      "question": "What system aggregates and correlates log streams from server endpoints, firewalls, and applications in a Security Operations Center?",
+      "options": [
+        "IPS (Intrusion Prevention System)",
+        "SIEM (Security Information and Event Management)",
+        "VLAN (Virtual Local Area Network)",
+        "WAF (Web Application Firewall)"
+      ],
+      "answer": "SIEM (Security Information and Event Management)"
+    }
+  ]
+}

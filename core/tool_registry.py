@@ -1998,5 +1998,83 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "enable_hacker_mode",
+        "description": "Activates Hacker Mode, updating your personality to an expert ethical hacker and enabling the security console skull badge, sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "disable_hacker_mode",
+        "description": "Deactivates Hacker Mode and restores default assistant operations, sir.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "cyber_tutor",
+        "description": "Interactive cybersecurity tutor and educational quiz system. Teaches networking, web security, Linux, and cryptography conceptually.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "teach | list | roadmap | quiz"},
+                "topic_id": {"type": "STRING", "description": "The specific topic key to learn (e.g. 'networking', 'web_security')"},
+                "roadmap_path": {"type": "STRING", "description": "The learning roadmap path to set (e.g. 'beginner', 'web_pentesting')"},
+                "quiz_id": {"type": "STRING", "description": "The target quiz question ID (required to answer or show a specific question)"},
+                "user_answer": {"type": "STRING", "description": "The user's answer option to submit for a quiz question"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "ctf_helper",
+        "description": "Educational CTF challenges assistance. Decodes common formats (Base64, Hex, ROT13, Morse), cracks Caesar ciphers locally, identifies hashes, and gives helpful guidelines.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "decode_base64 | decode_hex | decode_rot13 | decode_morse | crack_caesar | detect_encoding | hash_identifier | extract_strings | stego_check | hint"},
+                "text": {"type": "STRING", "description": "The raw string to decode, check encoding, identify hash, or get hints for"},
+                "file_path": {"type": "STRING", "description": "Absolute file path for extracting strings or checking stego metadata"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "password_toolkit",
+        "description": "Local password security toolkit. Analyzes strength, calculates entropy, generates secure keys or memorable passphrases, and runs local hashes.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "strength | generate_strong | generate_passphrase | hash | crack | check_common"},
+                "text": {"type": "STRING", "description": "Password or hash text input"},
+                "length": {"type": "INTEGER", "description": "Length of secure password to generate (default 16)"},
+                "words_count": {"type": "INTEGER", "description": "Words count for memorable passphrase generation (default 4)"},
+                "algorithm": {"type": "STRING", "description": "Hashing algorithm: md5 | sha1 | sha256 | sha512"},
+                "wordlist_path": {"type": "STRING", "description": "Optional file path to local wordlist for hashing checks"},
+                "confirmed": {"type": "STRING", "description": "Must be set to 'yes' to run scope audit checks on your owned hashes"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "encryption_toolkit",
+        "description": "Local encryption and digital signatures toolkit. Encrypts or decrypts local files (AES-256), generates RSA keypairs, signs files, and verifies signatures.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "encrypt | decrypt | generate_rsa | sign | verify"},
+                "path": {"type": "STRING", "description": "Target file or output directory path to encrypt, decrypt, sign, or verify"},
+                "password": {"type": "STRING", "description": "The secret password/key to derive AES encryption keys"},
+                "key_path": {"type": "STRING", "description": "Optional private/public key PEM file path for sign/verify"},
+                "sig_path": {"type": "STRING", "description": "Optional digital signature .sig file path to verify"}
+            },
+            "required": ["action"]
+        }
     }
 ]

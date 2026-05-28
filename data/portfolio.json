@@ -1,0 +1,13 @@
+{
+    "watchlist": [
+        "TCS.NS",
+        "BTC-USD"
+    ],
+    "alerts": [
+        {
+            "ticker": "BTC-USD",
+            "target": 95000.0,
+            "direction": "above"
+        }
+    ]
+}

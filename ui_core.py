@@ -1652,12 +1652,32 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._title_lbl)
 
         # Add Smart Router pill badge indicator next to Title
-        self._router_badge = QLabel("🟢 Gemini")
-        self._router_badge.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._router_badge.setStyleSheet(
+        default_text = "🟢 Gemini"
+        default_style = (
             "color: #10b981; background: rgba(16, 185, 129, 0.1); "
             "border: 1px solid #10b981; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
         )
+        try:
+            from actions.model_switcher import load_model_preference
+            pref = load_model_preference()
+            if pref.get("hacker_mode", False):
+                default_text = "💀 Hacker Mode"
+                default_style = (
+                    "color: #ef4444; background: rgba(239, 68, 68, 0.1); "
+                    "border: 1px solid #ef4444; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
+                )
+            elif pref.get("routing_mode", "auto") == "nvidia":
+                default_text = "🟩 NVIDIA"
+                default_style = (
+                    "color: #76B900; background: rgba(118, 185, 0, 0.1); "
+                    "border: 1px solid #76B900; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
+                )
+        except Exception:
+            pass
+
+        self._router_badge = QLabel(default_text)
+        self._router_badge.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._router_badge.setStyleSheet(default_style)
         self._router_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(self._router_badge)
 
@@ -2594,6 +2614,12 @@ class MainWindow(QMainWindow):
             self._router_badge.setStyleSheet(
                 "color: #76B900; background: rgba(118, 185, 0, 0.1); "
                 "border: 1px solid #76B900; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
+            )
+        elif model.upper() == "HACKER":
+            self._router_badge.setText("💀 Hacker Mode")
+            self._router_badge.setStyleSheet(
+                "color: #ef4444; background: rgba(239, 68, 68, 0.1); "
+                "border: 1px solid #ef4444; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
             )
         else:
             self._router_badge.setText("🟢 Gemini")

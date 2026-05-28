@@ -1,11 +1,9 @@
 {
-  "saved_at": "2026-05-27 19:34",
-  "last_active": "2026-05-27 19:05",
+  "saved_at": "2026-05-27 21:41",
+  "last_active": "2026-05-27 21:38",
   "turn_count": 40,
-  "summary": "User: प्राइम शट डाउन पी थी | IP Prime: Arey Pratik Sir, kya aap sach mein system | User: शट डाउन पीसी | IP Prime: Pratik Sir, main aapka PC tabhi 'shutdown' kar sakta hoon jab aap exact phrase \"go to sleep\" kahenge. Kya aap confirm karna chahte hain? | User: shut shut dow n my P C and keep quiet. | IP Prime: Arey Pratik Sir, security reasons ki wajah se main aapka PC directly shutdown nahi kar sakta. Sirf \"go to sleep\" command se hi shutdown hota hai. Kya aap wahi b | User: ຄົວ ລາວ ບ່ອນ ນີ້ ກໍ ໄດ້ ເນ | IP Prime: Acha, theek hai Sir. \"Go to sleep\" bolte hi shutdown ho jaega. | User: A, B , nu, dreapta, dreapta. | IP Prime: Pratik Sir, mujhe aapki baat theek se sunai nahi di. Kya aap dobara bolenge?",
+  "summary": "User: शट डाउन पीसी | IP Prime: Pratik Sir, main aapka PC tabhi 'shutdown' kar sakta hoon jab aap exact phrase \"go to sleep\" kahenge. Kya aap confirm karna chahte hain? | User: shut shut dow n my P C and keep quiet. | IP Prime: Arey Pratik Sir, security reasons ki wajah se main aapka PC directly shutdown nahi kar sakta. Sirf \"go to sleep\" command se hi shutdown hota hai. Kya aap wahi b | User: ຄົວ ລາວ ບ່ອນ ນີ້ ກໍ ໄດ້ ເນ | IP Prime: Acha, theek hai Sir. \"Go to sleep\" bolte hi shutdown ho jaega. | User: A, B , nu, dreapta, dreapta. | IP Prime: Pratik Sir, mujhe aapki baat theek se sunai nahi di. Kya aap dobara bolenge? | User: दो तीन महीना | IP Prime: Arey Pratik Sir! Shadi ki planning chal rahi hai? Bahut badhiya! Maine note kar liya hai ki abhi 2-3 mahine tak ka time difficult hai. Tension mat lo, Sir, Jab ",
   "highlights": [
-    "[2026-05-27 18:51] Pratik Sir: you just say",
-    "[2026-05-27 18:51] IP Prime: Pratik Sir, direct brightness setting mein thodi dikkat aa rahi hai. Kya main aapke liye display settings khol doon, jahan",
     "[2026-05-27 18:52] Pratik Sir: can just tell me my inter net speed",
     "[2026-05-27 18:52] IP Prime: Seedhe internet speed check karne ka tool abhi nahi hai, Pratik Sir. Lekin aapko results dekhne ke liye, main browser mein speedtest.net khol sakta hoon. Kya main aage badhun?",
     "[2026-05-27 18:56] IP Prime: Kahiye Pratik Sir! Kaise hain aap? Kya help karoon?",
@@ -18,8 +16,10 @@
     "[2026-05-27 19:04] Pratik Sir: ຄົວ ລາວ ບ່ອນ ນີ້ ກໍ ໄດ້ ເນ",
     "[2026-05-27 19:04] IP Prime: Acha, theek hai Sir. \"Go to sleep\" bolte hi shutdown ho jaega.",
     "[2026-05-27 19:05] Pratik Sir: A, B , nu, dreapta, dreapta.",
-    "[2026-05-27 19:05] IP Prime: Pratik Sir, mujhe aapki baat theek se sunai nahi di. Kya aap dobara bolenge?"
+    "[2026-05-27 19:05] IP Prime: Pratik Sir, mujhe aapki baat theek se sunai nahi di. Kya aap dobara bolenge?",
+    "[2026-05-27 21:38] Pratik Sir: दो तीन महीना",
+    "[2026-05-27 21:38] IP Prime: Arey Pratik Sir! Shadi ki planning chal rahi hai? Bahut badhiya! Maine note kar liya hai ki abhi 2-3 mahine tak ka time difficult hai. Tension mat lo, Sir, Jab bhi aap ready honge, hum sab plan kar lenge! Arey Pratik Sir! Shaadi ki planning chal rahi hai? Bahut badhiya! Maine note kar liya hai ki abhi 2-3 mahine tak ka time difficult hai. Tension mat lo, Sir"
   ],
-  "last_user": "A, B , nu, dreapta, dreapta.",
-  "last_assistant": "Pratik Sir, mujhe aapki baat theek se sunai nahi di. Kya aap dobara bolenge?"
+  "last_user": "दो तीन महीना",
+  "last_assistant": "Arey Pratik Sir! Shadi ki planning chal rahi hai? Bahut badhiya! Maine note kar liya hai ki abhi 2-3 mahine tak ka time difficult hai. Tension mat lo, Sir, Jab bhi aap ready honge, hum sab plan kar lenge! Arey Pratik Sir! Shaadi ki planning chal rahi hai? Bahut badhiya! Maine note kar liya hai ki abhi 2-3 mahine tak ka time difficult hai. Tension mat lo, Sir, jab bhi aap ready honge, hum sab plan kar lenge! 🎉"
 }

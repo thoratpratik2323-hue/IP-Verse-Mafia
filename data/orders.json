@@ -1,0 +1,11 @@
+{
+    "orders": [
+        {
+            "carrier": "Amazon",
+            "tracking_number": "402-1290384-0982301",
+            "status": "In Transit",
+            "last_updated": "2026-05-27 10:00 AM",
+            "details": "Package departed Amazon fulfillment center, Bangalore."
+        }
+    ]
+}

@@ -183,6 +183,36 @@ def switch_model(model_name: str, player: Optional[Any] = None) -> str:
         return msg
     return "Failed to write model settings update to model_config.json, sir."
 
+def enable_hacker_mode(player: Optional[Any] = None) -> str:
+    """Activates Hacker Mode personality and status overlays."""
+    cfg = load_model_preference()
+    cfg["hacker_mode"] = True
+    if save_model_preference_dict(cfg):
+        msg = "💀 Hacker Mode successfully activated, sir! Security protocols engaged."
+        if player and hasattr(player, "write_log"):
+            player.write_log("SYS: Hacker Mode enabled.")
+        if player and hasattr(player, "set_router_badge"):
+            player.set_router_badge("HACKER")
+        if player and hasattr(player, "trigger_personality_reload_and_greeting"):
+            player.trigger_personality_reload_and_greeting()
+        return msg
+    return "Failed to save configuration update, sir."
+
+def disable_hacker_mode(player: Optional[Any] = None) -> str:
+    """Deactivates Hacker Mode personality and restores default settings."""
+    cfg = load_model_preference()
+    cfg["hacker_mode"] = False
+    if save_model_preference_dict(cfg):
+        msg = "Hacker Mode deactivated, sir. Back to standard operations."
+        if player and hasattr(player, "write_log"):
+            player.write_log("SYS: Hacker Mode disabled.")
+        if player and hasattr(player, "set_router_badge"):
+            player.set_router_badge("Gemini")
+        if player and hasattr(player, "trigger_personality_reload_and_greeting"):
+            player.trigger_personality_reload_and_greeting()
+        return msg
+    return "Failed to save configuration update, sir."
+
 def model_switcher(parameters: dict[str, Any], player: Optional[Any] = None) -> str:
     """Main dispatcher for model_switcher action."""
     action = parameters.get("action", "status").lower().strip()
@@ -201,5 +231,9 @@ def model_switcher(parameters: dict[str, Any], player: Optional[Any] = None) -> 
         return auto_route(player)
     elif action == "set_coding_model":
         return set_coding_model(model_name, player)
+    elif action == "enable_hacker":
+        return enable_hacker_mode(player)
+    elif action == "disable_hacker":
+        return disable_hacker_mode(player)
     else:
         return "Unknown model switcher action, sir."

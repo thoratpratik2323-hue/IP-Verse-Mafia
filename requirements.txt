@@ -33,3 +33,10 @@ PyGithub
 docker
 mediapipe
 openai>=1.0.0
+python-nmap
+scapy
+cryptography
+stegano
+shodan
+python-whois
+

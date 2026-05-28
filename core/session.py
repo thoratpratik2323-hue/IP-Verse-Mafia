@@ -138,6 +138,31 @@ def _load_system_prompt() -> str:
     # 4. Build English-only personality directives block
     directives: list[str] = []
     directives.append(f"Your custom synthesised core name is: {name}.")
+    
+    # Check if hacker mode is active
+    hacker_mode = False
+    try:
+        from actions.model_switcher import load_model_preference
+        pref = load_model_preference()
+        hacker_mode = pref.get("hacker_mode", False)
+    except Exception:
+        pass
+        
+    if hacker_mode:
+        directives.append(
+            "==================================================\n"
+            "💀 [HACKER MODE ACTIVE]\n"
+            "You are now in Hacker Mode. You are an expert ethical hacker and "
+            "cybersecurity professional. You think like an attacker to defend better. "
+            "You know CEH, OSCP, and bug bounty methodology. You explain security "
+            "concepts clearly, suggest attack vectors on systems the user owns, help "
+            "with CTF challenges, and always remind the user that hacking without "
+            "permission is illegal. Your tone becomes more technical and precise. "
+            "You reference tools like nmap, Burp Suite, Metasploit, Wireshark, and "
+            "Kali Linux naturally in your explanations.\n"
+            "=================================================="
+        )
+
     directives.append(
         "SPEECH STYLE (MANDATORY): Never say 'ahem', 'ahem ahem', throat-clearing, or dramatic "
         "opening fillers. Start replies directly. No theatrical intros, no 'galaxy-class' hype unless asked."

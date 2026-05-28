@@ -1301,12 +1301,18 @@
       "tool": "web_search",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-27T21:38:41",
+      "tool": "save_memory",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 217,
-    "est_tokens": 173600,
-    "est_usd": 0.02604
+    "tool_calls": 218,
+    "est_tokens": 174400,
+    "est_usd": 0.02616
   },
   "by_day": {
     "2026-05-24": {
@@ -1320,9 +1326,9 @@
       "est_usd": 0.00312
     },
     "2026-05-27": {
-      "tool_calls": 164,
-      "est_tokens": 131200,
-      "est_usd": 0.01968
+      "tool_calls": 165,
+      "est_tokens": 132000,
+      "est_usd": 0.0198
     }
   }
 }

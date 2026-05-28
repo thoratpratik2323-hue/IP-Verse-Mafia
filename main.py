@@ -1,10 +1,11 @@
 import asyncio
-import re
 import threading
-import json
 import sys
 import traceback
 import warnings
+import logging
+
+logger = logging.getLogger("ip_prime.main")
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="google")
 
@@ -356,6 +357,26 @@ class IPRayLive:
         self._has_greeted_on_startup = True
         self.ui.write_log("SYS: Startup greeting queued.")
         self.ui.write_thought("Online — welcome")
+        
+        # Check if hacker mode is active
+        hacker_mode = False
+        try:
+            from actions.model_switcher import load_model_preference
+            hacker_mode = load_model_preference().get("hacker_mode", False)
+        except Exception:
+            pass
+            
+        disclaimer_prefix = ""
+        if hacker_mode:
+            disclaimer_text = (
+                "Hacker Mode active. All tools are for educational use and testing on "
+                "systems you own or have explicit permission to test. Unauthorized access "
+                "to computer systems is a criminal offence under the IT Act 2000 (India) "
+                "and similar laws worldwide."
+            )
+            disclaimer_prefix = f"Speak the following mandatory security disclaimer FIRST: '{disclaimer_text}'. Then, "
+            self.ui.write_log(f"⚠️ {disclaimer_text}")
+
         last_ctx = format_last_session_for_prompt().strip()
         continuity = ""
         if last_ctx:
@@ -375,7 +396,7 @@ class IPRayLive:
         sample_greeting = random.choice(sweet_samples)
         
         self.speak(
-            "[SYSTEM_EVENT] System online. Greet your creator, Pratik Sir, with a warm, sweet, polite, and beautiful welcome message in Hinglish. "
+            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet your creator, Pratik Sir, with a warm, sweet, polite, and beautiful welcome message in Hinglish. "
             "It must be very respectful, simple, and polite (1-2 sentences max). Absolutely no crazy high-energy, no swagger, no dramatic/futuristic slang. "
             "It should sound very pleasant, clean, and nice. "
             f"Here is a sample concept/style of what is expected: '{sample_greeting}'. "
@@ -1566,6 +1587,40 @@ class IPRayLive:
             elif name == "printer_3d_controller":
                 from actions.printer_3d_controller import printer_3d_controller
                 r = await loop.run_in_executor(None, lambda: printer_3d_controller(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "enable_hacker_mode":
+                from actions.model_switcher import model_switcher
+                args_copy = dict(args)
+                args_copy["action"] = "enable_hacker"
+                r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args_copy, player=self.ui))
+                result = r or "Done."
+
+            elif name == "disable_hacker_mode":
+                from actions.model_switcher import model_switcher
+                args_copy = dict(args)
+                args_copy["action"] = "disable_hacker"
+                r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args_copy, player=self.ui))
+                result = r or "Done."
+
+            elif name == "cyber_tutor":
+                from actions.cyber_tutor import cyber_tutor
+                r = await loop.run_in_executor(None, lambda: cyber_tutor(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "ctf_helper":
+                from actions.ctf_helper import ctf_helper
+                r = await loop.run_in_executor(None, lambda: ctf_helper(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "password_toolkit":
+                from actions.password_tools import password_tools
+                r = await loop.run_in_executor(None, lambda: password_tools(parameters=args, player=self.ui))
+                result = r or "Done."
+
+            elif name == "encryption_toolkit":
+                from actions.encryption_tools import encryption_tools
+                r = await loop.run_in_executor(None, lambda: encryption_tools(parameters=args, player=self.ui))
                 result = r or "Done."
 
             elif name == "shutdown_ip_ray":

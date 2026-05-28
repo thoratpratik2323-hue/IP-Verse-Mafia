@@ -1,0 +1,11 @@
+{
+    "date": "2026-05-27",
+    "apps": {
+        "chrome": 3600,
+        "code": 7200,
+        "terminal": 1200
+    },
+    "limits": {
+        "chrome": 7200
+    }
+}

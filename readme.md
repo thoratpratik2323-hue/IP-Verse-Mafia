@@ -241,16 +241,19 @@ Set these environment variables before running IP Prime:
 ```bash
 setx GEMINI_API_KEY "your_gemini_key"
 setx NVIDIA_API_KEY "your_nvidia_nim_key"
+setx SHODAN_API_KEY "your_shodan_key"
 ```
 
 ### Linux/Mac:
 ```bash
 export GEMINI_API_KEY="your_gemini_key"
 export NVIDIA_API_KEY="your_nvidia_nim_key"
+export SHODAN_API_KEY="your_shodan_key"
 ```
 
 - Get your Gemini API key from: [Google AI Studio](https://aistudio.google.com)
 - Get your NVIDIA NIM API key from: [NVIDIA Build](https://build.nvidia.com) (Free tier available — $50 free credits on signup)
+- Get your Shodan API key from: [Shodan](https://shodan.io) (required for advanced OSINT features)
 
 ---
 
