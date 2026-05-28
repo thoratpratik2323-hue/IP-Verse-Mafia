@@ -528,6 +528,49 @@ class IPRayLive:
                 pass
             return
 
+        # ─── Voice command: Alarm Set ───────────────────────────────────────────
+        alarm_triggers = ["alarm set", "alarm lagao", "set alarm", "wake me up at"]
+        if any(t in txt_l for t in alarm_triggers):
+            self.ui.write_log("SYS: Smart Alarm Scheduler triggered via voice.")
+            time_match = re.search(r"\b([0-2]?\d):([0-5]\d)\b", txt_l)
+            if time_match:
+                h = int(time_match.group(1))
+                m = int(time_match.group(2))
+                time_str = f"{h:02d}:{m:02d}"
+                from datetime import datetime, timedelta
+                now = datetime.now()
+                target_dt = now.replace(hour=h, minute=m, second=0, microsecond=0)
+                if target_dt <= now:
+                    target_dt += timedelta(days=1)
+                
+                try:
+                    from pathlib import Path
+                    import json
+                    import random
+                    alarm_file = Path(__file__).resolve().parent / "config" / "alarms.json"
+                    alarms = {}
+                    if alarm_file.exists():
+                        try:
+                            alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+                        except Exception:
+                            alarms = {}
+                    alarm_id = f"ALARM_{int(datetime.now().timestamp())}_{random.randint(100, 999)}"
+                    msg = "Voice set alarm"
+                    alarms[alarm_id] = {
+                        "time": time_str,
+                        "message": msg,
+                        "snoozed": 0,
+                        "active": True
+                    }
+                    alarm_file.parent.mkdir(parents=True, exist_ok=True)
+                    alarm_file.write_text(json.dumps(alarms, indent=4), encoding="utf-8")
+                    self.speak(f"Bhai, alarm set kar diya hai {time_str} ke liye!")
+                except Exception as e:
+                    self.speak(f"Sorry bhai, alarm save karne me issue hua. {e}")
+            else:
+                self.speak("Bhai alarm ka time kya hoga? Bolo 'set alarm at 07:00' taaki main set kar sakoon.")
+            return
+
         # ─── Voice command: Study Planner ──────────────────────────────────────
         study_triggers = ["study planner", "aaj ka schedule", "study schedule"]
         if any(t in txt_l for t in study_triggers):
@@ -536,6 +579,17 @@ class IPRayLive:
             try:
                 from PyQt6.QtCore import QTimer
                 QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_study", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Live Translation HUD ───────────────────────────────
+        translation_triggers = ["translate karo", "yeh kya likha hai", "translate this", "screen translate", "live translation"]
+        if any(t in txt_l for t in translation_triggers):
+            self.ui.write_log("SYS: Live Screen Translation triggered via voice.")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_translation", lambda: None)())
             except Exception:
                 pass
             return
@@ -1204,6 +1258,57 @@ class IPRayLive:
                                     except Exception:
                                         pass
 
+                                # ─── Voice command: Alarm Set ───────────────────
+                                _alarm_t = ["alarm set", "alarm lagao", "set alarm", "wake me up at"]
+                                if any(t in txt_l for t in _alarm_t):
+                                    self.ui.write_log("SYS: Alarm Set triggered via mic.")
+                                    time_match = re.search(r"\b([0-2]?\d):([0-5]\d)\b", txt_l)
+                                    if time_match:
+                                        h = int(time_match.group(1))
+                                        m = int(time_match.group(2))
+                                        time_str = f"{h:02d}:{m:02d}"
+                                        from datetime import datetime, timedelta
+                                        now = datetime.now()
+                                        target_dt = now.replace(hour=h, minute=m, second=0, microsecond=0)
+                                        if target_dt <= now:
+                                            target_dt += timedelta(days=1)
+                                        
+                                        try:
+                                            from pathlib import Path
+                                            import json
+                                            import random
+                                            alarm_file = Path(__file__).resolve().parent / "config" / "alarms.json"
+                                            alarms = {}
+                                            if alarm_file.exists():
+                                                try:
+                                                    alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+                                                except Exception:
+                                                    alarms = {}
+                                            alarm_id = f"ALARM_{int(datetime.now().timestamp())}_{random.randint(100, 999)}"
+                                            alarms[alarm_id] = {
+                                                "time": time_str,
+                                                "message": "Mic set alarm",
+                                                "snoozed": 0,
+                                                "active": True
+                                            }
+                                            alarm_file.parent.mkdir(parents=True, exist_ok=True)
+                                            alarm_file.write_text(json.dumps(alarms, indent=4), encoding="utf-8")
+                                            self.speak(f"Ji bhai, alarm set kar diya hai {time_str} ke liye!")
+                                        except Exception as e:
+                                            self.speak(f"Sorry bhai, alarm set nahi ho paya. {e}")
+                                    else:
+                                        self.speak("Bhai alarm ka time kya hai? Please batao!")
+
+                                # ─── Voice command: Live Translation HUD ───────────────────
+                                _trans_t = ["translate karo", "yeh kya likha hai", "translate this", "screen translate", "live translation"]
+                                if any(t in txt_l for t in _trans_t):
+                                    self.ui.write_log("SYS: Live Screen Translation triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_translation", lambda: None)())
+                                    except Exception:
+                                        pass
+
                                 _viva_t = ["viva mode", "start viva", "viva prep", "start exam", "viva shuru"]
                                 if any(t in txt_l for t in _viva_t):
                                     self.ui.write_log("SYS: Viva Mode triggered via mic.")
@@ -1407,9 +1512,26 @@ def _alarm_checker_loop(ui):
                     changed = False
                     for aid, details in list(alarms.items()):
                         if details.get("active", True) and details.get("time") == now_min:
-                            print(f"[Alarm] ⏰ Triggered: {details.get('message')}")
-                            ui.write_log(f"⏰ ALARM TRIGGERED: {details.get('message')}")
+                            msg = details.get("message", "Alarm")
+                            print(f"[Alarm] ⏰ Triggered: {msg}")
+                            ui.write_log(f"⏰ ALARM TRIGGERED: {msg}")
                             play_sfx("alarm")
+                            
+                            # Speak personalized greeting and briefing on alarm trigger
+                            ip_ray = getattr(ui, "ip_ray", None) or getattr(getattr(ui, "_win", None), "ip_ray", None)
+                            if ip_ray:
+                                def speak_alarm_details(alarm_msg):
+                                    try:
+                                        time.sleep(5.0)  # Wait for siren alarm to finish playing
+                                        greeting_msg = f"Good morning Pratik bhaia! Uthiye chalo, alarm baj gaya hai. Message tha: {alarm_msg}."
+                                        from actions.morning_briefer import generate_briefing
+                                        brief = generate_briefing(ui)
+                                        full_text = f"{greeting_msg}\n\nAaj ka aapka morning briefing yeh raha sir:\n\n{brief}"
+                                        ip_ray.speak(full_text)
+                                    except Exception as err:
+                                        print(f"[Alarm Speech Error] {err}")
+                                import threading
+                                threading.Thread(target=speak_alarm_details, args=(msg,), daemon=True).start()
                             
                             details["active"] = False
                             changed = True
@@ -1459,6 +1581,8 @@ def main():
                 classifier = FileClassifierThread(check_interval_seconds=15)
                 classifier.start()
                 ui.write_log("SYS: Automated downloads file classifier online.")
+            except Exception as e:
+                ui.write_log(f"SYS WARNING: FileClassifier failed to load - {e}")
             try:
                 from actions.clipboard_manager import start_clipboard_monitor
                 from actions.screen_time import start_screen_time_monitor
@@ -1480,9 +1604,23 @@ def main():
                 ui.write_log("SYS: Clipboard AI hotkey registered: Ctrl+Alt+C")
             except Exception as e:
                 ui.write_log(f"SYS WARNING: Clipboard AI hotkey fail: {e}")
+
+            # Register Ctrl+Alt+T hotkey for Screen Translation HUD
+            def _translation_hotkey():
+                try:
+                    ui._win._translation_sig.emit()
+                except Exception:
+                    pass
+            try:
+                import keyboard
+                keyboard.add_hotkey("ctrl+alt+t", _translation_hotkey)
+                ui.write_log("SYS: Live Translation hotkey registered: Ctrl+Alt+T")
+            except Exception as e:
+                ui.write_log(f"SYS WARNING: Live Translation hotkey fail: {e}")
         threading.Timer(8.0, _start_background).start()
         
         ip_ray = IPRayLive(ui)
+        ui.ip_ray = ip_ray
         try:
             asyncio.run(ip_ray.run())
         except KeyboardInterrupt:

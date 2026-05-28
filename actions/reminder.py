@@ -330,6 +330,39 @@ def reminder(
     if not job_id:
         return "I couldn't register the reminder with the system scheduler."
 
+    # Write to alarms.json for our in-process checker loop to trigger speak + SFX
+    try:
+        from pathlib import Path
+        import json
+        import random
+        # Find base dir
+        base = _base_dir()
+        alarm_file = base / "config" / "alarms.json"
+        
+        # Load existing alarms
+        alarms = {}
+        if alarm_file.exists():
+            try:
+                alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+            except Exception:
+                alarms = {}
+                
+        # Add new alarm
+        alarm_id = f"ALARM_{int(datetime.now().timestamp())}_{random.randint(100, 999)}"
+        alarms[alarm_id] = {
+            "time": time_str,
+            "message": message,
+            "snoozed": 0,
+            "active": True
+        }
+        
+        # Save alarms
+        alarm_file.parent.mkdir(parents=True, exist_ok=True)
+        alarm_file.write_text(json.dumps(alarms, indent=4), encoding="utf-8")
+        print(f"[Reminder] Saved alarm {alarm_id} to config/alarms.json for in-process checker.")
+    except Exception as ae:
+        print(f"[Reminder] Failed to save alarm to alarms.json: {ae}")
+
     if player:
         player.write_log(f"[Reminder] ✅ {date_str} {time_str} — {safe_msg[:40]}")
 

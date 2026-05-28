@@ -1649,6 +1649,7 @@ class MainWindow(QMainWindow):
     _dsa_sig           = pyqtSignal()
     _study_sig         = pyqtSignal()
     _spotify_sig        = pyqtSignal()
+    _translation_sig    = pyqtSignal()
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -1683,6 +1684,7 @@ class MainWindow(QMainWindow):
         self._dsa_sig.connect(self._toggle_dsa)
         self._study_sig.connect(self._toggle_study)
         self._spotify_sig.connect(self._toggle_spotify)
+        self._translation_sig.connect(self._toggle_translation)
 
         self._central_widget = SpaceCentralWidget()
         self._central_widget.setObjectName("CentralWidget")
@@ -2031,6 +2033,32 @@ class MainWindow(QMainWindow):
         if hasattr(self, "_streak_lbl"):
             self._streak_lbl.setText(f"🔥 STREAK: {getattr(self, '_git_streak_cached', 0)} DAYS")
 
+        # Update Alarm Badge (throttled to every 10 seconds)
+        self._alarm_tick = getattr(self, "_alarm_tick", 0) + 1
+        if self._alarm_tick >= 10 or not hasattr(self, "_alarm_cached"):
+            self._alarm_tick = 0
+            try:
+                from pathlib import Path
+                import json
+                alarm_file = Path(__file__).resolve().parent.parent / "config" / "alarms.json"
+                next_alarm_time = None
+                if alarm_file.exists():
+                    alarms = json.loads(alarm_file.read_text(encoding="utf-8"))
+                    active_alarms = [v for k, v in alarms.items() if v.get("active", True)]
+                    if active_alarms:
+                        # Find the soonest active alarm time
+                        active_alarms.sort(key=lambda x: x.get("time", ""))
+                        next_alarm_time = active_alarms[0].get("time")
+                self._alarm_cached = next_alarm_time
+            except Exception:
+                self._alarm_cached = None
+
+        if hasattr(self, "_alarm_lbl"):
+            if self._alarm_cached:
+                self._alarm_lbl.setText(f"⏰ ALARM: {self._alarm_cached}")
+            else:
+                self._alarm_lbl.setText("⏰ ALARM: --")
+
         # Update MCP server rows connection states dynamically (throttled every 5 ticks)
         self._mcp_ticks = getattr(self, "_mcp_ticks", 0) + 1
         if self._mcp_ticks % 5 == 0 or self._mcp_ticks == 1:
@@ -2287,6 +2315,24 @@ class MainWindow(QMainWindow):
         self._music_btn.clicked.connect(self._toggle_spotify)
         lay.addWidget(self._music_btn)
 
+        # TRANSLATE Button
+        self._translate_btn = QPushButton("TRANSLATE 🌐")
+        self._translate_btn.setFixedSize(110, 36)
+        self._translate_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._translate_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._translate_btn.setToolTip("Open Screen Live Translation")
+        self._translate_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(6, 182, 212, 0.12); color: #06B6D4;
+                border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(6, 182, 212, 0.22); color: #06B6D4; border: 1.5px solid #06B6D4;
+            }
+        """)
+        self._translate_btn.clicked.connect(self._toggle_translation)
+        lay.addWidget(self._translate_btn)
 
         self._settings_gear_btn = QPushButton("⚙")
         self._settings_gear_btn.setFixedSize(36, 36)
@@ -3334,6 +3380,14 @@ class MainWindow(QMainWindow):
             self._study_panel.move(x, y)
             self._study_panel.show()
 
+    def _toggle_translation(self):
+        try:
+            from actions.screen_translator import start_screen_translation
+            start_screen_translation(self)
+        except Exception as e:
+            if hasattr(self, "write_log"):
+                self.write_log(f"SYS: Translation error: {e}")
+
     def _on_router_badge_updated(self, model: str):
         if not hasattr(self, "_router_badge"):
             return
@@ -3700,6 +3754,12 @@ class MainWindow(QMainWindow):
         self._streak_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
         self._streak_lbl.setStyleSheet(f"color: #EF4444; background: transparent;")
         lay.addWidget(self._streak_lbl)
+
+        # Alarm footer badge
+        self._alarm_lbl = QLabel("⏰ ALARM: --")
+        self._alarm_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._alarm_lbl.setStyleSheet(f"color: #F59E0B; background: transparent;")
+        lay.addWidget(self._alarm_lbl)
 
         lay.addStretch()
         self._footer_copyright_lbl = QLabel("© IP VERSE")
