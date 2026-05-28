@@ -3,10 +3,13 @@ import re
 import sys
 import threading
 import subprocess
-import tempfile
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
+
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output")
+IP_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from agent.planner       import create_plan, replan
 from agent.error_handler import analyze_error, generate_fix, ErrorDecision
@@ -27,7 +30,7 @@ def _get_api_key() -> str:
         return json.load(f)["gemini_api_key"]
 
 def _run_generated_code(description: str, speak: Callable | None = None) -> str:
-    import google.generativeai as genai
+    from google import genai
 
     if speak:
         speak("Writing custom code for this task, sir.")
@@ -46,51 +49,53 @@ def _run_generated_code(description: str, speak: Callable | None = None) -> str:
         except Exception:
             pass
 
-    genai.configure(api_key=_get_api_key())
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        system_instruction=(
-            "You are an expert Python developer. "
-            "Write clean, complete, working Python code. "
-            "Use standard library + common packages. "
-            "Install missing packages with subprocess + pip if needed. "
-            "Return ONLY the Python code. No explanation, no markdown, no backticks.\n\n"
-            f"SYSTEM PATHS:\n"
-            f"  Desktop   = r'{desktop}'\n"
-            f"  Downloads = r'{downloads}'\n"
-            f"  Documents = r'{documents}'\n"
-            f"  Home      = r'{home}'\n"
-        )
+    client = genai.Client(api_key=_get_api_key())
+
+    system_prompt = (
+        "You are an expert Python developer. "
+        "Write clean, complete, working Python code. "
+        "Use standard library + common packages. "
+        "Install missing packages with subprocess + pip if needed. "
+        "Return ONLY the Python code. No explanation, no markdown, no backticks.\n\n"
+        f"SYSTEM PATHS:\n"
+        f"  Desktop   = r'{desktop}'\n"
+        f"  Downloads = r'{downloads}'\n"
+        f"  Documents = r'{documents}'\n"
+        f"  Home      = r'{home}'\n"
+        f"  IP Output = r'{IP_OUTPUT_DIR}'\n"
     )
 
     try:
-        response = model.generate_content(
-            f"Write Python code to accomplish this task:\n\n{description}"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"Write Python code to accomplish this task:\n\n{description}",
+            config=genai.types.GenerateContentConfig(system_instruction=system_prompt),
         )
         code = response.text.strip()
         code = re.sub(r"```(?:python)?", "", code).strip().rstrip("`").strip()
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False, encoding="utf-8"
-        ) as f:
-            f.write(code)
-            tmp_path = f.name
+        # Save to IP output folder with timestamp so it's reviewable + re-runnable
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_desc = re.sub(r"[^\w]", "_", description[:40]).strip("_")
+        out_path  = IP_OUTPUT_DIR / f"{timestamp}_{safe_desc}.py"
+        out_path.write_text(code, encoding="utf-8")
+        print(f"[Executor] 💾 Code saved to: {out_path}")
 
-        print(f"[Executor] 🐍 Running generated code: {tmp_path}")
+        print(f"[Executor] 🐍 Running generated code: {out_path}")
 
         result = subprocess.run(
-            [sys.executable, tmp_path],
+            [sys.executable, str(out_path)],
             capture_output=True, text=True,
-            timeout=120, cwd=str(Path.home())
+            timeout=120, cwd=str(IP_OUTPUT_DIR)
         )
-
-        try:
-            os.unlink(tmp_path)
-        except Exception:
-            pass
 
         output = result.stdout.strip()
         error  = result.stderr.strip()
+
+        # Save stdout/stderr log next to the script
+        log_path = out_path.with_suffix(".log")
+        with open(log_path, "w", encoding="utf-8") as lf:
+            lf.write(f"=== STDOUT ===\n{output}\n\n=== STDERR ===\n{error}\n")
 
         if result.returncode == 0 and output:
             return output
@@ -128,14 +133,16 @@ def _inject_context(params: dict, tool: str, step_results: dict, goal: str = "")
 
     return params
 def _detect_language(text: str) -> str:
-    import google.generativeai as genai
-    genai.configure(api_key=_get_api_key())
-    model = genai.GenerativeModel("gemini-2.5-flash-lite")
+    from google import genai
+    client = genai.Client(api_key=_get_api_key())
     try:
-        response = model.generate_content(
-            f"What language is this text written in? "
-            f"Reply with ONLY the language name in English (e.g. Turkish, English, French).\n\n"
-            f"Text: {text[:200]}"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=(
+                f"What language is this text written in? "
+                f"Reply with ONLY the language name in English (e.g. Turkish, English, French).\n\n"
+                f"Text: {text[:200]}"
+            ),
         )
         return response.text.strip()
     except Exception:
@@ -146,9 +153,8 @@ def _translate_to_goal_language(content: str, goal: str) -> str:
     if not goal:
         return content
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=_get_api_key())
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        from google import genai
+        client = genai.Client(api_key=_get_api_key())
 
         target_lang = _detect_language(goal)
         print(f"[Executor] 🌐 Translating to: {target_lang}")
@@ -163,7 +169,10 @@ def _translate_to_goal_language(content: str, goal: str) -> str:
             f"- Output ONLY the translated text, nothing else\n\n"
             f"Text to translate:\n{content[:4000]}"
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
         translated = response.text.strip()
         print(f"[Executor] ✅ Translation done ({target_lang})")
         return translated
@@ -319,9 +328,8 @@ class AgentExecutor:
     def _summarize(self, goal: str, completed_steps: list, speak: Callable | None) -> str:
         fallback = f"All done, sir. Completed {len(completed_steps)} steps for: {goal[:60]}."
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=_get_api_key())
-            model     = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+            from google import genai
+            client    = genai.Client(api_key=_get_api_key())
             steps_str = "\n".join(f"- {s.get('description', '')}" for s in completed_steps)
             prompt    = (
                 f'User goal: "{goal}"\n'
@@ -329,7 +337,10 @@ class AgentExecutor:
                 "Write a single natural sentence summarizing what was accomplished. "
                 "Address the user as 'sir'. Be direct and positive."
             )
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-lite",
+                contents=prompt,
+            )
             summary  = response.text.strip()
             if speak: speak(summary)
             return summary

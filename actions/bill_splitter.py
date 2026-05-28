@@ -68,9 +68,10 @@ def split_bill(bill_text: str, people: list[str], assignments: Optional[dict[str
 
     if gemini_key:
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            from google import genai
+
+            client = genai.Client(api_key=gemini_key)
+            model = client.get_model("gemini-2.0-flash")
             
             prompt = (
                 f"Analyze the following receipt/bill text:\n'{bill_text}'\n\n"

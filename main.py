@@ -1544,6 +1544,79 @@ def _alarm_checker_loop(ui):
             
         time.sleep(10)
 
+def start_ipc_watcher(ui):
+    import json
+    import time
+    from pathlib import Path
+    
+    ipc_file = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output\ip_prime_ipc.json")
+    print(f"[IP PRIME IPC] 🛡️ Watching for IPC signals at: {ipc_file}")
+    
+    # Clear file if it exists with completed/pending status
+    if ipc_file.exists():
+        try:
+            data = json.loads(ipc_file.read_text(encoding="utf-8"))
+            if data.get("status") in ("pending", "processing"):
+                data["status"] = "cleared"
+                ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+        except Exception:
+            pass
+
+    brain = None
+
+    while True:
+        try:
+            if ipc_file.exists():
+                try:
+                    data = json.loads(ipc_file.read_text(encoding="utf-8"))
+                except Exception:
+                    time.sleep(1)
+                    continue
+                
+                if data.get("status") == "pending":
+                    command = data.get("command", "").strip()
+                    request_id = data.get("request_id", "default")
+                    
+                    if command:
+                        print(f"[IP PRIME IPC] 🚀 Received external command [{request_id}]: {command}")
+                        ui.write_log(f"IPC: Received command - {command}")
+                        
+                        data["status"] = "processing"
+                        ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+                        
+                        if brain is None:
+                            from brain.core_intelligence import IPBrain
+                            brain = IPBrain()
+                        
+                        try:
+                            response = brain.process_input(command)
+                            
+                            try:
+                                data = json.loads(ipc_file.read_text(encoding="utf-8"))
+                            except Exception:
+                                pass
+                                
+                            data["status"] = "completed"
+                            data["response"] = response
+                            ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+                            
+                            print(f"[IP PRIME IPC] ✅ Command [{request_id}] processed successfully.")
+                            ui.write_log(f"IPC: Command completed.")
+                        except Exception as ex:
+                            try:
+                                data = json.loads(ipc_file.read_text(encoding="utf-8"))
+                            except Exception:
+                                pass
+                            data["status"] = "failed"
+                            data["error"] = str(ex)
+                            ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
+                            print(f"[IP PRIME IPC] ❌ Command [{request_id}] failed: {ex}")
+                            ui.write_log(f"IPC: Command failed - {ex}")
+        except Exception as e:
+            print(f"[IP PRIME IPC Error] {e}")
+            
+        time.sleep(1)
+
 def main():
     import atexit
 
@@ -1630,6 +1703,7 @@ def main():
 
     threading.Thread(target=runner, daemon=True).start()
     threading.Thread(target=lambda: _alarm_checker_loop(ui), daemon=True, name="AlarmCheckerThread").start()
+    threading.Thread(target=lambda: start_ipc_watcher(ui), daemon=True, name="IPCWatcherThread").start()
     ui.root.mainloop()
     save_shutdown_summary()
 

@@ -1,6 +1,6 @@
 import json
 import re
-import google.generativeai as genai
+from google import genai
 from actions.prime_utils import get_api_key
 
 class ReasoningEngine:
@@ -10,8 +10,8 @@ class ReasoningEngine:
     """
     
     def __init__(self, memory_engine):
-        genai.configure(api_key=get_api_key())
-        self.ai = genai.GenerativeModel("gemini-2.5-flash")
+        self.client = genai.Client(api_key=get_api_key())
+        self.model_name = "gemini-2.5-flash"
         self.memory = memory_engine
     
     def create_plan(self, goal: str, context: dict) -> dict:
@@ -56,7 +56,10 @@ class ReasoningEngine:
         """
         
         try:
-            response = self.ai.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             result_text = response.text.strip()
             text_json = re.sub(r"```(?:json)?", "", result_text).strip().rstrip("`").strip()
             return json.loads(text_json)

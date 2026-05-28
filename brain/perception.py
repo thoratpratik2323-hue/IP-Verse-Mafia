@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from actions.prime_utils import get_api_key
 
 class PerceptionEngine:
@@ -8,8 +8,8 @@ class PerceptionEngine:
     """
     
     def __init__(self):
-        genai.configure(api_key=get_api_key())
-        self.ai_model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        self.client = genai.Client(api_key=get_api_key())
+        self.model_name = "gemini-2.5-flash-lite"
         
     def perceive(self, raw_input: str) -> dict:
         """Fully analyzes the input before any execution."""
@@ -54,10 +54,12 @@ class PerceptionEngine:
             if any(w in text_lower for w in words):
                 return emo
                 
-        # Gemini fallback
         try:
             prompt = f"Analyze the emotion of this text. Return exactly one word from this list: [frustrated, happy, stressed, confused, tired, neutral]. Text: '{text}'"
-            response = self.ai_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             res = response.text.strip().lower()
             if res in emotions or res == "neutral":
                 return res

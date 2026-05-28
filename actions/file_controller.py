@@ -18,8 +18,11 @@ except ImportError:
 
 _OS = platform.system()  # "Windows" | "Darwin" | "Linux"
 
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output")
+
 _SAFE_ROOTS: list[Path] = [
     Path.home(),
+    IP_OUTPUT_DIR,
 ]
 
 def _is_safe_path(target: Path) -> bool:
@@ -91,6 +94,10 @@ def _resolve_path(raw: str) -> Path:
         "music":     _get_music(),
         "videos":    _get_videos(),
         "home":      Path.home(),
+        "ip output": IP_OUTPUT_DIR,
+        "ip_output": IP_OUTPUT_DIR,
+        "ipoutput":  IP_OUTPUT_DIR,
+        "output":    IP_OUTPUT_DIR,
     }
     if ip_given is not None:
         shortcuts["ip given"] = ip_given
