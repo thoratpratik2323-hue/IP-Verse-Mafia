@@ -42,6 +42,13 @@ class WakeWordSpotterThread(threading.Thread):
         r.dynamic_energy_threshold = True
         r.pause_threshold = 0.5
         
+        # Calibrate once at startup to save massive CPU cycles in loop!
+        try:
+            with sr.Microphone() as source:
+                r.adjust_for_ambient_noise(source, duration=0.8)
+        except Exception as e:
+            print(f"[WakeWord] Ambient noise calibration failed at startup: {e}")
+        
         # Start in listening state
         self._running = True
         
@@ -52,9 +59,6 @@ class WakeWordSpotterThread(threading.Thread):
                 
             try:
                 with sr.Microphone() as source:
-                    # Adjust for ambient noise briefly
-                    r.adjust_for_ambient_noise(source, duration=0.5)
-                    
                     if not self._running or self._stop_event.is_set():
                         continue
                         

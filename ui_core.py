@@ -318,13 +318,20 @@ class HudCanvas(QWidget):
 
         self._tmr = QTimer(self)
         self._tmr.timeout.connect(self._step)
-        self._tmr.start(16)
+        self._tmr.start(50)
 
     def set_voice_level(self, level: float):
         """Set voice level from main.py audio output."""
         self._tgt_voice_level = max(0.0, min(1.0, level))
 
     def _step(self):
+        # Dynamically scale FPS to conserve massive CPU resources!
+        # If active (speaking/thinking/processing), run at ~30 FPS (33ms).
+        # If idle (listening/muted), drop to ~20 FPS (50ms) to save CPU.
+        target_interval = 33 if (self.speaking or self.state in ("THINKING", "PROCESSING")) else 50
+        if self._tmr.interval() != target_interval:
+            self._tmr.setInterval(target_interval)
+
         self._tick += 1
         now = time.time()
         
@@ -509,7 +516,7 @@ class HudCanvas(QWidget):
                 op_y = cy + rad_dist * math.sin(ang_rad)
                 
                 # Glowing trail effect
-                opacity = int(180 * (0.4 + 0.6 * math.sin(ang_rad)))
+                opacity = max(0, min(255, int(180 * (0.4 + 0.6 * math.sin(ang_rad)))))
                 p.setBrush(QBrush(qcol(C.CYAN, opacity)))
                 p.drawEllipse(QPointF(op_x, op_y), op[3], op[3])
 
@@ -1375,6 +1382,9 @@ class MainWindow(QMainWindow):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
         root.addWidget(self._build_header())
+        self._router_badge.hide()
+        self._settings_gear_btn.hide()
+        self._slide_btn.hide()
 
         body = QHBoxLayout()
         body.setContentsMargins(0, 0, 0, 0)
@@ -1396,7 +1406,7 @@ class MainWindow(QMainWindow):
         # ── Wrapped HUD inside a beautiful rounded obsidian card ──────────────
         self._hud_container = QWidget()
         self._hud_container.setStyleSheet(
-            f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;"
+            f"background: transparent; border: none; border-radius: 12px;"
         )
         hud_lay = QVBoxLayout(self._hud_container)
         hud_lay.setContentsMargins(2, 2, 2, 2)
@@ -1447,6 +1457,7 @@ class MainWindow(QMainWindow):
         _tp_lay.addWidget(self._thought_label, stretch=1)
 
         hud_lay.addWidget(self._thought_panel)
+        self._thought_panel.hide()
         body.addWidget(self._hud_container, stretch=5)
 
         self._right_panel = self._build_right_panel()
@@ -1457,6 +1468,7 @@ class MainWindow(QMainWindow):
 
         root.addLayout(body, stretch=1)
         root.addWidget(self._build_footer())
+        self._footer_widget.hide()
 
 
 
@@ -1621,10 +1633,20 @@ class MainWindow(QMainWindow):
 
     def _build_header(self) -> QWidget:
         self._header_widget = QWidget()
+        self._header_widget.setObjectName("HeaderWidget")
         self._header_widget.setFixedHeight(54)
-        self._header_widget.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 10px;")
+        self._header_widget.setStyleSheet(f"""
+            QWidget#HeaderWidget {{
+                background: {C.PANEL};
+                border: 1.5px solid qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {C.PRI},
+                    stop:0.5 {C.ACC if hasattr(C, 'ACC') else C.PRI},
+                    stop:1 {C.PRI});
+                border-radius: 27px;
+            }}
+        """)
         lay = QHBoxLayout(self._header_widget)
-        lay.setContentsMargins(16, 0, 16, 0)
+        lay.setContentsMargins(24, 0, 24, 0)
 
         def _badge(txt, color=C.TEXT_MED):
             l = QLabel(txt)
@@ -1690,11 +1712,11 @@ class MainWindow(QMainWindow):
         self._settings_gear_btn.setToolTip("Toggle Settings Panel")
         self._settings_gear_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {C.TEXT_MED};
-                border: 1px solid {C.BORDER_B}; border-radius: 18px;
+                background: rgba(30, 41, 59, 0.35); color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER}; border-radius: 18px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO}; color: {C.PRI}; border: 1px solid {C.PRI_DIM};
+                background: {C.PRI_GHO}; color: {C.WHITE}; border: 1.5px solid {C.PRI};
             }}
         """)
         self._settings_gear_btn.clicked.connect(self._toggle_settings_panel)
@@ -1707,11 +1729,11 @@ class MainWindow(QMainWindow):
         self._slide_btn.setToolTip("Toggle Side Panel (Logs · Files · Input)")
         self._slide_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {C.ACC};
-                border: 1px solid {C.BORDER_B}; border-radius: 18px;
+                background: rgba(30, 41, 59, 0.35); color: {C.ACC};
+                border: 1px solid {C.BORDER}; border-radius: 18px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO}; border: 1px solid {C.ACC};
+                background: {C.PRI_GHO}; color: {C.WHITE}; border: 1.5px solid {C.ACC};
             }}
         """)
         self._slide_btn.clicked.connect(self._toggle_right_panel)
@@ -2896,7 +2918,16 @@ class MainWindow(QMainWindow):
         self._central_widget.setStyleSheet(f"background: {C.BG};")
 
         # 2. Header
-        self._header_widget.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 10px;")
+        self._header_widget.setStyleSheet(f"""
+            QWidget#HeaderWidget {{
+                background: {C.PANEL};
+                border: 1.5px solid qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {C.PRI},
+                    stop:0.5 {C.ACC if hasattr(C, 'ACC') else C.PRI},
+                    stop:1 {C.PRI});
+                border-radius: 27px;
+            }}
+        """)
         self._title_lbl.setStyleSheet(f"""
             QLabel {{
                 color: {C.WHITE};
@@ -3028,7 +3059,7 @@ class MainWindow(QMainWindow):
                 )
 
         # 7. HUD Container
-        self._hud_container.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
+        self._hud_container.setStyleSheet(f"background: transparent; border: none; border-radius: 12px;")
 
         # 8. Right Panel
         self._right_panel.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")

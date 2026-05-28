@@ -8,18 +8,18 @@ duckduckgo-search
 playwright          
 pyautogui
 pyperclip
-pygetwindow       
+pygetwindow; sys_platform == 'win32'
 opencv-python
 numpy
 mss
 Pillow
 psutil
-comtypes
-pycaw               
-win10toast          
+comtypes; sys_platform == 'win32'
+pycaw; sys_platform == 'win32'
+win10toast; sys_platform == 'win32'
 send2trash
 youtube-transcript-api
-pywinauto
+pywinauto; sys_platform == 'win32'
 python-pptx
 pyqt6
 camoufox
@@ -42,5 +42,5 @@ chromadb
 sentence-transformers
 mcp
 pypdf
-repowire
+repowire-mesh
 

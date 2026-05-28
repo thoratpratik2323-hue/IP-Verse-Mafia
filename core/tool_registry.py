@@ -13,7 +13,7 @@ from __future__ import annotations
 
 TOOL_DECLARATIONS: list[dict] = [
     {
-        "name": "anus_cli_helper",
+        "name": "autonomous_cli_helper",
         "description": (
             "Runs autonomous shell execution loops to achieve terminal goals or "
             "simulates Solana Web3 wallet telemetry operations (balance check, token transfers, history). "
@@ -1875,7 +1875,7 @@ TOOL_DECLARATIONS: list[dict] = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "action": {"type": "log_water | set_goal | log_meal | log_sleep | summary"},
+                "action": {"type": "STRING", "description": "Action: log_water | set_goal | log_meal | log_sleep | summary"},
                 "value": {"type": "INTEGER", "description": "Water volume logged in ml"},
                 "goal": {"type": "INTEGER", "description": "Target daily water goal in ml"},
                 "meal": {"type": "STRING", "description": "Meal description string"},
@@ -1934,7 +1934,7 @@ TOOL_DECLARATIONS: list[dict] = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "action": {"type": "stats | speed | list | set_alert | top_apps"},
+                "action": {"type": "STRING", "description": "Action: stats | speed | list | set_alert | top_apps"},
                 "alert_active": {"type": "BOOLEAN", "description": "Enable unknown device triggers"}
             },
             "required": ["action"]
@@ -1946,7 +1946,7 @@ TOOL_DECLARATIONS: list[dict] = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "action": {"type": "register | verify | enable | disable"}
+                "action": {"type": "STRING", "description": "Action: register | verify | enable | disable"}
             },
             "required": ["action"]
         }

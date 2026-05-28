@@ -260,4 +260,4 @@ def autonomous_shell_helper(parameters: dict, player=None) -> str:
 
 
 # Backwards-compatible alias — main.py now imports autonomous_shell_helper
-anus_cli_helper = autonomous_shell_helper
+autonomous_cli_helper = autonomous_shell_helper
