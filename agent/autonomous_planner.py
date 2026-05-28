@@ -3,7 +3,7 @@ import re
 import queue
 import time
 from dataclasses import dataclass, field
-import google.generativeai as genai
+from google import genai
 
 from agent.planner import create_plan
 from actions.prime_utils import get_api_key
@@ -22,8 +22,7 @@ class AutonomousPlanner:
     """
     def __init__(self):
         self.task_queue = queue.PriorityQueue()
-        genai.configure(api_key=get_api_key())
-        self.critic_model = genai.GenerativeModel("gemini-2.5-flash")
+        self.client = genai.Client(api_key=get_api_key())
         
     def add_goal(self, goal: str, context: str = "", priority: int = 2):
         """
@@ -82,7 +81,10 @@ If the plan is perfect, respond with ONLY the word "APPROVED".
 If the plan is flawed, return a newly corrected JSON plan using the exact same JSON structure. Do NOT include markdown blocks, just the raw JSON.
 """
         try:
-            response = self.critic_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
             result_text = response.text.strip()
             
             if result_text.upper() == "APPROVED":

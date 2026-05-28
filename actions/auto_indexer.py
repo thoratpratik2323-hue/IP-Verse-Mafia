@@ -101,6 +101,7 @@ class AutoIndexerThread(threading.Thread):
                     if file_path.suffix.lower() in allowed_extensions:
                         total_files += 1
                         try:
+                            from actions.semantic_store import RateLimitError
                             # index_file is naturally incremental and returns True ONLY when file was modified/indexed
                             if index_file(client, file_path):
                                 indexed_count += 1
@@ -116,6 +117,9 @@ class AutoIndexerThread(threading.Thread):
                                         
                                 # Gentle delay between embeds to avoid rate limits
                                 time.sleep(0.5)
+                        except RateLimitError as rate_err:
+                            print(f"[AutoIndexer] ⚠️ Rate limit/quota exceeded: {rate_err}. Pausing background sync.")
+                            return
                         except Exception:
                             pass
 

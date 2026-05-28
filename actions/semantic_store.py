@@ -11,6 +11,10 @@ from google import genai
 import lancedb
 import pyarrow as pa
 
+class RateLimitError(Exception):
+    """Custom exception raised when Gemini API key hits a 429 Resource Exhausted / Quota limit."""
+    pass
+
 # Setup database path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "memory" / "lancedb_store"
@@ -96,6 +100,9 @@ def get_embedding(client: genai.Client, text: str) -> list:
         )
         return response.embeddings[0].values
     except Exception as e:
+        err_msg = str(e)
+        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "quota" in err_msg.lower():
+            raise RateLimitError(f"Gemini API Rate Limit Exceeded (429): {err_msg}")
         print(f"[Semantic Store] Gemini Embedding API error: {e}")
         raise
 
@@ -155,6 +162,8 @@ def index_file(client: genai.Client, file_path: Path) -> bool:
         if data:
             tbl.add(data)
         return True
+    except RateLimitError:
+        raise
     except Exception as e:
         print(f"[Semantic Store] Error indexing file {file_path}: {e}")
         return False
