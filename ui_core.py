@@ -1824,11 +1824,11 @@ class MainWindow(QMainWindow):
 
 
     def _build_header(self) -> QWidget:
-        self._header_widget = QWidget()
+        self._header_widget = QFrame()
         self._header_widget.setObjectName("HeaderWidget")
         self._header_widget.setFixedHeight(54)
         self._header_widget.setStyleSheet(f"""
-            QWidget#HeaderWidget {{
+            QFrame#HeaderWidget {{
                 background: {C.PANEL};
                 border: 1.5px solid qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 {C.PRI},
@@ -3118,7 +3118,7 @@ class MainWindow(QMainWindow):
 
         # 2. Header
         self._header_widget.setStyleSheet(f"""
-            QWidget#HeaderWidget {{
+            QFrame#HeaderWidget {{
                 background: {C.PANEL};
                 border: 1.5px solid qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 {C.PRI},
