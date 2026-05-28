@@ -233,6 +233,10 @@ ip-prime/
 ## 🆕 Changelog — Latest Updates
 
 ### v3.x — *Current*
+- 🧠 **Autonomous AI Second Brain & Habits Tracker** — Integrated a persistent, highly autonomous local Markdown-based Knowledge Vault at `c:/Users/thora/Documents/SecondBrain/` containing customized templates for persona (`SOUL.md`), profiles (`USER.md`), and memory ledgers (`MEMORY.md`).
+- ⚡ **Zero-Latency Persistence Hooks** — Configured dynamic startup and shutdown hooks inside `core/session.py` and `memory/memory_manager.py` that continuously inject context and flush session highlights and turnovers into date-based daily logs (`daily/YYYY-MM-DD.md`) automatically on close.
+- 📁 **Automated Downloads Classifier** — Added a background file classifier daemon that monitors Pratik's Windows `Downloads/` directory and auto-categorizes downloaded study materials (PDFs, PPTXs, docs) and scripts directly into the Second Brain folders.
+- 📈 **Atomic Habits Engine** — Added a dynamic habits engine (`HABITS.md`) that auto-checks daily Coding progress on active Git workspace commits, study habits on categorized downloads, and logging tasks on clean exit—rendered live on the glassmorphic PyQt6 left HUD widget!
 - 🌌 **Space-Themed HUD Overhaul** — Premium deep dark glassmorphic UI (`BG: #010510`, `PANEL: rgba(10, 18, 36, 0.72)`) featuring a stunning, customized **Sky Blue & White** palette with high-contrast tactical styling.
 - 🧭 **Symmetrical Vertical Layout** — Floating Left Status log panel and Right widget stack (Live Chronometer clock + Asynchronous meteorological Weather probe querying `wttr.in` in a background thread) perfectly centered vertically (`AlignVCenter`) next to the central orb.
 - 🌟 **Cyberpunk Neon Box Shadow Glows** — 60-FPS hardware-accelerated glowing 3D box shadows behind each floating card (Cyan for Status, Cobalt Blue for Clock, Royal Violet for Weather).
