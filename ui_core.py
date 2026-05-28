@@ -2101,6 +2101,42 @@ class MainWindow(QMainWindow):
         self._sandbox_btn.clicked.connect(self._toggle_sandbox)
         lay.addWidget(self._sandbox_btn)
 
+        self._viva_btn = QPushButton("VIVA 🎤")
+        self._viva_btn.setFixedSize(90, 36)
+        self._viva_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._viva_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._viva_btn.setToolTip("Open Voice Technical Viva Prep Examiner")
+        self._viva_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(16, 185, 129, 0.12); color: #10B981;
+                border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(16, 185, 129, 0.22); color: #10B981; border: 1.5px solid #10B981;
+            }
+        """)
+        self._viva_btn.clicked.connect(self._toggle_viva)
+        lay.addWidget(self._viva_btn)
+
+        self._git_btn = QPushButton("GIT 🐙")
+        self._git_btn.setFixedSize(80, 36)
+        self._git_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._git_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._git_btn.setToolTip("Open Git Autopilot Commit Synthesizer")
+        self._git_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(0, 240, 255, 0.10); color: #00f0ff;
+                border: 1px solid rgba(0, 240, 255, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(0, 240, 255, 0.20); color: #00f0ff; border: 1.5px solid #00f0ff;
+            }
+        """)
+        self._git_btn.clicked.connect(self._toggle_git_autopilot)
+        lay.addWidget(self._git_btn)
+
         self._settings_gear_btn = QPushButton("⚙")
         self._settings_gear_btn.setFixedSize(36, 36)
         self._settings_gear_btn.setFont(QFont("Segoe UI", 14))
@@ -3040,6 +3076,32 @@ class MainWindow(QMainWindow):
             y = int(self.y() + (self.height() - self._sandbox_panel.height()) / 2)
             self._sandbox_panel.move(x, y)
             self._sandbox_panel.show()
+
+    def _toggle_viva(self):
+        if not hasattr(self, "_viva_panel") or self._viva_panel is None:
+            from actions.viva_gui import VivaPanel
+            self._viva_panel = VivaPanel(self)
+        
+        if self._viva_panel.isVisible():
+            self._viva_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._viva_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._viva_panel.height()) / 2)
+            self._viva_panel.move(x, y)
+            self._viva_panel.show()
+
+    def _toggle_git_autopilot(self):
+        if not hasattr(self, "_git_panel") or self._git_panel is None:
+            from actions.git_gui import GitAutopilotPanel
+            self._git_panel = GitAutopilotPanel(self)
+        
+        if self._git_panel.isVisible():
+            self._git_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._git_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._git_panel.height()) / 2)
+            self._git_panel.move(x, y)
+            self._git_panel.show()
 
     def _on_router_badge_updated(self, model: str):
         if not hasattr(self, "_router_badge"):

@@ -415,6 +415,48 @@ class IPRayLive:
             self.speak("Exiting fullscreen mode, sir.")
             return
 
+        # ─── Voice command: Viva Mode ───────────────────────────────────────────
+        viva_triggers = ["viva mode", "start viva", "viva prep", "start exam", "viva shuru"]
+        if any(t in txt_l for t in viva_triggers):
+            self.ui.write_log("SYS: Viva Mode triggered via voice.")
+            self.speak("Opening Viva Prep Examiner! Select your topic and let's begin, bhai!")
+            import asyncio
+            def _open_viva():
+                win = getattr(self.ui, "_win", None)
+                if win and hasattr(win, "_toggle_viva"):
+                    win._toggle_viva()
+            asyncio.get_event_loop().call_soon_threadsafe(_open_viva) if self._loop else None
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_viva", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Git Autopilot ──────────────────────────────────────
+        git_triggers = ["git commit", "commit kar", "autopilot commit", "stage commit", "code commit", "git autopilot"]
+        if any(t in txt_l for t in git_triggers):
+            self.ui.write_log("SYS: Git Autopilot triggered via voice.")
+            self.speak("Opening Git Autopilot! Scanning your diff and synthesizing a commit message now, bhai!")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_git_autopilot", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Algorithm Sandbox ──────────────────────────────────
+        sandbox_triggers = ["sandbox mode", "open sandbox", "visualizer", "algo sandbox", "sorting sandbox"]
+        if any(t in txt_l for t in sandbox_triggers):
+            self.ui.write_log("SYS: Algorithm Sandbox triggered via voice.")
+            self.speak("Opening Algorithm Sandbox! Let's visualize some data structures, bhai!")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_sandbox", lambda: None)())
+            except Exception:
+                pass
+            return
+
         if text.lower().strip() == "go to sleep":
             self.ui.write_log("SYS: Intercepted 'go to sleep' command.")
             self.speak("Going to sleep now, sir. Good night.")
@@ -935,6 +977,34 @@ class IPRayLive:
                                 elif "exit" in txt_l:
                                     self.ui.write_log("SYS: Vocal exit fullscreen trigger detected.")
                                     self.ui.set_fullscreen(False)
+
+                                # ─── Voice panel shortcuts ──────────────────────
+                                _viva_t = ["viva mode", "start viva", "viva prep", "start exam", "viva shuru"]
+                                if any(t in txt_l for t in _viva_t):
+                                    self.ui.write_log("SYS: Viva Mode triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_viva", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                _git_t = ["git commit", "commit kar", "autopilot commit", "stage commit", "code commit", "git autopilot"]
+                                if any(t in txt_l for t in _git_t):
+                                    self.ui.write_log("SYS: Git Autopilot triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_git_autopilot", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                _sandbox_t = ["sandbox mode", "open sandbox", "visualizer", "algo sandbox", "sorting sandbox"]
+                                if any(t in txt_l for t in _sandbox_t):
+                                    self.ui.write_log("SYS: Sandbox triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_sandbox", lambda: None)())
+                                    except Exception:
+                                        pass
 
                         if sc.turn_complete:
                             if self._turn_done_event:

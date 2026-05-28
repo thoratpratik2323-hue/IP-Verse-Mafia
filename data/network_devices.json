@@ -1,0 +1,7 @@
+{
+    "known_macs": [
+        "00:11:22:33:44:55",
+        "AA:BB:CC:DD:EE:FF"
+    ],
+    "alert_on_unknown": true
+}
