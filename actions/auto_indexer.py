@@ -59,13 +59,17 @@ class AutoIndexerThread(threading.Thread):
         indexed_count = 0
         total_files = 0
 
-        # 1. Index configured Obsidian Vault
+        # 1. Index configured Obsidian Vault & Pratik's Second Brain
         vault_path_str = get_obsidian_vault_path()
         paths_to_index = []
         if vault_path_str:
             vault_path = Path(vault_path_str).resolve()
             if vault_path.exists() and vault_path.is_dir():
                 paths_to_index.append(vault_path)
+                
+        second_brain = Path("c:/Users/thora/Documents/SecondBrain")
+        if second_brain.exists() and second_brain.is_dir():
+            paths_to_index.append(second_brain)
 
         # 2. Index active IP Given Workspace
         try:
@@ -101,6 +105,15 @@ class AutoIndexerThread(threading.Thread):
                             if index_file(client, file_path):
                                 indexed_count += 1
                                 print(f"[AutoIndexer] Sync: {file_path.name}")
+                                
+                                # Auto-check coding habit if a code file is indexed
+                                if file_path.suffix.lower() in {".py", ".js", ".ts", ".c", ".cpp", ".html", ".css"}:
+                                    try:
+                                        from actions.habits_engine import check_coding_habit
+                                        check_coding_habit()
+                                    except Exception:
+                                        pass
+                                        
                                 # Gentle delay between embeds to avoid rate limits
                                 time.sleep(0.5)
                         except Exception:

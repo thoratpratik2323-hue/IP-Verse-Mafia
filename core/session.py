@@ -251,6 +251,35 @@ def _load_system_prompt() -> str:
 
     directives_block: str = "\n".join(directives)
 
+    # 4.5 Load Second Brain Vault context dynamically if present
+    second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+    second_brain_context = ""
+    if second_brain_dir.exists():
+        try:
+            soul_file = second_brain_dir / "SOUL.md"
+            user_file = second_brain_dir / "USER.md"
+            memory_file = second_brain_dir / "MEMORY.md"
+            
+            vault_parts = []
+            if soul_file.exists():
+                vault_parts.append(f"=== SOUL/PERSONA CONFIG ===\n{soul_file.read_text(encoding='utf-8')}\n")
+            if user_file.exists():
+                vault_parts.append(f"=== USER PROFILE ===\n{user_file.read_text(encoding='utf-8')}\n")
+            if memory_file.exists():
+                vault_parts.append(f"=== LONG-TERM MEMORY LEDGER ===\n{memory_file.read_text(encoding='utf-8')}\n")
+                
+            # Load today's log if it exists
+            import datetime
+            today_str = datetime.date.today().strftime("%Y-%m-%d")
+            daily_file = second_brain_dir / "daily" / f"{today_str}.md"
+            if daily_file.exists():
+                vault_parts.append(f"=== TODAY'S SESSION LOG ({today_str}) ===\n{daily_file.read_text(encoding='utf-8')}\n")
+                
+            if vault_parts:
+                second_brain_context = "\n" + "\n".join(vault_parts)
+        except Exception as e:
+            logger.warning("Could not load Second Brain files: %s", e)
+
     # 5. Compile final prompt
     final_prompt: str = (
         "==================================================\n"
@@ -259,6 +288,8 @@ def _load_system_prompt() -> str:
         "==================================================\n\n"
         f"{base_prompt}"
     )
+    if second_brain_context:
+        final_prompt += f"\n\n==================================================\n[ACTIVE SECOND BRAIN VAULT CONTEXT]{second_brain_context}==================================================\n"
     return final_prompt
 
 

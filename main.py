@@ -1163,6 +1163,13 @@ def main():
                 ui.write_log("SYS: Automated background semantic indexer online.")
             except Exception as e:
                 print(f"[IP PRIME] Failed to start AutoIndexerThread: {e}")
+            try:
+                from actions.file_classifier import FileClassifierThread
+                classifier = FileClassifierThread(check_interval_seconds=15)
+                classifier.start()
+                ui.write_log("SYS: Automated downloads file classifier online.")
+            except Exception as e:
+                print(f"[IP PRIME] Failed to start FileClassifierThread: {e}")
         threading.Timer(8.0, _start_background).start()
         
         ip_ray = IPRayLive(ui)

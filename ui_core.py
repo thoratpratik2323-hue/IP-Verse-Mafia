@@ -1907,13 +1907,36 @@ class MainWindow(QMainWindow):
         except Exception:
             uptime_str = "--:--:--"
 
+        # Read habits checklist dynamically if it exists
+        hab_coding = " "
+        hab_study = " "
+        hab_journal = " "
+        try:
+            from pathlib import Path
+            habits_path = Path("c:/Users/thora/Documents/SecondBrain/HABITS.md")
+            if habits_path.exists():
+                content = habits_path.read_text(encoding="utf-8")
+                # Parse lines to check for [x] or [ ]
+                for line in content.splitlines():
+                    if "Coding" in line:
+                        hab_coding = "x" if "[x]" in line else " "
+                    elif "CS Roadmap" in line or "Reading" in line:
+                        hab_study = "x" if "[x]" in line else " "
+                    elif "Reflection" in line or "Journal" in line:
+                        hab_journal = "x" if "[x]" in line else " "
+        except Exception:
+            pass
+
         if hasattr(self, "_left_console_log"):
             self._left_console_log.setText(
                 f"SYS_LOG:\n"
                 f"» CORES ONLINE\n"
                 f"» SEC_OK\n"
-                f"» RAG_STORE=OK\n"
-                f"» UP: {uptime_str}"
+                f"» UP: {uptime_str}\n\n"
+                f"HABITS:\n"
+                f"» 💻 Code: [{hab_coding}]\n"
+                f"» 📚 Study: [{hab_study}]\n"
+                f"» ✍️ Log: [{hab_journal}]"
             )
 
         # Update Time & Date

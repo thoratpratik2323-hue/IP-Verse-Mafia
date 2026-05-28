@@ -421,6 +421,46 @@ def save_shutdown_summary() -> bool:
     }
 
     LAST_SESSION_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    # Save to local Second Brain daily log if directory exists (Context Persistence)
+    second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+    if second_brain_dir.exists():
+        try:
+            daily_dir = second_brain_dir / "daily"
+            daily_dir.mkdir(parents=True, exist_ok=True)
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            daily_file = daily_dir / f"{today_str}.md"
+            
+            # Format highlights as a markdown session block
+            time_now = datetime.now().strftime("%H:%M")
+            session_block = [
+                f"\n### Session Summary ({time_now})",
+                f"- **Total Turns:** {len(turns)}",
+                f"- **Recap:** {(log.get('summary') or '')[:300]}...",
+                "\n#### Key Highlights:",
+            ]
+            for h in highlights:
+                session_block.append(f"- {h}")
+            session_block.append("\n---\n")
+            
+            # Append to daily file
+            existing_content = ""
+            if daily_file.exists():
+                existing_content = daily_file.read_text(encoding="utf-8")
+            
+            new_content = existing_content + "\n".join(session_block)
+            daily_file.write_text(new_content, encoding="utf-8")
+            print(f"[Memory] [OK] Flushed session recap to Second Brain daily log at daily/{today_str}.md")
+            
+            # Auto-check daily journal habit
+            try:
+                from actions.habits_engine import check_journal_habit
+                check_journal_habit()
+            except Exception as hab_e:
+                print(f"[Memory] Habits journal check failed: {hab_e}")
+        except Exception as e:
+            print(f"[Memory] [Error] Failed to write daily Second Brain log: {e}")
+
     with _lock:
         try:
             LAST_SESSION_SUMMARY_PATH.write_text(
