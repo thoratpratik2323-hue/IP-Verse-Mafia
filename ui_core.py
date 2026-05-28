@@ -316,9 +316,33 @@ class HudCanvas(QWidget):
 
         self._particles: list[list[float]] = []
 
+        # Sci-Fi HUD Upgrades setup
+        self.setMouseTracking(True)
+        self._mouse_pos = QPointF(-1000.0, -1000.0)
+        self._ring_angle_1 = 0.0
+        self._ring_angle_2 = 0.0
+        self._ticker_text = (
+            " ◈  IP PRIME SYSTEM CORES OPERATIONAL  "
+            "◈  NEURAL CONNECTIVITY SECURED  "
+            "◈  RAG VECTOR SYNC COMPLETE  "
+            "◈  WAKE WORD SYSTEM ALWAYS-ON ACTIVE  "
+            "◈  COGNITIVE PROCESSING ONLINE  "
+            "◈  UPLINK SECURED VIA EMULATED TERMINAL GRIDS  "
+            "◈  AUTONOMOUS HEARTBEAT HEARTY & STABLE  "
+        )
+        self._ticker_offset = 0.0
+
         self._tmr = QTimer(self)
         self._tmr.timeout.connect(self._step)
         self._tmr.start(50)
+
+    def mouseMoveEvent(self, event):
+        self._mouse_pos = event.position()
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        self._mouse_pos = QPointF(-1000.0, -1000.0)
+        super().leaveEvent(event)
 
     def set_voice_level(self, level: float):
         """Set voice level from main.py audio output."""
@@ -368,6 +392,15 @@ class HudCanvas(QWidget):
         for i in range(3):
             self._blob_angles[i] = (self._blob_angles[i] + rot_speeds[i]) % 360
             self._blob_phases[i] = (self._blob_phases[i] + (0.06 if self.speaking else 0.024)) % (2 * math.pi)
+
+        # Update HUD rings rotation angles based on active state
+        ring_speed_1 = 2.2 if (self.speaking or self.state in ("THINKING", "PROCESSING")) else 0.45
+        ring_speed_2 = -3.0 if (self.speaking or self.state in ("THINKING", "PROCESSING")) else -0.65
+        self._ring_angle_1 = (self._ring_angle_1 + ring_speed_1) % 360
+        self._ring_angle_2 = (self._ring_angle_2 + ring_speed_2) % 360
+
+        # Update cyber ticker offset
+        self._ticker_offset = (self._ticker_offset + 0.65) % 10000.0
 
         # Ambient background particles drifting
         W, H = self.width(), self.height()
@@ -453,6 +486,32 @@ class HudCanvas(QWidget):
             p.setBrush(QBrush(col))
             p.drawEllipse(QPointF(pt[0], pt[1]), pt[2], pt[2])
 
+        # Constellation network lines
+        max_dist = 85.0
+        for i in range(len(self._ambient_particles)):
+            p1 = self._ambient_particles[i]
+            for j in range(i + 1, len(self._ambient_particles)):
+                p2 = self._ambient_particles[j]
+                dx = p1[0] - p2[0]
+                dy = p1[1] - p2[1]
+                dist = math.hypot(dx, dy)
+                if dist < max_dist:
+                    alpha = int(35 * (1.0 - dist / max_dist))
+                    p.setPen(QPen(qcol(C.BORDER, alpha), 0.75))
+                    p.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0], p2[1]))
+            
+            # Interactive mouse highlight
+            if hasattr(self, "_mouse_pos") and self._mouse_pos.x() > -500:
+                mdx = p1[0] - self._mouse_pos.x()
+                mdy = p1[1] - self._mouse_pos.y()
+                mdist = math.hypot(mdx, mdy)
+                if mdist < 120.0:
+                    m_alpha = int(45 * (1.0 - mdist / 120.0))
+                    p.setPen(QPen(qcol(C.CYAN, m_alpha), 0.8))
+                    p.drawLine(QPointF(p1[0], p1[1]), self._mouse_pos)
+                    p.setBrush(QBrush(qcol(C.CYAN, m_alpha * 2)))
+                    p.drawEllipse(QPointF(p1[0], p1[1]), p1[2] * 1.5, p1[2] * 1.5)
+
         # 3. Soft background glowing aura behind the core
         aura_rad = fw * 0.44 * self._scale
         aura_grad = QRadialGradient(cx, cy, aura_rad)
@@ -494,6 +553,34 @@ class HudCanvas(QWidget):
             amp    = fw * 0.016 + 5 * math.sin(self._tick * 0.05)
             freqs  = [3, 4, 3]
             colors = [(C.PRI, 95), (C.ACC, 65), (C.CYAN, 55)]
+
+        # Dynamic Rotating Cyber-Rings (HUD Rings)
+        r1 = base_r + 35
+        r2 = base_r + 55
+        p.save()
+        p.translate(cx, cy)
+        
+        # Ring 1 (Dashed)
+        p.save()
+        p.rotate(self._ring_angle_1)
+        pen1 = QPen(qcol(C.CYAN, 75), 1.25)
+        pen1.setDashPattern([12.0, 8.0])
+        p.setPen(pen1)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawEllipse(QRectF(-r1, -r1, r1 * 2, r1 * 2))
+        p.restore()
+        
+        # Ring 2 (Dotted/Dashed reverse)
+        p.save()
+        p.rotate(self._ring_angle_2)
+        pen2 = QPen(qcol(C.ACC, 55), 1.0)
+        pen2.setDashPattern([4.0, 12.0])
+        p.setPen(pen2)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawEllipse(QRectF(-r2, -r2, r2 * 2, r2 * 2))
+        p.restore()
+        
+        p.restore()
 
         # Draw overlapping translucent morphing blobs
         for i in range(3):
@@ -598,6 +685,27 @@ class HudCanvas(QWidget):
                 
                 p.setPen(QPen(qcol(color, alpha), 2))
                 p.drawPath(path)
+
+            # 10. Active Cyber-Ticker (Thoughts Matrix) at the bottom
+            ticker_h = 22
+            ticker_y = H - ticker_h
+            p.setBrush(QBrush(qcol("#010610", 185)))
+            p.setPen(QPen(qcol(C.BORDER, 90), 1))
+            p.drawRect(QRectF(-1, ticker_y, W + 2, ticker_h + 2))
+            
+            p.setFont(QFont("Consolas", 8))
+            text_col = qcol(C.CYAN if self.state in ("THINKING", "PROCESSING") else C.PRI, 180)
+            p.setPen(QPen(text_col))
+            
+            fm = p.fontMetrics()
+            text_w = fm.horizontalAdvance(self._ticker_text)
+            if text_w > 0:
+                x = - (self._ticker_offset % text_w)
+                while x < W:
+                    p.drawText(QRectF(x, ticker_y, text_w, ticker_h), 
+                               Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, 
+                               self._ticker_text)
+                    x += text_w
 
 
     def contextMenuEvent(self, event):
