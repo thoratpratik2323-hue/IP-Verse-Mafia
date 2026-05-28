@@ -117,7 +117,7 @@ class _SysMetrics:
                 self._update()
             except Exception:
                 pass
-            time.sleep(1.5)
+            time.sleep(5.0)
 
     def _update(self):
         cpu = psutil.cpu_percent(interval=None)
@@ -149,17 +149,32 @@ class _SysMetrics:
     def _get_gpu(self) -> float:
         # NVIDIA
         try:
-            r = subprocess.run(
-                ["nvidia-smi", "--query-gpu=utilization.gpu",
-                 "--format=csv,noheader,nounits"],
-                capture_output=True, text=True, timeout=2
-            )
-            if r.returncode == 0:
-                vals = [float(v.strip()) for v in r.stdout.strip().split("\n") if v.strip()]
-                if vals:
-                    return sum(vals) / len(vals)
+            now = time.time()
+            if not hasattr(self, "_last_gpu_t"):
+                self._last_gpu_t = 0.0
+                self._cached_gpu = -1.0
+                self._gpu_supported = True
+                
+            if not self._gpu_supported:
+                return -1.0
+                
+            if now - self._last_gpu_t > 15.0:
+                self._last_gpu_t = now
+                r = subprocess.run(
+                    ["nvidia-smi", "--query-gpu=utilization.gpu",
+                     "--format=csv,noheader,nounits"],
+                    capture_output=True, text=True, timeout=2
+                )
+                if r.returncode == 0:
+                    vals = [float(v.strip()) for v in r.stdout.strip().split("\n") if v.strip()]
+                    if vals:
+                        self._cached_gpu = sum(vals) / len(vals)
+                else:
+                    self._gpu_supported = False
+            return self._cached_gpu
         except Exception:
-            pass
+            self._gpu_supported = False
+            return -1.0
 
         # AMD (Linux)
         if _OS == "Linux":
@@ -240,17 +255,32 @@ class _SysMetrics:
                 pass
 
         if _OS == "Windows":
-            try:
-                r = subprocess.run(
-                    ["powershell", "-Command",
-                     "(Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace root/wmi).CurrentTemperature"],
-                    capture_output=True, text=True, timeout=3
-                )
-                if r.returncode == 0 and r.stdout.strip():
-                    raw = float(r.stdout.strip().split("\n")[0])
-                    return (raw / 10.0) - 273.15
-            except Exception:
-                pass
+            # Cache the check to only run once every 20 seconds or skip if not supported
+            now = time.time()
+            if not hasattr(self, "_last_temp_t"):
+                self._last_temp_t = 0.0
+                self._cached_temp = -1.0
+                self._temp_supported = True
+                
+            if not self._temp_supported:
+                return -1.0
+                
+            if now - self._last_temp_t > 20.0:
+                self._last_temp_t = now
+                try:
+                    r = subprocess.run(
+                        ["powershell", "-Command",
+                         "(Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace root/wmi).CurrentTemperature"],
+                        capture_output=True, text=True, timeout=2
+                    )
+                    if r.returncode == 0 and r.stdout.strip():
+                        raw = float(r.stdout.strip().split("\n")[0])
+                        self._cached_temp = (raw / 10.0) - 273.15
+                    else:
+                        self._temp_supported = False
+                except Exception:
+                    self._temp_supported = False
+            return self._cached_temp
 
         return -1.0
 
@@ -1667,6 +1697,7 @@ class MainWindow(QMainWindow):
         self._settings_panel.setMinimumWidth(0)
         self._settings_panel_visible = False
         body.addWidget(self._settings_panel, stretch=0)
+        self._sandbox_panel = None
 
         self._left_panel = self._build_left_panel()
         body.addWidget(self._left_panel, stretch=0, alignment=Qt.AlignmentFlag.AlignVCenter)
@@ -2052,6 +2083,24 @@ class MainWindow(QMainWindow):
 
         lay.addStretch()
 
+        self._sandbox_btn = QPushButton("SANDBOX 💻")
+        self._sandbox_btn.setFixedSize(110, 36)
+        self._sandbox_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._sandbox_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._sandbox_btn.setToolTip("Open Interactive Algorithm Sandbox")
+        self._sandbox_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: rgba(3, 105, 161, 0.12); color: #27C8F5;
+                border: 1px solid rgba(3, 105, 161, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }}
+            QPushButton:hover {{
+                background: rgba(3, 105, 161, 0.22); color: #27C8F5; border: 1.5px solid #27C8F5;
+            }}
+        """)
+        self._sandbox_btn.clicked.connect(self._toggle_sandbox)
+        lay.addWidget(self._sandbox_btn)
+
         self._settings_gear_btn = QPushButton("⚙")
         self._settings_gear_btn.setFixedSize(36, 36)
         self._settings_gear_btn.setFont(QFont("Segoe UI", 14))
@@ -2059,7 +2108,7 @@ class MainWindow(QMainWindow):
         self._settings_gear_btn.setToolTip("Toggle Settings Panel")
         self._settings_gear_btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(30, 41, 59, 0.35); color: {C.TEXT_MED};
+                background: rgba(3, 105, 161, 0.12); color: {C.TEXT_MED};
                 border: 1px solid {C.BORDER}; border-radius: 18px;
             }}
             QPushButton:hover {{
@@ -2977,6 +3026,20 @@ class MainWindow(QMainWindow):
         self._settings_anim.start()
         icon = "✕" if self._settings_panel_visible else "⚙"
         self._settings_gear_btn.setText(icon)
+
+    def _toggle_sandbox(self):
+        if not hasattr(self, "_sandbox_panel") or self._sandbox_panel is None:
+            from actions.visualizer_gui import SandboxPanel
+            self._sandbox_panel = SandboxPanel(self)
+        
+        if self._sandbox_panel.isVisible():
+            self._sandbox_panel.hide()
+        else:
+            # Position it in the center of the main window
+            x = int(self.x() + (self.width() - self._sandbox_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._sandbox_panel.height()) / 2)
+            self._sandbox_panel.move(x, y)
+            self._sandbox_panel.show()
 
     def _on_router_badge_updated(self, model: str):
         if not hasattr(self, "_router_badge"):
