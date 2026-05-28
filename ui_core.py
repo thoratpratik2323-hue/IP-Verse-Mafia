@@ -1054,6 +1054,10 @@ class LogWidget(QScrollArea):
         self._sig.connect(self._enqueue)
 
     def append_log(self, text: str):
+        # Prevent CSS style leakage (e.g. from wttr.in rate-limit/error HTML responses)
+        text_lower = text.lower()
+        if "term-container" in text_lower or "white-space:" in text_lower or "font-size:" in text_lower or ("{" in text and "}" in text and "padding:" in text_lower):
+            return
         self._sig.emit(text)
 
     def _enqueue(self, text: str):
