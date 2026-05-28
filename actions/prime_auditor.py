@@ -21,7 +21,7 @@ API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 def _get_api_key() -> str:
     with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
         config = json.load(f)
-        return config.get("coding_api_key") or config["gemini_api_key"]
+        return config.get("gemini_api_key")
 
 
 def _read_source(target: str) -> tuple[str, str]:
@@ -83,8 +83,8 @@ def _check_pip_vulnerabilities(target: str) -> str:
             data = json.loads(result.stdout)
             vulns = [v for item in data.get("dependencies", []) for v in item.get("vulns", [])]
             if not vulns:
-                return "✅ No known CVEs found in dependencies."
-            lines = [f"⚠️ {v['id']} ({v.get('fix_versions', ['?'])[0] if v.get('fix_versions') else 'no fix'}): {v['description'][:120]}" for v in vulns[:10]]
+                return "[OK] No known CVEs found in dependencies."
+            lines = [f"[WARN] {v['id']} ({v.get('fix_versions', ['?'])[0] if v.get('fix_versions') else 'no fix'}): {v['description'][:120]}" for v in vulns[:10]]
             return "DEPENDENCY CVEs:\n" + "\n".join(lines)
     except Exception:
         pass
@@ -150,10 +150,17 @@ Source Code:
 {source_truncated}
 ```"""
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+        except Exception as model_err:
+            log(f"gemini-2.5-flash unavailable ({model_err}). Falling back to gemini-1.5-flash...")
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
 
         raw = response.text.strip()
         # Strip markdown fences if present
@@ -181,22 +188,22 @@ Source Code:
     findings.sort(key=lambda f: sev_order.get(f.get("severity", "LOW"), 4))
 
     severity_icons = {
-        "CRITICAL": "🔴 CRITICAL",
-        "HIGH":     "🟠 HIGH",
-        "MEDIUM":   "🟡 MEDIUM",
-        "LOW":      "🟢 LOW",
+        "CRITICAL": "[CRITICAL]",
+        "HIGH":     "[HIGH]",
+        "MEDIUM":   "[MEDIUM]",
+        "LOW":      "[LOW]",
     }
 
     lines = [
-        "╔══════════════════════════════════════════════════════════╗",
-        "║  IP PRIME SECURITY & QUALITY AUDIT REPORT               ║",
-        "╚══════════════════════════════════════════════════════════╝",
+        "+----------------------------------------------------------+",
+        "|  IP PRIME SECURITY & QUALITY AUDIT REPORT               |",
+        "+----------------------------------------------------------+",
         "",
-        f"📁 Target  : {label}",
-        f"🏆 Score   : {score}/100",
-        f"📋 Summary : {summary}",
+        f"Target  : {label}",
+        f"Score   : {score}/100",
+        f"Summary : {summary}",
         "",
-        f"──── FINDINGS ({len(findings)}) ────",
+        f"---- FINDINGS ({len(findings)}) ----",
     ]
 
     for i, f in enumerate(findings, 1):
@@ -214,14 +221,14 @@ Source Code:
         lines.append(f"    Fix      : {fix}")
 
     if quick_wins:
-        lines.append("\n──── QUICK WINS ────")
+        lines.append("\n---- QUICK WINS ----")
         for qw in quick_wins:
-            lines.append(f"  ✅ {qw}")
+            lines.append(f"  * {qw}")
 
     # CVE check
     cve_result = _check_pip_vulnerabilities(target)
     if cve_result:
-        lines.append("\n──── CVE SCAN ────")
+        lines.append("\n---- CVE SCAN ----")
         lines.append(cve_result)
 
     log(f"Audit complete. Score: {score}/100. Findings: {len(findings)}")

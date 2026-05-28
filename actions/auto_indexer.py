@@ -49,7 +49,11 @@ class AutoIndexerThread(threading.Thread):
             print(f"[AutoIndexer] Authentication failed (skipping RAG sync): {e}")
             return
 
-        ignored_folders = {".git", "__pycache__", ".venv", "node_modules", "build", "dist", "assets", ".obsidian", ".trash", ".claude", ".codex", ".do", ".fly", ".husky", "awesome_repos"}
+        ignored_folders = {
+            ".git", "__pycache__", ".venv", "node_modules", "build", "dist", "assets", 
+            ".obsidian", ".trash", ".claude", ".codex", ".do", ".fly", ".husky", "awesome_repos",
+            "browser_profiles", "browser_data", ".ruff_cache", "logs", "brain", ".gemini"
+        }
         allowed_extensions = {".py", ".txt", ".md", ".json", ".html", ".css", ".js", ".ts"}
 
         indexed_count = 0

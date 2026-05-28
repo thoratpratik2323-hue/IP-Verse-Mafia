@@ -4073,6 +4073,7 @@ class IPRayUI:
     def __init__(self, face_path: str, size=None):
         self._app = QApplication.instance() or QApplication(sys.argv)
         self._app.setStyle("Fusion")
+        self._app.setQuitOnLastWindowClosed(False)
 
         # ── Show cyberpunk welcome splash ──────────────────────────────────
         self._splash = WelcomeSplash()

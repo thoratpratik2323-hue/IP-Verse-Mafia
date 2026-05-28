@@ -168,7 +168,10 @@ def index_directory(dir_path_str: str) -> str:
     if not dir_path.exists() or not dir_path.is_dir():
         return f"Error: Directory '{dir_path_str}' does not exist or is not a folder."
         
-    ignored_folders = {".git", "__pycache__", ".venv", "node_modules", "build", "dist", "assets"}
+    ignored_folders = {
+        ".git", "__pycache__", ".venv", "node_modules", "build", "dist", "assets",
+        "browser_profiles", "browser_data", ".ruff_cache", "logs", "brain", ".gemini"
+    }
     allowed_extensions = {".py", ".txt", ".md", ".json", ".html", ".css", ".js", ".ts", ".c", ".cpp", ".h"}
     
     indexed_count = 0

@@ -129,8 +129,8 @@ class MCPServerConnection:
             return None
 
         try:
-            # 15 seconds timeout
-            res = q.get(timeout=15.0)
+            # 60 seconds timeout to allow npx downloads to complete
+            res = q.get(timeout=60.0)
             return res
         except queue.Empty:
             self._log(f"Request timeout for method '{method}'")
