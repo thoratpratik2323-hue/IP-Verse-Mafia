@@ -194,7 +194,7 @@ def voice_plan_tasks(goal: str) -> str:
         return "Gemini API key is not configured, cannot break down this goal, sir."
         
     try:
-        import google.generativeai as genai
+        from google import genai
         genai.configure(api_key=gemini_key)
         
         prompt = (

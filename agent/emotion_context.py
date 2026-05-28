@@ -1,6 +1,7 @@
 import json
 import re
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import Dict, Any
 
 from actions.prime_utils import get_api_key
@@ -12,8 +13,8 @@ class EmotionContextDetector:
     """
     def __init__(self, memory_system: AutonomousMemory):
         self.memory = memory_system
-        genai.configure(api_key=get_api_key())
-        self.analyzer_model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        self._client = genai.Client(api_key=get_api_key())
+        self._model_name = "gemini-2.5-flash-lite"
         
     def analyze_input(self, text: str) -> Dict[str, Any]:
         """
@@ -38,7 +39,10 @@ Return ONLY valid JSON:
 }}
 """
         try:
-            response = self.analyzer_model.generate_content(prompt)
+            response = self._client.models.generate_content(
+                model=self._model_name,
+                contents=prompt
+            )
             result_text = response.text.strip()
             text_json = re.sub(r"```(?:json)?", "", result_text).strip().rstrip("`").strip()
             

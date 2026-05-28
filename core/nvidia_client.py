@@ -66,6 +66,14 @@ def ask_nvidia(prompt: str, system_prompt: str = "", model: str = None) -> str:
     """
     api_key = os.environ.get("NVIDIA_API_KEY", "").strip()
     if not api_key:
+        try:
+            with open(CONFIG_DIR / "api_keys.json", "r", encoding="utf-8") as f:
+                config = json.load(f)
+            api_key = (config.get("coding_api_key") or config.get("gemini_api_key") or "").strip()
+        except Exception:
+            pass
+            
+    if not api_key:
         raise ValueError("NVIDIA_API_KEY not set. Add it to your environment variables.")
 
     # Resolve target model

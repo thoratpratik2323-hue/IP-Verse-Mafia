@@ -145,8 +145,8 @@ def get_weekly_summary() -> str:
     
     if gemini_key:
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=gemini_key)
+            from google import genai
+            client = genai.Client(api_key=gemini_key)
             model = genai.GenerativeModel("gemini-2.0-flash")
             prompt = (
                 f"You are a wellness coach AI. Summarize the following journal entries of Pratik Sir "

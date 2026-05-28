@@ -109,7 +109,7 @@ def _execute_generated_code(code: str, player=None) -> str:
 
 def _ask_gemini_for_desktop_action(task: str) -> str:
 
-    import google.generativeai as genai
+    from google import genai
     genai.configure(api_key=_get_api_key())
     model = genai.GenerativeModel("gemini-2.5-flash")
 

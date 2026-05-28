@@ -232,7 +232,13 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v3.x — *Current*
+### v4.x — *Multi-Agent & Unified Workspace Upgrades (Current)*
+- 🔗 **Bidirectional Multi-Agent Integration** — Fully operationalized a custom bidirectional channel between IP Prime and Antigravity. IP Prime can now delegate complex coding and design requests dynamically via the newly implemented `ask_antigravity` tool, triggering headless execution in the Antigravity CLI and returning standard outputs seamlessly.
+- 📁 **Unified Development Sandbox** — Remapped IP Prime's workspace directories and paths configuration (`paths.json` / `prime_features.json`) directly to the unified `C:\Users\thora\.gemini\antigravity\scratch\IP output` directory, ensuring both assistants write and execute code in the exact same workspace with zero path mismatches.
+- 🐍 **Google GenAI SDK Migration** — Upgraded the entire IP Prime AI core (`brain/perception.py`, `brain/reasoning.py`, `agent/executor.py`, etc.) by fully replacing deprecated `google.generativeai` imports with the modern, officially supported `google.genai` SDK (`genai.Client`).
+- 🛡️ **Nvidia API Key Self-Healing Fallback** — Enhanced `core/nvidia_client.py` to seamlessly fall back to using `"coding_api_key"` from `config/api_keys.json` when `NVIDIA_API_KEY` is absent from the OS environment variables, preventing agent command-runner timeouts or policy violations.
+
+### v3.x
 - 🧠 **Autonomous AI Second Brain & Habits Tracker** — Integrated a persistent, highly autonomous local Markdown-based Knowledge Vault at `c:/Users/thora/Documents/SecondBrain/` containing customized templates for persona (`SOUL.md`), profiles (`USER.md`), and memory ledgers (`MEMORY.md`).
 - ⚡ **Zero-Latency Persistence Hooks** — Configured dynamic startup and shutdown hooks inside `core/session.py` and `memory/memory_manager.py` that continuously inject context and flush session highlights and turnovers into date-based daily logs (`daily/YYYY-MM-DD.md`) automatically on close.
 - 📁 **Automated Downloads Classifier** — Added a background file classifier daemon that monitors Pratik's Windows `Downloads/` directory and auto-categorizes downloaded study materials (PDFs, PPTXs, docs) and scripts directly into the Second Brain folders.

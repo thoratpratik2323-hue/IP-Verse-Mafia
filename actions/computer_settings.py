@@ -1514,7 +1514,7 @@ def _detect_action(description: str) -> dict:
         client = _genai.Client(api_key=_get_api_key())
     except Exception:
         try:
-            import google.generativeai as genai
+            from google import genai
             genai.configure(api_key=_get_api_key())
             client = None
         except Exception as e:

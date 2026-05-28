@@ -1621,10 +1621,10 @@ def main():
     import atexit
 
     try:
-        from prime_platform.ip_given_workspace import ensure_workspace, persist_root_to_config
+        from prime_platform.ip_given_workspace import ensure_workspace, persist_root_to_config, get_ip_given_root
         ensure_workspace()
         persist_root_to_config()
-        print("[IP PRIME] Workspace ready: C:\\Users\\thora\\Downloads\\IP Given")
+        print(f"[IP PRIME] Workspace ready: {get_ip_given_root()}")
     except Exception as e:
         print(f"[IP PRIME] Workspace init: {e}")
 

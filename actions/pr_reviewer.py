@@ -133,7 +133,7 @@ def review_pr(repo_name: str, pr_number: int) -> str:
     
     if gemini_api_key:
         try:
-            import google.generativeai as genai
+            from google import genai
             genai.configure(api_key=gemini_api_key)
             model = genai.GenerativeModel("gemini-2.0-flash")
             

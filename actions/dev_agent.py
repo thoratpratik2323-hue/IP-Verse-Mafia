@@ -38,7 +38,7 @@ def _get_api_key() -> str:
 
 
 def _get_model(model_name: str):
-    import google.generativeai as genai
+    from google import genai
     genai.configure(api_key=_get_api_key())
     return genai.GenerativeModel(model_name)
 
@@ -73,7 +73,7 @@ class CodexSaver:
         base_url = config.get("codex_worker_base_url")
 
         if provider == "gemini":
-            import google.generativeai as genai
+            from google import genai
             actual_key = api_key or config.get("coding_api_key") or config.get("gemini_api_key")
             if not actual_key:
                 raise ValueError("No Gemini API Key found for low-cost worker.")

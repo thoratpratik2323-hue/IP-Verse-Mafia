@@ -68,7 +68,7 @@ def _parse_date(raw: str) -> str:
             return val.strftime("%Y-%m-%d")
 
     try:
-        import google.generativeai as genai
+        from google import genai
         genai.configure(api_key=_get_api_key())
         model    = genai.GenerativeModel("gemini-2.5-flash-lite")
         response = model.generate_content(
@@ -158,7 +158,7 @@ def _parse_flights_with_gemini(
     destination: str,
     date:        str,
 ) -> list[dict]:
-    import google.generativeai as genai
+    from google import genai
 
     genai.configure(api_key=_get_api_key())
     model = genai.GenerativeModel(
