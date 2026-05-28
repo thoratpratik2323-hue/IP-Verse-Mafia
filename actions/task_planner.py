@@ -195,7 +195,7 @@ def voice_plan_tasks(goal: str) -> str:
         
     try:
         from google import genai
-        genai.configure(api_key=gemini_key)
+        client = genai.Client(api_key=gemini_key)
         
         prompt = (
             f"You are a master planner AI. Take the following high-level goal of Pratik Sir: '{goal}'. "
@@ -214,8 +214,10 @@ def voice_plan_tasks(goal: str) -> str:
             "Return only the raw JSON. No markdown backticks, no comments."
         )
         
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
         
         # Clean response text
         res_text = response.text.strip()
