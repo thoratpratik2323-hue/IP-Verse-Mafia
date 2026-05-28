@@ -76,3 +76,7 @@ awesome_repos/*
 config/api_keys.json
 contacts.json
 audit_report.md
+
+# LanceDB local vector database
+memory/lancedb_store/
+*.lance/
