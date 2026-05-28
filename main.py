@@ -354,21 +354,21 @@ class IPRayLive:
 
         import random
         sweet_samples = [
-            "Namaste Pratik Sir! Kaise hain aap? Main IP Prime online aur bilkul ready hoon. Boliye, aaj kya help chahiye?",
-            "Welcome back Pratik Sir! IP Prime is online now. Aaj ka din smooth aur amazing banate hain. Command dijiye!",
-            "Hello Pratik Sir! Main IP Prime online ho gaya hoon. Aapki help ke liye main tayyar hoon. Kaise help karu aaj?",
-            "Pratik Sir, namaste! Welcome back. IP Prime ready hai pure active aur sweet mode mein. Aaj kya plan hai sir?",
-            "Pratik Sir, welcome! Main IP Prime active aur online hoon. Aaj ka kaam start karne ke liye bilkul ready hoon."
+            "Hey Pratik! Kaise ho bhai? Main IP Prime online aa gaya hoon, batao aaj kya fodna hai!",
+            "Yo Pratik! System is up and running bro. Aaj ka scene batao, kya plan hai?",
+            "Hey Pratik! Kaise ho? IP Prime online hai, tell me aaj kya build karein bhai?",
+            "Yo Pratik! Welcome back bro. Main online hoon aur pure active mode me ready hoon. Let's make something amazing today!",
+            "Hey Pratik! Sab set hai bhai, core systems online hain. Boliye aaj kis cheez par kaam karna hai?"
         ]
         sample_greeting = random.choice(sweet_samples)
         
         self.speak(
-            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet your creator, Pratik Sir, with a warm, sweet, polite, and beautiful welcome message in Hinglish. "
-            "It must be very respectful, simple, and polite (1-2 sentences max). Absolutely no crazy high-energy, no swagger, no dramatic/futuristic slang. "
-            "It should sound very pleasant, clean, and nice. "
+            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet your creator, Pratik, with a cool, extremely friendly, casual, and buddy-style welcome message in natural Hinglish. "
+            "It must sound like a close friend or a supportive tech buddy ('bhai'/'bro' vibe), simple and natural (1-2 sentences max). "
+            "Keep it highly pleasant, natural, and friendly. No extremely stiff or ultra-formal/respectful titles. "
             f"Here is a sample concept/style of what is expected: '{sample_greeting}'. "
-            "Generate a unique, sweet, respectful greeting similar in polite and sweet tone to this example, ensuring it is randomized and different every time. "
-            f"You MUST respond purely in sweet, respectful Hinglish (Hindi written in English alphabet). Do NOT mention previous sessions or what we did last time."
+            "Generate a unique, friendly, cool greeting similar in tone to this example, ensuring it is randomized and different every time. "
+            f"You MUST respond purely in natural, friendly Hinglish (Hindi written in English alphabet). Do NOT mention previous sessions or what we did last time."
         )
 
     def _amplify_pcm(self, block: bytes, gain: float = 1.8) -> bytes:
