@@ -4,7 +4,6 @@ webcam_mood.py — Takes webcam frame and parses user expressions for mood histo
 This is a standard action module for the IP Prime personal assistant suite.
 """
 
-import os
 import io
 import json
 import time

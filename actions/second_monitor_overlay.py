@@ -8,9 +8,7 @@ real-time voice transcriptions, system load graphs, and AI contextual tips.
 from __future__ import annotations
 
 import logging
-import os
 import threading
-import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -27,8 +25,8 @@ def _run_pyqt_app():
     
     try:
         from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-        from PyQt6.QtCore import Qt, QTimer
-        from PyQt6.QtGui import QColor, QFont
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtGui import QFont
         
         # Check if QApplication already initialized
         app = QApplication.instance()
@@ -117,7 +115,7 @@ def enable_second_monitor_mode(player: Optional[Any] = None) -> str:
     
     # Try importing PyQt6 safely
     try:
-        from PyQt6.QtWidgets import QApplication
+        from PyQt6.QtWidgets import QApplication # noqa: F401
     except ImportError:
         logger.warning("PyQt6 is not available, unable to open overlay window. Simulating overlay logs.")
         return "PyQt6 library missing. Transparent dual display overlay simulation logged successfully, sir."

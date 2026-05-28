@@ -419,7 +419,7 @@ def brightness_up():
         new_val = min(100, (cur if cur >= 0 else 50) + 10)
         ok = _win_brightness_set(new_val)
         if not ok:
-            print(f"[Settings] brightness_up: all methods failed. Consider: pip install screen-brightness-control")
+            print("[Settings] brightness_up: all methods failed. Consider: pip install screen-brightness-control")
 
 
 def brightness_down():
@@ -444,7 +444,7 @@ def brightness_down():
         new_val = max(0, (cur if cur >= 0 else 50) - 10)
         ok = _win_brightness_set(new_val)
         if not ok:
-            print(f"[Settings] brightness_down: all methods failed. Consider: pip install screen-brightness-control")
+            print("[Settings] brightness_down: all methods failed. Consider: pip install screen-brightness-control")
 
 
 def brightness_set(value: int):

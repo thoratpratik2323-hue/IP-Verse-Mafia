@@ -5,13 +5,12 @@ This is a standard action module for the IP Prime personal assistant suite.
 """
 
 # actions/code_companion.py
-import os
 import ast
 import re
 import json
 import time
 from pathlib import Path
-from actions.prime_utils import get_api_key, get_base_dir
+from actions.prime_utils import get_api_key
 
 # Initialize directories
 SNIPPETS_DIR = Path.home() / ".ipprime"

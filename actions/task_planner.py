@@ -4,7 +4,6 @@ task_planner.py — Manages structured tasks database and creates AI-generated g
 This is a standard action module for the IP Prime personal assistant suite.
 """
 
-import os
 import json
 import uuid
 from datetime import datetime
@@ -158,7 +157,7 @@ def delete_task(task_id_or_title: str) -> str:
     
     if len(tasks) < initial_len:
         if _save_tasks(tasks):
-            return f"Task successfully deleted from your planner, sir."
+            return "Task successfully deleted from your planner, sir."
         return "Deleted from list but failed to save, sir."
     return f"Task '{task_id_or_title}' nahi mila, sir."
 

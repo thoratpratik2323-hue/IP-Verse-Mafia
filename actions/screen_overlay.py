@@ -9,12 +9,9 @@ import sys
 import io
 import re
 import json
-import asyncio
-import threading
-import time
 from pathlib import Path
-from PyQt6.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QHBoxLayout
-from PyQt6.QtCore import Qt, QTimer, QRect, QPoint, QPointF, QRectF, pyqtSignal
+from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtCore import Qt, QTimer, QPointF, QRectF
 from PyQt6.QtGui import QPainter, QColor, QPen, QBrush, QFont, QLinearGradient, QMouseEvent
 
 try:

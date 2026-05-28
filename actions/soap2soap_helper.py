@@ -6,7 +6,6 @@ This is a standard action module for the IP Prime personal assistant suite.
 
 # actions/soap2soap_helper.py
 import json
-import time
 from pathlib import Path
 from actions.prime_utils import call_unified_model
 
@@ -54,7 +53,7 @@ def run_soap2soap_remake(prompt: str, remake_type: str = "cinematic", source_sty
     try:
         bridge_res = call_unified_model(analysis_prompt, category="coding")
         bridge_text = bridge_res.text
-    except Exception as e:
+    except Exception:
         bridge_text = (
             f"Language Bridge: Cinematic remaking for style {source_style}.\n"
             f"Visual Bridge: Chiaroscuro key lighting, dominant neon gradients, anamorphic wide-angle lenses."
@@ -73,7 +72,7 @@ def run_soap2soap_remake(prompt: str, remake_type: str = "cinematic", source_sty
     try:
         gen_res = call_unified_model(gen_prompt, category="coding")
         gen_text = gen_res.text
-    except Exception as e:
+    except Exception:
         gen_text = (
             f"Shot 1: Wide tracking shot of characters navigating a foggy {source_style} street.\n"
             f"Shot 2: Medium close-up showing specific character emotion details.\n"
@@ -96,7 +95,7 @@ def run_soap2soap_remake(prompt: str, remake_type: str = "cinematic", source_sty
     try:
         verify_res = call_unified_model(verify_prompt, category="coding")
         verify_text = verify_res.text
-    except Exception as e:
+    except Exception:
         verify_text = (
             "Identity Stability: 0.95 (High)\n"
             "Temporal Consistency: 0.92 (Stable)\n"

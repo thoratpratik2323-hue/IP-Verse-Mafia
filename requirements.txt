@@ -37,6 +37,10 @@ python-nmap
 scapy
 cryptography
 stegano
-shodan
 python-whois
+chromadb
+sentence-transformers
+mcp
+pypdf
+repowire
 

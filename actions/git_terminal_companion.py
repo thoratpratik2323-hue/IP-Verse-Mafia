@@ -358,7 +358,7 @@ def natural_language_terminal(nl_command: str, player=None) -> str:
         
         # Display translation
         lines = [
-            f"### 💻 Natural Language Terminal Translate",
+            "### 💻 Natural Language Terminal Translate",
             f"**Your Request:** \"{nl_command}\"",
             f"**Translated PowerShell Command:** `{cmd}`",
             f"**Explanation:** *{expl}*",

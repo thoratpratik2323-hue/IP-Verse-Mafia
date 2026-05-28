@@ -6,7 +6,6 @@ This is a standard action module for the IP Prime personal assistant suite.
 
 import os
 import sys
-import json
 import subprocess
 from pathlib import Path
 from actions.prime_utils import get_base_dir, get_api_key

@@ -7,11 +7,9 @@ This is a standard action module for the IP Prime personal assistant suite.
 # actions/multimodal_perception.py
 import os
 import time
-import json
-import base64
 import io
 from pathlib import Path
-from actions.prime_utils import get_api_key, get_base_dir
+from actions.prime_utils import get_api_key
 
 def _get_gemini_client():
     """Returns a google-genai client using the central API key."""
@@ -155,7 +153,7 @@ def cloud_workspace_sync(source_dir: str = "", player=None) -> str:
                 pass
                 
     logs = [
-        f"### Cloud Workspace Sync Report",
+        "### Cloud Workspace Sync Report",
         f"**Source Directory:** `{target_dir}`",
         f"**Total Files Scanned:** {file_count} files",
         f"**Total Workspace Size:** {total_size / (1024*1024):.2f} MB",

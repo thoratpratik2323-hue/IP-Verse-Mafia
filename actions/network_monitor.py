@@ -9,10 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import socket
 import subprocess
-import shutil
 import time
 from pathlib import Path
 from typing import Any, Optional
@@ -143,7 +140,6 @@ def list_connected_devices(player: Optional[Any] = None) -> str:
             unknown_found = True
 
     if unknown_found and cfg.get("alert_on_unknown", True):
-        msg = "Network Alert: Pratik Sir, an unknown device has been spotted on your WiFi network!"
         if player and hasattr(player, "write_log"):
             player.write_log("⚠️ NETWORK WARNING: Unknown device connected on local WiFi!")
 

@@ -13,7 +13,6 @@ import subprocess
 import time
 from pathlib import Path
 from google import genai
-from google.genai import types as gtypes
 
 def _get_base_dir() -> Path:
     if getattr(sys, "frozen", False):
@@ -44,7 +43,7 @@ def diagnose_and_heal_command(command: str, cwd: str = None, max_rounds: int = 3
     print(f"{log_prefix}Starting multi-round healing for: '{command}'")
 
     current_cmd = command
-    report_lines = [f"🧑‍⚕️ **Terminal Doctor - Self-Healing Session**", f"Original Command: `{command}`\n"]
+    report_lines = ["🧑‍⚕️ **Terminal Doctor - Self-Healing Session**", f"Original Command: `{command}`\n"]
     
     for round_idx in range(1, max_rounds + 1):
         if ui:
@@ -66,7 +65,7 @@ def diagnose_and_heal_command(command: str, cwd: str = None, max_rounds: int = 3
             )
             duration = time.time() - t0
         except subprocess.TimeoutExpired:
-            report_lines.append(f"⚠️ Command execution timed out after 45 seconds.")
+            report_lines.append("⚠️ Command execution timed out after 45 seconds.")
             break
         except Exception as e:
             report_lines.append(f"✗ Failed to run command: {e}")
@@ -81,7 +80,7 @@ def diagnose_and_heal_command(command: str, cwd: str = None, max_rounds: int = 3
         if not has_error:
             output_snippet = stdout[:400] + ("..." if len(stdout) > 400 else "")
             report_lines.append(f"✓ Command completed successfully in {duration:.2f}s!")
-            report_lines.append(f"- Exit Code: 0")
+            report_lines.append("- Exit Code: 0")
             if output_snippet:
                 report_lines.append(f"- Output:\n```\n{output_snippet}\n```")
             
@@ -97,7 +96,7 @@ def diagnose_and_heal_command(command: str, cwd: str = None, max_rounds: int = 3
             report_lines.append(f"- Stderr snippet: `{stderr[:150]}`")
         
         if ui:
-            ui.write_log(f"SYS: Command failed. Running Gemini diagnosis...")
+            ui.write_log("SYS: Command failed. Running Gemini diagnosis...")
 
         client = genai.Client(api_key=api_key)
         
@@ -168,7 +167,7 @@ Return your response in standard JSON format (do not wrap in markdown or backtic
                 timeout=60
             )
             if fix_res.returncode == 0:
-                report_lines.append(f"✓ Repair applied successfully. Retrying original command next.")
+                report_lines.append("✓ Repair applied successfully. Retrying original command next.")
             else:
                 report_lines.append(f"✗ Repair command failed (Exit Code: {fix_res.returncode}).")
                 if fix_res.stderr.strip():

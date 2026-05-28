@@ -4,14 +4,15 @@ import sys
 import traceback
 import warnings
 import logging
+import queue
+import re
+import time
+from pathlib import Path
+import numpy as np
 
 logger = logging.getLogger("ip_prime.main")
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="google")
-
-from pathlib import Path
-import time
-import numpy as np
 
 # Force console streams to use UTF-8 to prevent charmap Unicode crashes on Windows
 try:
@@ -81,8 +82,7 @@ from actions.multimodal_perception import multimodal_perception
 from actions.autonomous_autopilot import autonomous_autopilot
 from actions.advanced_communicator import advanced_communicator
 from actions.token_juice import token_juice
-
-
+from agent.autonomous_core import AutonomousCore
 
 
 def get_base_dir():
@@ -284,6 +284,11 @@ class IPRayLive:
         self._prompt_cache: tuple[float, types.LiveConnectConfig] | None = None
         self._quiet_mode = False
         self._has_greeted_on_startup = False
+        
+        # Set up TTS streaming queue
+        self.tts_queue = queue.Queue()
+        self._tts_thread = threading.Thread(target=self._tts_worker, daemon=True)
+        self._tts_thread.start()
 
         # Initialize MCP Client Manager (deferred slightly to reduce startup lag)
         def _init_mcp():
@@ -305,6 +310,27 @@ class IPRayLive:
 
         if hasattr(self.ui, "_win") and self.ui._win:
             self.ui._win.ip_ray = self
+
+        # Initialize 100% Autonomous AI Core in background
+        def _start_autonomous_core():
+            try:
+                self.autonomous_core = AutonomousCore()
+                # Run the heartbeat loop
+                self.autonomous_core.run_forever()
+            except Exception as e:
+                print(f"[IP PRIME] Failed to start Autonomous Core: {e}")
+        
+        self._autonomous_thread = threading.Thread(target=_start_autonomous_core, daemon=True, name="AutonomousCoreThread")
+        self._autonomous_thread.start()
+
+    def _tts_worker(self):
+        while True:
+            text = self.tts_queue.get()
+            if text is None: break
+            # Lower-latency chunk-based TTS streaming simulation logic here
+            # In a real impl, this would break text into sentences and stream
+            # to a low-latency TTS engine like pyttsx3 or similar.
+            pass
 
     def _start_wake_word_spotter(self):
         try:
@@ -481,6 +507,12 @@ class IPRayLive:
             self.ui.set_state("LISTENING")
 
     def speak(self, text: str):
+        # Chunk-based streaming: Use tts_queue for lower latency
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        for sentence in sentences:
+            if sentence.strip():
+                self.tts_queue.put(sentence.strip())
+        
         if not self._loop or not self.session:
             return
         asyncio.run_coroutine_threadsafe(
@@ -545,11 +577,21 @@ class IPRayLive:
                 logger.info("[Router] '%s...' -> handled by %s", user_message[:40], source)
                 
                 if not is_voice:
-                    # For text, send to Gemini Live session
-                    asyncio.run_coroutine_threadsafe(
-                        self.session.send_realtime_input(text=user_message),
-                        self._loop
-                    )
+                    # For text, send to the new 6-Layer Brain
+                    try:
+                        if hasattr(self, "autonomous_core") and hasattr(self.autonomous_core, "brain"):
+                            brain_response = self.autonomous_core.brain.process_input(user_message)
+                            self.ui.write_log(f"IP Prime (Brain): {brain_response}")
+                            self.speak(brain_response)
+                        else:
+                            # Fallback if brain isn't loaded
+                            asyncio.run_coroutine_threadsafe(
+                                self.session.send_realtime_input(text=user_message),
+                                self._loop
+                            )
+                    except Exception as e:
+                        logger.error(f"Brain processing failed: {e}")
+                        self.ui.write_log(f"SYS: Brain processing failure: {e}")
                 else:
                     # For voice, Gemini has already processed the audio, so do nothing.
                     pass

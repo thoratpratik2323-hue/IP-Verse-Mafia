@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sys
 import threading
 import time
@@ -111,7 +110,7 @@ def _monitor_loop(player: Optional[Any] = None):
                 limit_seconds = limits.get(app_name, 0)
                 if limit_seconds > 0 and apps[app_name] >= limit_seconds:
                     # Exceeded! Alert!
-                    msg = f"Alert: Pratik Sir, you have exceeded your configured screen limit of {limit_seconds // 60}m on app '{app_name}'!"
+                    f"Alert: Pratik Sir, you have exceeded your configured screen limit of {limit_seconds // 60}m on app '{app_name}'!"
                     if player and hasattr(player, "write_log"):
                         player.write_log(f"⏰ LIMIT EXCEEDED: '{app_name}' screen limit hit!")
                         

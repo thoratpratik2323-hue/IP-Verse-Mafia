@@ -8,7 +8,6 @@ vboxmanage subprocess utilities.
 from __future__ import annotations
 
 import logging
-import os
 import subprocess
 import shutil
 from typing import Any, Optional

@@ -5,7 +5,6 @@ This is a standard action module for the IP Prime personal assistant suite.
 """
 
 # actions/advanced_communicator.py
-import os
 import json
 import urllib.request
 import urllib.parse
@@ -47,15 +46,15 @@ def speak_elevenlabs(text: str, voice_id: str = "21m00Tcm4TlvDq8ikWAM", player=N
     if not api_key:
         # Simulator Mode
         logs = [
-            f"### ElevenLabs TTS Adapter (Simulator Active)",
+            "### ElevenLabs TTS Adapter (Simulator Active)",
             f"**Speech Text:** \"{text}\"",
             "**Voice Config:** Rachel (21m00Tcm4TlvDq8ikWAM)",
             "",
             "ElevenLabs API Key configured nahi hai inside config/api_keys.json, sir.",
-            f"- Generated simulated audio speech buffer successfully.",
+            "- Generated simulated audio speech buffer successfully.",
             f"- Saved audio speech log to `{SPEECH_FILE}`.",
             "",
-            f"[OK] Speech simulation complete! Ultra-realistic voice is ready to stream once API key is active, sir."
+            "[OK] Speech simulation complete! Ultra-realistic voice is ready to stream once API key is active, sir."
         ]
         return "\n".join(logs)
         
@@ -90,7 +89,7 @@ def speak_elevenlabs(text: str, voice_id: str = "21m00Tcm4TlvDq8ikWAM", player=N
             SPEECH_FILE.write_bytes(audio_data)
             
         logs = [
-            f"### ElevenLabs TTS Audio Generated Successfully",
+            "### ElevenLabs TTS Audio Generated Successfully",
             f"**Voice Profile ID:** {voice_id}",
             f"**Output Audio File:** `{SPEECH_FILE}`",
             "",
@@ -107,7 +106,7 @@ def ringg_ai_voice_client(text: str, player=None) -> str:
     """Connects to Ringg AI's real-time voice streaming pipeline for low-latency Indic speech delivery."""
     # Simulator / direct client interface
     logs = [
-        f"### Ringg AI Real-Time Voice Streaming",
+        "### Ringg AI Real-Time Voice Streaming",
         f"**Target Speech Payload:** \"{text}\"",
         "",
         "Connecting to Ringg AI low-latency Indic streaming servers...",

@@ -9,8 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -105,7 +103,7 @@ def verify_face() -> str:
     # Simulation mode if no webcam or libraries compiled
     face_rec_loaded = False
     try:
-        import face_recognition
+        import face_recognition # noqa: F401
         face_rec_loaded = True
     except ImportError:
         pass

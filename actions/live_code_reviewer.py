@@ -218,11 +218,11 @@ class LiveCodeReviewWatcher:
                         REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
                         timestamp = datetime.now().strftime("%Y-%m-%d %I:%M %p")
                         with open(REVIEWS_LOG, "a", encoding="utf-8") as lf:
-                            lf.write(f"\n=========================================\n")
+                            lf.write("\n=========================================\n")
                             lf.write(f"AUTO REVIEW FOR '{filename}' [{timestamp}]\n")
-                            lf.write(f"=========================================\n")
+                            lf.write("=========================================\n")
                             lf.write(review)
-                            lf.write(f"\n=========================================\n")
+                            lf.write("\n=========================================\n")
                             
                         if self.player:
                             self.player.write_log(f"Auto code review complete for {filename}. Saved to log.")

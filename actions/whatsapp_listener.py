@@ -738,7 +738,7 @@ class WhatsAppAutoReplyService:
                                 self._log(f"Replied successfully to '{chat_name}'!")
                                 
                         time.sleep(5)
-                    except Exception as le:
+                    except Exception:
                         # loop warning silently
                         time.sleep(5)
                         

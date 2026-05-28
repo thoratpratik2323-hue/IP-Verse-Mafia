@@ -8,7 +8,6 @@ and facial alignment coordinates to rate authenticity (0-100%).
 from __future__ import annotations
 
 import logging
-import os
 import random
 from pathlib import Path
 from typing import Any, Optional

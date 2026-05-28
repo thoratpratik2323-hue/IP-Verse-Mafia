@@ -100,7 +100,6 @@ def translate_screen_text(player: Optional[Any] = None) -> str:
     
     # Capture display using standard mss
     import mss
-    from actions.computer_settings import computer_settings
     
     photo_path = DATA_DIR / "ocr_translate.png"
     try:

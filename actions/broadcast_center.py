@@ -6,7 +6,6 @@ This is a standard action module for the IP Prime personal assistant suite.
 
 import json
 import threading
-from pathlib import Path
 from actions.prime_utils import get_base_dir
 
 BASE_DIR = get_base_dir()

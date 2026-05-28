@@ -6,7 +6,6 @@ This is a standard action module for the IP Prime personal assistant suite.
 
 # actions/auto_indexer.py
 import os
-import sys
 import time
 import threading
 from pathlib import Path
@@ -106,4 +105,4 @@ class AutoIndexerThread(threading.Thread):
         if indexed_count > 0:
             print(f"[AutoIndexer] ✓ RAG sync finished. Newly indexed: {indexed_count} files (Total scanned: {total_files}).")
         else:
-            print(f"[AutoIndexer] ✓ RAG sync finished. No modified files detected.")
+            print("[AutoIndexer] ✓ RAG sync finished. No modified files detected.")

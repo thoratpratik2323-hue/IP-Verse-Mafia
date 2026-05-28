@@ -67,7 +67,7 @@ def _monitor_loop(player: Optional[Any] = None):
 
     mp_active = False
     try:
-        import mediapipe as mp
+        import mediapipe as mp # noqa: F401
         mp_active = True
     except ImportError:
         pass
@@ -99,9 +99,8 @@ def _monitor_loop(player: Optional[Any] = None):
                     slouch_start_time = time.time()
                 elif (time.time() - slouch_start_time) >= 120: # 2 minutes limit
                     # Alert the user!
-                    msg = "Pratik Sir, you have been slouching for more than 2 minutes. Please sit up straight!"
                     if player and hasattr(player, "write_log"):
-                        player.write_log(f"⚠️ POSTURE ALERT: Slouching detected! Please sit up straight.")
+                        player.write_log("⚠️ POSTURE ALERT: Slouching detected! Please sit up straight.")
                     
                     # Update database logs
                     db = _load_health_data()

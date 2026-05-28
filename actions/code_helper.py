@@ -338,7 +338,7 @@ def _write_action(description, language, output_path, player) -> str:
         # AUTO-RUN VERIFICATION & SELF-HEALING LOOP
         print(f"[Code] 🔄 Auto-verifying execution for: {path.name}...")
         if player:
-            player.write_log(f"[Code] Auto-verifying execution...")
+            player.write_log("[Code] Auto-verifying execution...")
             
         last_output = _run_file(path, [], 20)
         

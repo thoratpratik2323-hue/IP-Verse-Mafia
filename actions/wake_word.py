@@ -84,6 +84,6 @@ class WakeWordSpotterThread(threading.Thread):
                     
             except sr.WaitTimeoutError:
                 pass  # normal timeout, loop back
-            except Exception as e:
+            except Exception:
                 # Catch generic errors (like mic occupied) and back off gracefully
                 time.sleep(2.0)

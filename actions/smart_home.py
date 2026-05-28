@@ -286,7 +286,7 @@ def espectre_presence_trigger(sensor_id: str, state: str, player=None, main_assi
     
     _save_espectre_state(data)
     
-    results = [f"### [ESPectre CSI] Presence Trigger Resolved\n"]
+    results = ["### [ESPectre CSI] Presence Trigger Resolved\n"]
     results.append(f"Sensor: **{sensor['name']}** (`{sid}`)")
     results.append(f"Signal: **CSI Variance: {sensor['csi_variance']}** (Wi-Fi disruption captured)")
     results.append(f"Action State: **{st.upper()}**\n")
@@ -298,7 +298,7 @@ def espectre_presence_trigger(sensor_id: str, state: str, player=None, main_assi
             "Welcome home, Pratik Sir! Aaj office area mein temperature 24 degrees hai "
             "aur aapka dynamic morning briefing ready hai. Main real-time talk ke liye completely active hoon, sir!"
         )
-        results.append(f"IP Prime vocalizes greeting out loud.")
+        results.append("IP Prime vocalizes greeting out loud.")
         if main_assistant:
             # Let the live assistant speak the greeting out loud!
             main_assistant.speak(welcome_msg)

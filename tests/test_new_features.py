@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import unittest
 from unittest.mock import MagicMock
-from pathlib import Path
 
 # Action imports
 from actions.local_llm import local_llm

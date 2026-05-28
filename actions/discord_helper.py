@@ -48,7 +48,7 @@ def read_discord_messages(channel: str, count: int = 5) -> str:
         output.append("> [!NOTE]")
         output.append("> running in simulated mode. Provide DISCORD_USER_TOKEN in env to connect live, sir.\n")
         output.append(f"**[System#0001]**: Hello Pratik Sir! Welcoming you to #{channel} channel.")
-        output.append(f"**[Bot#1337]**: All services operating normally within the grid.")
+        output.append("**[Bot#1337]**: All services operating normally within the grid.")
     else:
         # Placeholder for real discord.Client background thread reading
         output.append("Live WebSocket channels returned 0 active chat messages, sir.")

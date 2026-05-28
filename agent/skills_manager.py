@@ -217,6 +217,125 @@ CORE_TOOLS = {
         "module": "actions.file_processor",
         "func": "file_processor",
         "pass_speak": True
+    },
+    "task_planner": {
+        "description": "Manage tasks: add, list, complete, delete, plan, overdue.",
+        "parameters": {
+            "action": "\"add\" | \"list\" | \"complete\" | \"delete\" | \"plan\" | \"overdue\" (required)",
+            "title": "string (optional)",
+            "description": "string (optional)",
+            "deadline": "string (optional)",
+            "priority": "string (optional)",
+            "goal": "string (optional)"
+        },
+        "module": "actions.task_planner",
+        "func": "task_planner",
+        "pass_speak": True
+    },
+    "morning_briefer": {
+        "description": "Morning briefing system with auto-scheduler.",
+        "parameters": {
+            "action": "\"briefing\" | \"schedule\" | \"cancel\" (required)",
+            "hour": "int (optional)",
+            "minute": "int (optional)"
+        },
+        "module": "actions.morning_briefer",
+        "func": "morning_briefer",
+        "pass_speak": True
+    },
+    "screenshot_code_gen": {
+        "description": "Screenshot-to-code generator.",
+        "parameters": {
+            "action": "\"capture\" | \"clone_url\" (required)",
+            "language": "string (optional)",
+            "framework": "string (optional)",
+            "url": "string (optional)",
+            "save": "boolean (optional)"
+        },
+        "module": "actions.screenshot_code_gen",
+        "func": "screenshot_code_gen",
+        "pass_speak": True
+    },
+    "live_code_reviewer": {
+        "description": "Live code review tool.",
+        "parameters": {
+            "action": "\"review_file\" | \"review_snippet\" | \"watch\" | \"stop_watch\" (required)",
+            "file_path": "string (optional)",
+            "code": "string (optional)",
+            "language": "string (optional)",
+            "interval": "int (optional)"
+        },
+        "module": "actions.live_code_reviewer",
+        "func": "live_code_reviewer",
+        "pass_speak": True
+    },
+    "webcam_mood": {
+        "description": "Webcam Mood Detector.",
+        "parameters": {
+            "action": "\"detect\" | \"history\" | \"watch\" | \"stop_watch\" (required)",
+            "days": "int (optional)",
+            "interval": "int (optional)"
+        },
+        "module": "actions.webcam_mood",
+        "func": "webcam_mood",
+        "pass_speak": True
+    },
+    "spotify_helper": {
+        "description": "Control Spotify playback and search tracks.",
+        "parameters": {
+            "action": "\"play\" | \"pause\" | \"next\" | \"previous\" | \"dj_mode\" (required)",
+            "mood": "string (optional)"
+        },
+        "module": "actions.spotify_helper",
+        "func": "execute_spotify_command",
+        "pass_speak": True
+    },
+    "mobile_telekinesis": {
+        "description": "Control Android phone via ADB.",
+        "parameters": {
+            "action": "\"mirror\" | \"stop_mirror\" | \"push\" | \"pull\" | \"tap\" | \"battery\" | \"screenshot\" | \"install\" | \"type\" | \"home\" | \"back\" | \"volume_up\" | \"volume_down\" (required)",
+            "path": "string (optional)",
+            "x": "int (optional)",
+            "y": "int (optional)",
+            "text": "string (optional)",
+            "steps": "int (optional)"
+        },
+        "module": "actions.mobile_telekinesis",
+        "func": "mobile_telekinesis",
+        "pass_speak": True
+    },
+    "delegate_task": {
+        "description": "Multi-Agent Swarm: Delegate a long-running or parallel task to a sub-agent thread.",
+        "parameters": {
+            "role": "string (required) - e.g. 'Web Researcher', 'Coder'",
+            "goal": "string (required) - Detailed instruction for the sub-agent"
+        },
+        "module": "agent.swarm_manager",
+        "func": "delegate_task",
+        "pass_speak": False
+    },
+    "mcp_connect": {
+        "description": "Connect to an external Model Context Protocol (MCP) server.",
+        "parameters": {
+            "server_name": "string (required) - Custom name for the server",
+            "command": "string (required) - Command to run the server (e.g. 'npx')",
+            "args": "list (required) - Arguments for the command"
+        },
+        "module": "agent.mcp_client",
+        "func": "mcp_client.connect_server",
+        "pass_speak": False
+    },
+    "repowire_mesh": {
+        "description": "Interact with other AI agents (like Claude/Codex) via the Repowire Mesh network.",
+        "parameters": {
+            "action": "\"register\" | \"list\" | \"ask\" | \"broadcast\" (required)",
+            "peer_name": "string (required if action=ask) - Name of the peer to message",
+            "question": "string (required if action=ask) - The message/question for the peer",
+            "message": "string (required if action=broadcast) - The message to broadcast"
+        },
+        "module": "actions.repowire_mesh",
+        "func": "repowire_mesh",
+        "pass_speak": True
     }
 }
 

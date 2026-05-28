@@ -174,7 +174,7 @@ Return ONLY valid JSON. No markdown, no backticks."""
 
     # Format nicely
     lines = [
-        f"### 📋 Hermes Agent Plan",
+        "### 📋 Hermes Agent Plan",
         f"**Goal:** {plan.get('goal_summary', goal)}",
         f"**Steps:** {plan.get('total_steps', '?')}  |  **Est. Time:** {plan.get('estimated_time', '?')}",
         "",
@@ -241,7 +241,7 @@ def _execute_plan_steps(steps: list, goal: str, player=None) -> str:
 
             else:
                 # No tool — just mark as noted
-                result_line += f"📝 Noted (manual step)"
+                result_line += "📝 Noted (manual step)"
 
         except Exception as e:
             result_line += f"⚠️ Error: {e}"

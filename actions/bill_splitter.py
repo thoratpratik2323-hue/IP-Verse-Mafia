@@ -112,7 +112,6 @@ def split_bill(bill_text: str, people: list[str], assignments: Optional[dict[str
         for p in people:
             individual_shares[p.strip()] = 0.0
             
-        assigned_total = 0.0
         # If user assigns "I had pizza" and rest is split
         # Simple simulation: split total equally but apply assignments if match
         for item in items:

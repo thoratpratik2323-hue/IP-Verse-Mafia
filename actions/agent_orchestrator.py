@@ -11,7 +11,6 @@ import re
 import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import sys
 from actions.prime_utils import get_base_dir, get_api_key
 
 BASE_DIR = get_base_dir()

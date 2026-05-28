@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import logging
-import os
 import random
 import threading
 import time
@@ -75,7 +74,6 @@ def run_speed_test(player: Optional[Any] = None) -> str:
 
     # Validate threshold
     if dl < _ALERT_THRESHOLD_MBPS:
-        msg = f"Network Warning: Pratik Sir, your download speed has dropped to {dl:.2f} Mbps (Threshold: {_ALERT_THRESHOLD_MBPS} Mbps)!"
         if player and hasattr(player, "write_log"):
             player.write_log("⚠️ WIFI ALERT: Bandwidth drop detected!")
 
@@ -96,7 +94,7 @@ def get_speed_history() -> str:
         with open(CSV_FILE, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             # Skip header
-            header = next(reader, None)
+            next(reader, None)
             for row in reader:
                 if row:
                     history.append(row)

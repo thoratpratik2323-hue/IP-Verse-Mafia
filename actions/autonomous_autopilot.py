@@ -5,14 +5,11 @@ This is a standard action module for the IP Prime personal assistant suite.
 """
 
 # actions/autonomous_autopilot.py
-import os
-import sys
 import ast
 import json
 import time
-import subprocess
 from pathlib import Path
-from actions.prime_utils import get_api_key, get_base_dir
+from actions.prime_utils import get_api_key
 
 def _get_gemini_client():
     """Returns a google-genai client using the central API key."""
@@ -39,7 +36,7 @@ def self_healing_refactor(file_path: str, instruction: str, max_attempts: int = 
         return f"Target file exist nahi karti, sir: {file_path}"
         
     logs = [
-        f"### ⚡ Self-Healing Refactoring Loop (Aider-style)",
+        "### ⚡ Self-Healing Refactoring Loop (Aider-style)",
         f"**Target File:** `{path.name}`",
         f"**Instruction:** \"{instruction}\"",
         f"**Max Safety Loops:** {max_attempts} iterations",
@@ -98,13 +95,13 @@ def self_healing_refactor(file_path: str, instruction: str, max_attempts: int = 
                 ast.parse(modified_code)
                 # If syntax checks out, save the file
                 path.write_text(modified_code, encoding="utf-8")
-                logs.append(f"- [OK] Syntax verification passed successfully.")
+                logs.append("- [OK] Syntax verification passed successfully.")
                 success = True
                 break
             except SyntaxError as se:
                 error_trace = f"SyntaxError at Line {se.lineno}, Offset {se.offset}: {se.msg}\nCode block:\n{se.text}"
                 logs.append(f"- [FAIL] Syntax verification failed: `{se.msg}` (Line {se.lineno})")
-                logs.append(f"- Triggering recursive self-healing correction...")
+                logs.append("- Triggering recursive self-healing correction...")
                 
                 # Feedback loop: feed error trace back for the next iteration
                 instruction = (
@@ -163,7 +160,7 @@ def execute_gui_automation(nl_instructions: str, player=None) -> str:
         statements = data.get("statements", [])
         
         logs = [
-            f"### 🖱️ GUI Task Automation Checklist",
+            "### 🖱️ GUI Task Automation Checklist",
             f"**Natural Intent:** \"{nl_instructions}\"",
             "**Generated PyAutoGUI Scripts:**",
         ]

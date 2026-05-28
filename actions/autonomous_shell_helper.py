@@ -4,7 +4,6 @@ actions/autonomous_shell_helper.py — Autonomous Terminal Execution & Solana Te
 Provides autonomous command execution, environment analysis, self-healing command retry loops,
 and mock Solana Web3 wallet telemetry operations for demo/testing environments.
 """
-import os
 import sys
 import subprocess
 import json
@@ -60,7 +59,6 @@ def run_autonomous_loop(goal: str, max_steps: int = 5, player=None) -> str:
     from actions.prime_utils import call_unified_model
     
     steps_run = []
-    current_status = "Goal initialized."
     
     print(f"[ANUS CLI] Starting autonomous task loop for goal: '{goal}'")
     if player:

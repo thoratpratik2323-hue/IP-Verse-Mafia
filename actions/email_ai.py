@@ -54,7 +54,6 @@ def read_emails(source: str = "all", count: int = 5) -> str:
     # from googleapiclient.discovery import build
     # But we provide robust fallback:
     real_connected = False
-    details = []
 
     if source.lower() in ["gmail", "all"]:
         gmail_token = os.environ.get("GMAIL_OAUTH_TOKEN")
