@@ -1576,7 +1576,7 @@ class MainWindow(QMainWindow):
         root.addWidget(self._build_header())
         self._router_badge.hide()
         self._settings_gear_btn.hide()
-        self._slide_btn.hide()
+        self._slide_btn.show()
 
         body = QHBoxLayout()
         body.setContentsMargins(0, 0, 0, 0)
@@ -1914,18 +1914,21 @@ class MainWindow(QMainWindow):
         self._settings_gear_btn.clicked.connect(self._toggle_settings_panel)
         lay.addWidget(self._settings_gear_btn)
 
-        self._slide_btn = QPushButton("◂")
-        self._slide_btn.setFixedSize(36, 36)
-        self._slide_btn.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        self._slide_btn = QPushButton("ACTIVE LOG 📋")
+        self._slide_btn.setFixedSize(130, 36)
+        self._slide_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
         self._slide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._slide_btn.setToolTip("Toggle Side Panel (Logs · Files · Input)")
+        self._slide_btn.setToolTip("Toggle Active Logs & File Uploads Drawer")
         self._slide_btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(30, 41, 59, 0.35); color: {C.ACC};
-                border: 1px solid {C.BORDER}; border-radius: 18px;
+                background: rgba(16, 185, 129, 0.12); color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+                padding-left: 8px;
+                padding-right: 8px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO}; color: {C.WHITE}; border: 1.5px solid {C.ACC};
+                background: rgba(16, 185, 129, 0.22); color: #10b981; border: 1.5px solid #10b981;
             }}
         """)
         self._slide_btn.clicked.connect(self._toggle_right_panel)
