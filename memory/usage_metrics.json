@@ -1913,12 +1913,30 @@
       "tool": "hermes_agent",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:31:40",
+      "tool": "hermes_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:33:56",
+      "tool": "hermes_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-29T01:33:57",
+      "tool": "hermes_agent",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 319,
-    "est_tokens": 255200,
-    "est_usd": 0.03828
+    "tool_calls": 322,
+    "est_tokens": 257600,
+    "est_usd": 0.03864
   },
   "by_day": {
     "2026-05-24": {
@@ -1942,9 +1960,9 @@
       "est_usd": 0.00984
     },
     "2026-05-29": {
-      "tool_calls": 19,
-      "est_tokens": 15200,
-      "est_usd": 0.00228
+      "tool_calls": 22,
+      "est_tokens": 17600,
+      "est_usd": 0.00264
     }
   }
 }

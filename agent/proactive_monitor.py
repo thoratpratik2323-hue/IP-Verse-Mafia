@@ -24,6 +24,12 @@ class ProactiveMonitor:
         self.last_email_check = 0
         self.last_code_check = 0
         
+        # Phase 4 Advanced Agents
+        from agent.predictive_engine import PredictiveEngine
+        from agent.vision_loop import VisionLoop
+        self.predictive_engine = PredictiveEngine(self.core)
+        self.vision_loop = VisionLoop(self.core)
+        
     def start(self):
         """Starts the proactive monitoring in a background thread."""
         if self.running:
@@ -78,6 +84,18 @@ class ProactiveMonitor:
         
         # 6. News/Daily Briefing Agent (Morning digest trigger)
         self._check_morning_briefing()
+        
+        # 7. Predictive Actions Agent (Phase 4)
+        try:
+            self.predictive_engine.check_and_predict()
+        except Exception as e:
+            print(f"[ProactiveMonitor] Predictive Agent error: {e}")
+            
+        # 8. Computer Vision Loop Agent (Phase 4)
+        try:
+            self.vision_loop.proactive_screen_watch()
+        except Exception as e:
+            print(f"[ProactiveMonitor] Vision Agent error: {e}")
 
     def _watch_system_health(self, current_time: float):
         """Agent 1: Monitors RAM/CPU and proactively clears memory if high."""
