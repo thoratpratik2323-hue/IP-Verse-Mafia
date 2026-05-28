@@ -1535,12 +1535,78 @@
       "tool": "computer_settings",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:09:08",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:09:39",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:10:08",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:10:47",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:10:50",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:10:55",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:11:20",
+      "tool": "code_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:11:34",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:12:28",
+      "tool": "autonomous_cli_helper",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:13:41",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-05-28T21:15:04",
+      "tool": "browser_news_reader",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 256,
-    "est_tokens": 204800,
-    "est_usd": 0.03072
+    "tool_calls": 267,
+    "est_tokens": 213600,
+    "est_usd": 0.03204
   },
   "by_day": {
     "2026-05-24": {
@@ -1559,9 +1625,9 @@
       "est_usd": 0.0198
     },
     "2026-05-28": {
-      "tool_calls": 38,
-      "est_tokens": 30400,
-      "est_usd": 0.00456
+      "tool_calls": 49,
+      "est_tokens": 39200,
+      "est_usd": 0.00588
     }
   }
 }

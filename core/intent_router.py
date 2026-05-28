@@ -3,6 +3,10 @@ core/intent_router.py — Smart AI Intent Router for IP Prime.
 
 Analyzes user queries to classify if they are coding-related, routing to NVIDIA NIM
 or Gemini as appropriate.
+
+NOTE: The Gemini API classify call has been intentionally disabled to preserve
+the 1000 req/day free-tier quota. Keyword matching only is sufficient — the
+Gemini Live session handles all ambiguous queries natively.
 """
 
 from __future__ import annotations
@@ -26,44 +30,21 @@ def is_coding_task(user_message: str) -> bool:
     """
     Determines if a user query is coding-related.
     
-    Uses high-speed keyword matching first (fast path).
-    If ambiguous, queries a fast Gemini model to classify the intent.
+    Uses high-speed keyword matching only (fast path).
+    The Gemini API classify call has been disabled to preserve daily quota —
+    Gemini Live handles all general/ambiguous queries natively.
     """
     if not user_message:
         return False
         
     msg_l = user_message.lower().strip()
 
-    # 1. Fast path: Keyword matching
+    # Fast path: Keyword matching only (no API call)
     for keyword in CODING_KEYWORDS:
         if keyword in msg_l:
-            logger.info("[Router] Match found for keyword '%s' (Fast Path -> NVIDIA)", keyword)
+            logger.info("[Router] Match found for keyword '%s' (Fast Path)", keyword)
             return True
 
-    # 2. Ambiguous path: Gemini flash classification
-    logger.info("[Router] No keyword matched. Invoking Gemini intent classification...")
-    try:
-        from google import genai
-        from core.session import _get_api_key
-        
-        client = genai.Client(
-            api_key=_get_api_key(),
-            http_options={"api_version": "v1beta"}
-        )
-        
-        prompt = f"Reply only YES or NO. Is this message asking for coding help: '{user_message}'"
-        
-        # Use gemini-2.5-flash or gemini-2.0-flash as a fast classifier
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        
-        ans = response.text.strip().upper()
-        logger.info("[Router] Gemini classifier returned: '%s'", ans)
-        return "YES" in ans
-        
-    except Exception as e:
-        logger.warning("[Router] Gemini classification query failed: %s. Defaulting to general path.", e)
-        
+    # Default to general path — Gemini Live handles it via the main session
+    logger.debug("[Router] No keyword matched. Defaulting to general path (Gemini Live).")
     return False

@@ -8,12 +8,36 @@ This is a standard action module for the IP Prime personal assistant suite.
 import os
 import time
 import threading
+from datetime import date
 from pathlib import Path
 from actions.semantic_store import _get_gemini_client, index_file, init_db
 from actions.obsidian_helper import get_obsidian_vault_path
 from actions.prime_utils import get_base_dir
 
 BASE_DIR = get_base_dir()
+_QUOTA_SENTINEL = BASE_DIR / "data" / ".rag_quota_exhausted_date.txt"
+
+
+def _quota_exhausted_today() -> bool:
+    """Returns True if the RAG quota was already exhausted today (UTC date)."""
+    try:
+        if _QUOTA_SENTINEL.exists():
+            stored = _QUOTA_SENTINEL.read_text(encoding="utf-8").strip()
+            return stored == date.today().isoformat()
+    except Exception:
+        pass
+    return False
+
+
+def _mark_quota_exhausted():
+    """Writes today's UTC date into the sentinel file to suppress indexing for the rest of the day."""
+    try:
+        _QUOTA_SENTINEL.parent.mkdir(parents=True, exist_ok=True)
+        _QUOTA_SENTINEL.write_text(date.today().isoformat(), encoding="utf-8")
+        print("[AutoIndexer] 📵 Daily embedding quota exhausted. RAG sync paused until tomorrow (quota resets at midnight PT).")
+    except Exception as e:
+        print(f"[AutoIndexer] Could not write quota sentinel: {e}")
+
 
 class AutoIndexerThread(threading.Thread):
     """Background daemon thread that periodically indexes local files and Obsidian notes incrementally."""
@@ -31,6 +55,13 @@ class AutoIndexerThread(threading.Thread):
         time.sleep(15)
         
         while not self._stop_event.is_set():
+            # ── Skip entirely if today's quota is already burned ──────────────
+            if _quota_exhausted_today():
+                print("[AutoIndexer] ⏭️ Daily quota exhausted — skipping sync. Will retry tomorrow.")
+                if self._stop_event.wait(timeout=self.interval_seconds):
+                    break
+                continue
+
             try:
                 self._index_all_workspaces()
             except Exception as e:
@@ -117,8 +148,8 @@ class AutoIndexerThread(threading.Thread):
                                         
                                 # Gentle delay between embeds to avoid rate limits
                                 time.sleep(0.5)
-                        except RateLimitError as rate_err:
-                            print(f"[AutoIndexer] ⚠️ Rate limit/quota exceeded: {rate_err}. Pausing background sync.")
+                        except RateLimitError:
+                            _mark_quota_exhausted()
                             return
                         except Exception:
                             pass
