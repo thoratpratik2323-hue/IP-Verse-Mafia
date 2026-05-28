@@ -75,6 +75,13 @@ def generate_briefing(player=None) -> str:
         overdue_list = get_overdue_tasks()
         
         tasks_summary = f"Aapke planner mein total {pending_count} pending tasks hain, sir."
+        try:
+            from actions.study_planner import get_today_study_task
+            study_task = get_today_study_task()
+            if study_task:
+                tasks_summary += f"\n[STUDY PLAN] {study_task}"
+        except Exception:
+            pass
         if overdue_list:
             overdue_warning = f"[WARNING] Aapke {len(overdue_list)} tasks overdue chal rahe hain! Inhe jaldi dekhiye, sir.\n"
     except Exception as e:

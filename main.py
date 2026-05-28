@@ -489,6 +489,57 @@ class IPRayLive:
                 self.speak("GitHub streak calculate nahi ho payi, dost.")
             return
 
+        # ─── Voice command: Focus / Pomodoro Mode ───────────────────────────────
+        focus_triggers = ["focus mode shuru", "pomodoro start", "start focus", "focus start"]
+        if any(t in txt_l for t in focus_triggers):
+            self.ui.write_log("SYS: Focus Mode triggered via voice.")
+            self.speak("Opening Focus timer! Let's get to work, Pratik bhai!")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_pomodoro", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Voice Notes ─────────────────────────────────────────
+        if txt_l.startswith("note karo") or txt_l.startswith("save this note") or txt_l.startswith("yaad rakh"):
+            content = ""
+            for trig in ["note karo", "save this note", "yaad rakh"]:
+                if txt_l.startswith(trig):
+                    content = text[len(trig):].strip()
+                    break
+            if not content:
+                self.speak("Bhai note content kya hai? Boliyay, note kar leta hoon.")
+            else:
+                from actions.voice_notes import save_voice_note
+                res = save_voice_note(content, self)
+                self.ui.write_log(res)
+            return
+
+        # ─── Voice command: DSA Helper ─────────────────────────────────────────
+        dsa_triggers = ["dsa help", "problem solve karo", "leetcode hint"]
+        if any(t in txt_l for t in dsa_triggers):
+            self.ui.write_log("SYS: DSA AI Mentor triggered via voice.")
+            self.speak("Opening DSA AI Mentor! Paste your problem statement there, sir.")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_dsa", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Study Planner ──────────────────────────────────────
+        study_triggers = ["study planner", "aaj ka schedule", "study schedule"]
+        if any(t in txt_l for t in study_triggers):
+            self.ui.write_log("SYS: Study Planner triggered via voice.")
+            self.speak("Opening AI Study Planner! Let's plan your day, sir.")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_study", lambda: None)())
+            except Exception:
+                pass
+            return
+
         # ─── Voice command: Viva Mode ───────────────────────────────────────────
         viva_triggers = ["viva mode", "start viva", "viva prep", "start exam", "viva shuru"]
         if any(t in txt_l for t in viva_triggers):
@@ -1106,6 +1157,50 @@ class IPRayLive:
                                         from actions.github_assistant import get_git_streak
                                         streak = get_git_streak()
                                         self.speak(f"Pratik Sir, aapka commit streak {streak} days hai, sir!")
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: Focus / Pomodoro Mode ───────────
+                                _focus_t = ["focus mode shuru", "pomodoro start", "start focus", "focus start"]
+                                if any(t in txt_l for t in _focus_t):
+                                    self.ui.write_log("SYS: Focus Mode triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_pomodoro", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: Voice Notes ─────────────────────
+                                if txt_l.startswith("note karo") or txt_l.startswith("save this note") or txt_l.startswith("yaad rakh"):
+                                    self.ui.write_log("SYS: Voice Note triggered via mic.")
+                                    content = ""
+                                    for trig in ["note karo", "save this note", "yaad rakh"]:
+                                        if txt_l.startswith(trig):
+                                            content = txt[len(trig):].strip()
+                                            break
+                                    if not content:
+                                        self.speak("Bhai note content kya hai?")
+                                    else:
+                                        from actions.voice_notes import save_voice_note
+                                        save_voice_note(content, self)
+
+                                # ─── Voice command: DSA Helper ──────────────────────
+                                _dsa_t = ["dsa help", "problem solve karo", "leetcode hint"]
+                                if any(t in txt_l for t in _dsa_t):
+                                    self.ui.write_log("SYS: DSA AI Mentor triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_dsa", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: Study Planner ───────────────────
+                                _study_t = ["study planner", "aaj ka schedule", "study schedule"]
+                                if any(t in txt_l for t in _study_t):
+                                    self.ui.write_log("SYS: Study Planner triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_study", lambda: None)())
                                     except Exception:
                                         pass
 
