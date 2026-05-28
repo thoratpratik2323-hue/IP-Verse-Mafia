@@ -1610,6 +1610,7 @@ class MainWindow(QMainWindow):
     _pulse_highlight_sig = pyqtSignal(int, int, float, str)
     _ocr_translate_sig = pyqtSignal(list)
     _router_badge_sig  = pyqtSignal(str)
+    _weather_sig       = pyqtSignal(str)
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -1667,8 +1668,8 @@ class MainWindow(QMainWindow):
         body.addWidget(self._settings_panel, stretch=0)
 
         self._left_panel = self._build_left_panel()
-        body.addWidget(self._left_panel, stretch=0)
-        self._left_panel.hide()  # Permanently hide left panel containing SYS MONITOR and HUD CONFIG as requested
+        body.addWidget(self._left_panel, stretch=0, alignment=Qt.AlignmentFlag.AlignVCenter)
+        self._left_panel.show()  # Display the new terminal status log panel by default!
 
         self.hud = HudCanvas(face_path)
         self.hud.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -1730,6 +1731,9 @@ class MainWindow(QMainWindow):
         self._thought_panel.hide()
         body.addWidget(self._hud_container, stretch=5)
 
+        self._right_widgets_container = self._build_right_widgets_container()
+        body.addWidget(self._right_widgets_container, stretch=0, alignment=Qt.AlignmentFlag.AlignVCenter)
+
         self._right_panel = self._build_right_panel()
         self._right_panel.setMaximumWidth(0)
         self._right_panel.setMinimumWidth(0)
@@ -1745,8 +1749,32 @@ class MainWindow(QMainWindow):
         # Metrik güncelleme timer'ı
         self._metric_tmr = QTimer(self)
         self._metric_tmr.timeout.connect(self._update_metrics)
-        self._metric_tmr.start(2000)
+        self._metric_tmr.start(1000)  # Smooth 1 second digital clock ticks!
         self._update_metrics()
+
+        # Connect weather signal and spawn background daemon thread for periodic weather lookup
+        self._weather_sig.connect(self._apply_weather_data)
+        
+        import threading
+        def weather_bg_thread():
+            import time
+            while True:
+                try:
+                    import urllib.request
+                    req = urllib.request.Request(
+                        'http://wttr.in/?format=%l|%C|%t', 
+                        headers={'User-Agent': 'curl/7.88.1'}
+                    )
+                    with urllib.request.urlopen(req, timeout=5) as response:
+                        raw_data = response.read().decode('utf-8').strip()
+                    if raw_data and '|' in raw_data:
+                        self._weather_sig.emit(raw_data)
+                except Exception as e:
+                    print(f"[Weather BG] Fetch failed: {e}")
+                time.sleep(600)  # Refresh every 10 minutes
+                
+        t = threading.Thread(target=weather_bg_thread, daemon=True)
+        t.start()
 
         self._log_sig.connect(self._log.append_log)
         self._state_sig.connect(self._apply_state)
@@ -1810,95 +1838,99 @@ class MainWindow(QMainWindow):
             )
 
     def _update_metrics(self):
-        snap = _metrics.snapshot()
+        # 1. MIC Status (Green if listening, Red if muted)
+        mic_on = not getattr(self, "_muted", False)
+        if hasattr(self, "_status_mic_val"):
+            if mic_on:
+                self._status_mic_val.setText("ON")
+                self._status_mic_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+            else:
+                self._status_mic_val.setText("OFF")
+                self._status_mic_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
 
-        # CPU
-        cpu = snap["cpu"]
-        self._bar_cpu.set_value(cpu, f"{cpu:.0f}%")
-        if hasattr(self, "_graph_cpu"):
-            self._graph_cpu.add_value(cpu)
+        # 2. API Status (Green if Gemini Live session is active, Red if disconnected)
+        api_on = False
+        if hasattr(self, "ip_ray") and self.ip_ray is not None:
+            if hasattr(self.ip_ray, "session") and self.ip_ray.session is not None:
+                api_on = True
+                
+        if hasattr(self, "_status_api_val"):
+            if api_on:
+                self._status_api_val.setText("ON")
+                self._status_api_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+            else:
+                self._status_api_val.setText("OFF")
+                self._status_api_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
 
-        # MEM
-        mem = snap["mem"]
-        self._bar_mem.set_value(mem, f"{mem:.0f}%")
-        if hasattr(self, "_graph_mem"):
-            self._graph_mem.add_value(mem)
+        # 3. VOICE Status (Green if online and ready, pulsing cyan SPEAKING if synthesizing audio)
+        if hasattr(self, "_status_voice_val"):
+            if api_on:
+                if hasattr(self, "hud") and getattr(self.hud, "speaking", False):
+                    self._status_voice_val.setText("SPEAKING")
+                    self._status_voice_val.setStyleSheet("color: #06b6d4; font-weight: bold;") # Pulsing Cyan
+                else:
+                    self._status_voice_val.setText("ON")
+                    self._status_voice_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+            else:
+                self._status_voice_val.setText("OFF")
+                self._status_voice_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
 
-        # NET
-        net = snap["net"]
-        if net < 1.0:
-            net_str = f"{net*1024:.0f}KB/s"
-        else:
-            net_str = f"{net:.1f}MB/s"
-        net_pct = min(100, net * 10)  # 10 MB/s = %100
-        self._bar_net.set_value(net_pct, net_str)
-
-        # GPU
-        gpu = snap["gpu"]
-        if gpu >= 0:
-            self._bar_gpu.set_value(gpu, f"{gpu:.0f}%")
-        else:
-            self._bar_gpu.set_value(0, "N/A")
-
-        # TMP
-        tmp = snap["tmp"]
-        if tmp >= 0:
-            tmp_pct = min(100, (tmp / 100) * 100)
-            self._bar_tmp.set_value(tmp_pct, f"{tmp:.0f}°C")
-        else:
-            self._bar_tmp.set_value(0, "N/A")
-
+        # 4. Live Terminal Uptime log
         try:
             elapsed = time.time() - self._start_time
             h = int(elapsed // 3600)
             m = int((elapsed % 3600) // 60)
             s = int(elapsed % 60)
-            self._uptime_lbl.setText(f"UPTIME: {h:02d}:{m:02d}:{s:02d}")
+            uptime_str = f"{h:02d}:{m:02d}:{s:02d}"
         except Exception:
-            self._uptime_lbl.setText("UPTIME: --:--:--")
+            uptime_str = "--:--:--"
 
-        try:
-            from prime_platform.energy_metrics import get_footer_summary
-            self._prime_metrics_lbl.setText(get_footer_summary())
-        except Exception:
-            if hasattr(self, "_prime_metrics_lbl"):
-                self._prime_metrics_lbl.setText("")
+        if hasattr(self, "_left_console_log"):
+            self._left_console_log.setText(
+                f"SYS_LOG:\n"
+                f"» CORES ONLINE\n"
+                f"» SEC_OK\n"
+                f"» RAG_STORE=OK\n"
+                f"» UP: {uptime_str}"
+            )
 
-        try:
-            proc_count = len(psutil.pids())
-            self._proc_lbl.setText(f"PROC  {proc_count}")
-        except Exception:
-            self._proc_lbl.setText("PROC  --")
+        # Update Time & Date
+        if hasattr(self, "_time_val_lbl"):
+            self._time_val_lbl.setText(time.strftime("%I:%M:%S %p"))
+        if hasattr(self, "_date_val_lbl"):
+            self._date_val_lbl.setText(time.strftime("%d %b %Y - %A").upper())
 
-        # Update MCP server rows connection states dynamically
-        try:
-            if hasattr(self, "_mcp_server_rows") and self._mcp_server_rows:
-                from actions.mcp_client import MCPClientManager
-                mcp_mgr = MCPClientManager()
-                for name, (status_lbl, toggle_btn) in self._mcp_server_rows.items():
-                    conn = mcp_mgr.connections.get(name)
-                    running = conn.running if conn else False
-                    
-                    if running:
-                        status_lbl.setText("🟢 Running")
-                        status_lbl.setStyleSheet(f"color: {C.GREEN}; font-size: 11px;")
-                        toggle_btn.setText("Stop")
-                        toggle_btn.setStyleSheet(
-                            f"QPushButton {{ background: rgba(239, 68, 68, 0.15); color: {C.RED}; "
-                            f"border: 1px solid {C.RED}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
-                            f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.35); }}"
-                        )
-                    else:
-                        status_lbl.setText("⚪ Stopped")
-                        status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; font-size: 11px;")
-                        toggle_btn.setText("Start")
-                        toggle_btn.setStyleSheet(
-                            f"QPushButton {{ background: rgba(59, 130, 246, 0.15); color: {C.PRI}; "
-                            f"border: 1px solid {C.PRI}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
-                            f"QPushButton:hover {{ background: rgba(59, 130, 246, 0.35); }}"
-                        )
-        except Exception as e:
-            print(f"[IP PRIME UI] Error updating MCP metrics: {e}")
+        # Update MCP server rows connection states dynamically (throttled every 5 ticks)
+        self._mcp_ticks = getattr(self, "_mcp_ticks", 0) + 1
+        if self._mcp_ticks % 5 == 0 or self._mcp_ticks == 1:
+            try:
+                if hasattr(self, "_mcp_server_rows") and self._mcp_server_rows:
+                    from actions.mcp_client import MCPClientManager
+                    mcp_mgr = MCPClientManager()
+                    for name, (status_lbl, toggle_btn) in self._mcp_server_rows.items():
+                        conn = mcp_mgr.connections.get(name)
+                        running = conn.running if conn else False
+                        
+                        if running:
+                            status_lbl.setText("🟢 Running")
+                            status_lbl.setStyleSheet(f"color: {C.GREEN}; font-size: 11px;")
+                            toggle_btn.setText("Stop")
+                            toggle_btn.setStyleSheet(
+                                f"QPushButton {{ background: rgba(239, 68, 68, 0.15); color: {C.RED}; "
+                                f"border: 1px solid {C.RED}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                                f"QPushButton:hover {{ background: rgba(239, 68, 68, 0.35); }}"
+                            )
+                        else:
+                            status_lbl.setText("⚪ Stopped")
+                            status_lbl.setStyleSheet(f"color: {C.TEXT_MED}; font-size: 11px;")
+                            toggle_btn.setText("Start")
+                            toggle_btn.setStyleSheet(
+                                f"QPushButton {{ background: rgba(59, 130, 246, 0.15); color: {C.PRI}; "
+                                f"border: 1px solid {C.PRI}; border-radius: 5px; font-size: 10px; font-weight: bold; }} "
+                                f"QPushButton:hover {{ background: rgba(59, 130, 246, 0.35); }}"
+                            )
+            except Exception as e:
+                print(f"[IP PRIME UI] Error updating MCP metrics: {e}")
 
 
     def _build_header(self) -> QWidget:
@@ -2928,115 +2960,186 @@ class MainWindow(QMainWindow):
 
     def _build_left_panel(self) -> QWidget:
         self._left_panel = QWidget()
-        self._left_panel.setFixedWidth(_LEFT_W)
-        self._left_panel.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
-        lay = QVBoxLayout(self._left_panel)
-        lay.setContentsMargins(10, 12, 10, 12)
-        lay.setSpacing(6)
-
-        self._left_hdr = QLabel("◈ SYS MONITOR")
-        self._left_hdr.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._left_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; "
-                          f"border-bottom: 1px solid {C.BORDER}; padding-bottom: 4px;")
-        lay.addWidget(self._left_hdr)
-        lay.addSpacing(2)
-
-        self._bar_cpu = MetricBar("CPU", C.PRI)
-        self._graph_cpu = MetricGraph(C.PRI)
-        self._bar_mem = MetricBar("MEM", C.ACC2)
-        self._graph_mem = MetricGraph(C.ACC2)
-        
-        self._bar_net = MetricBar("NET", C.GREEN)
-        self._bar_gpu = MetricBar("GPU", C.ACC)
-        self._bar_tmp = MetricBar("TMP", "#ff6688")
-
-        lay.addWidget(self._bar_cpu)
-        lay.addWidget(self._graph_cpu)
-        lay.addWidget(self._bar_mem)
-        lay.addWidget(self._graph_mem)
-        for bar in [self._bar_net, self._bar_gpu, self._bar_tmp]:
-            lay.addWidget(bar)
-
-        lay.addSpacing(4)
-
-        self._left_info_panel = QWidget()
-        self._left_info_panel.setStyleSheet(
-            f"background: {C.BG}; border: 1px solid {C.BORDER}; border-radius: 6px;"
+        self._left_panel.setFixedWidth(190)  # Compact, elegant terminal layout!
+        self._left_panel.setStyleSheet(
+            f"background: rgba(5, 10, 20, 0.72);"
+            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"border-radius: 12px;"
         )
-        ip_lay = QVBoxLayout(self._left_info_panel)
-        ip_lay.setContentsMargins(8, 6, 8, 6)
-        ip_lay.setSpacing(3)
+        lay = QVBoxLayout(self._left_panel)
+        lay.setContentsMargins(12, 16, 12, 16)
+        lay.setSpacing(14)
 
-        self._uptime_lbl = QLabel("UP  --:--")
-        self._uptime_lbl.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
-        self._uptime_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent; border: none;")
-        ip_lay.addWidget(self._uptime_lbl)
+        # Terminal Title Header
+        self._status_hdr = QLabel("◈ STATUS MONITOR")
+        self._status_hdr.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
+        self._status_hdr.setStyleSheet(
+            f"color: {C.CYAN}; background: transparent; "
+            f"border-bottom: 1.5px solid rgba(6, 182, 212, 0.25); padding-bottom: 6px;"
+        )
+        lay.addWidget(self._status_hdr)
 
-        self._proc_lbl = QLabel("PROC  --")
-        self._proc_lbl.setFont(QFont("Consolas", 8))
-        self._proc_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
-        ip_lay.addWidget(self._proc_lbl)
+        # Status row builder helper
+        def _make_status_row(name: str):
+            row = QWidget()
+            row.setStyleSheet("background: transparent; border: none;")
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(4, 0, 4, 0)
+            
+            lbl_name = QLabel(f"{name}:")
+            lbl_name.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+            row_lay.addWidget(lbl_name)
+            
+            row_lay.addStretch()
+            
+            lbl_val = QLabel("[ -- ]")
+            lbl_val.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_val.setStyleSheet("background: transparent;")
+            row_lay.addWidget(lbl_val)
+            return row, lbl_val
 
-        os_name = {"Windows": "WIN", "Darwin": "macOS", "Linux": "LINUX"}.get(_OS, _OS.upper())
-        self._os_lbl = QLabel(f"OS  {os_name}")
-        self._os_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._os_lbl.setStyleSheet(f"color: {C.ACC2}; background: transparent; border: none;")
-        ip_lay.addWidget(self._os_lbl)
+        # Create row widgets
+        row_mic, self._status_mic_val = _make_status_row("MIC")
+        row_voice, self._status_voice_val = _make_status_row("VOICE")
+        row_api, self._status_api_val = _make_status_row("API")
 
-        lay.addWidget(self._left_info_panel)
+        lay.addWidget(row_mic)
+        lay.addWidget(row_voice)
+        lay.addWidget(row_api)
+
+        lay.addSpacing(6)
         
-        # HUD CONFIG Panel
-        self._cfg_hdr = QLabel("◈ HUD CONFIG")
-        self._cfg_hdr.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._cfg_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; "
-                                    f"border-bottom: 1px solid {C.BORDER}; padding-bottom: 4px; margin-top: 6px;")
-        lay.addWidget(self._cfg_hdr)
-        
-        self._lbl_opacity = QLabel("OPACITY: 65%")
-        self._lbl_opacity.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
-        self._lbl_opacity.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
-        lay.addWidget(self._lbl_opacity)
-        
-        self._slider_opacity = QSlider(Qt.Orientation.Horizontal)
-        self._slider_opacity.setRange(0, 100)
-        self._slider_opacity.setValue(65)
-        self._slider_opacity.setFixedHeight(16)
-        self._slider_opacity.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._slider_opacity.valueChanged.connect(self._on_opacity_changed)
-        lay.addWidget(self._slider_opacity)
-        
-        self._lbl_glow = QLabel("GLOW: 15%")
-        self._lbl_glow.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
-        self._lbl_glow.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
-        lay.addWidget(self._lbl_glow)
-        
-        self._slider_glow = QSlider(Qt.Orientation.Horizontal)
-        self._slider_glow.setRange(0, 100)
-        self._slider_glow.setValue(15)
-        self._slider_glow.setFixedHeight(16)
-        self._slider_glow.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._slider_glow.valueChanged.connect(self._on_glow_changed)
-        lay.addWidget(self._slider_glow)
-
-        lay.addStretch()
-
-        self._left_badges = []
-        for txt, col in [
-            ("AI CORE\nACTIVE",     C.GREEN),
-            ("SEC\nCLEARED",        C.PRI),
-            ("PROTOCOL\nXXXVIII",   C.TEXT_DIM),
-        ]:
-            lbl = QLabel(txt)
-            lbl.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
-            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl.setStyleSheet(
-                f"color: {col}; background: {C.BG};"
-                f"border: 1px solid {C.BORDER}; border-radius: 4px; padding: 4px;"
-            )
-            lay.addWidget(lbl)
-            self._left_badges.append(lbl)
+        # Mini terminal sys log feed
+        self._left_console_log = QLabel(
+            "SYS_LOG:\n"
+            "» CORES ONLINE\n"
+            "» SEC_OK\n"
+            "» RAG_STORE=OK"
+        )
+        self._left_console_log.setFont(QFont("Consolas", 7))
+        self._left_console_log.setStyleSheet(
+            f"color: rgba(6, 182, 212, 0.55); background: rgba(2, 4, 8, 0.45); "
+            f"border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 6px; padding: 10px;"
+        )
+        self._left_console_log.setWordWrap(True)
+        lay.addWidget(self._left_console_log)
 
         return self._left_panel
+
+    def _build_right_widgets_container(self) -> QWidget:
+        self._right_widgets_container = QWidget()
+        self._right_widgets_container.setFixedWidth(190)
+        self._right_widgets_container.setStyleSheet("background: transparent; border: none;")
+        lay = QVBoxLayout(self._right_widgets_container)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(16)
+        
+        # 1. Chrono Card (Time)
+        self._time_panel = QWidget()
+        self._time_panel.setStyleSheet(
+            f"background: rgba(5, 10, 20, 0.72);"
+            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"border-radius: 12px;"
+        )
+        time_lay = QVBoxLayout(self._time_panel)
+        time_lay.setContentsMargins(12, 16, 12, 16)
+        time_lay.setSpacing(10)
+        
+        self._time_hdr = QLabel("◈ CHRONO MONITOR")
+        self._time_hdr.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
+        self._time_hdr.setStyleSheet(
+            f"color: {C.CYAN}; background: transparent; "
+            f"border-bottom: 1.5px solid rgba(6, 182, 212, 0.25); padding-bottom: 6px;"
+        )
+        time_lay.addWidget(self._time_hdr)
+        
+        self._time_val_lbl = QLabel("00:00:00 AM")
+        self._time_val_lbl.setFont(QFont("Consolas", 13, QFont.Weight.Bold))
+        self._time_val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._time_val_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent;")
+        time_lay.addWidget(self._time_val_lbl)
+        
+        self._date_val_lbl = QLabel("00-00-0000 - DAY")
+        self._date_val_lbl.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
+        self._date_val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._date_val_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        time_lay.addWidget(self._date_val_lbl)
+        
+        lay.addWidget(self._time_panel)
+        
+        # 2. Climate Card (Weather)
+        self._weather_panel = QWidget()
+        self._weather_panel.setStyleSheet(
+            f"background: rgba(5, 10, 20, 0.72);"
+            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"border-radius: 12px;"
+        )
+        weather_lay = QVBoxLayout(self._weather_panel)
+        weather_lay.setContentsMargins(12, 16, 12, 16)
+        weather_lay.setSpacing(10)
+        
+        self._weather_hdr = QLabel("◈ CLIMATE DETECTOR")
+        self._weather_hdr.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
+        self._weather_hdr.setStyleSheet(
+            f"color: {C.CYAN}; background: transparent; "
+            f"border-bottom: 1.5px solid rgba(6, 182, 212, 0.25); padding-bottom: 6px;"
+        )
+        weather_lay.addWidget(self._weather_hdr)
+        
+        def _make_row(name: str, placeholder: str):
+            row = QWidget()
+            row.setStyleSheet("background: transparent; border: none;")
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(4, 0, 4, 0)
+            
+            lbl_name = QLabel(f"{name}:")
+            lbl_name.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+            row_lay.addWidget(lbl_name)
+            
+            row_lay.addStretch()
+            
+            lbl_val = QLabel(placeholder)
+            lbl_val.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_val.setStyleSheet("background: transparent;")
+            row_lay.addWidget(lbl_val)
+            return row, lbl_val
+            
+        row_loc, self._weather_loc_lbl = _make_row("LOC", "RETRIEVING...")
+        row_temp, self._weather_temp_lbl = _make_row("TEMP", "--°C")
+        row_cond, self._weather_cond_lbl = _make_row("COND", "PENDING")
+        
+        self._weather_loc_lbl.setStyleSheet(f"color: {C.CYAN}; font-weight: bold;")
+        self._weather_temp_lbl.setStyleSheet(f"color: {C.GREEN}; font-weight: bold;")
+        self._weather_cond_lbl.setStyleSheet(f"color: {C.CYAN}; font-weight: bold;")
+        
+        weather_lay.addWidget(row_loc)
+        weather_lay.addWidget(row_temp)
+        weather_lay.addWidget(row_cond)
+        
+        lay.addWidget(self._weather_panel)
+        
+        return self._right_widgets_container
+        
+    def _apply_weather_data(self, data_str: str):
+        try:
+            parts = data_str.split('|')
+            if len(parts) == 3:
+                loc, cond, temp = parts
+                loc_clean = loc.split(',')[0].strip().upper()
+                cond_clean = cond.strip().upper()
+                temp_clean = temp.strip()
+                
+                if hasattr(self, "_weather_loc_lbl"):
+                    self._weather_loc_lbl.setText(loc_clean)
+                if hasattr(self, "_weather_temp_lbl"):
+                    self._weather_temp_lbl.setText(temp_clean)
+                if hasattr(self, "_weather_cond_lbl"):
+                    self._weather_cond_lbl.setText(cond_clean)
+        except Exception as e:
+            print(f"[Weather UI] Error applying weather: {e}")
+
     def _build_right_panel(self) -> QWidget:
         self._right_panel = QWidget()
         self._right_panel.setFixedWidth(_RIGHT_W)
