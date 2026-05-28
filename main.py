@@ -362,9 +362,20 @@ class IPRayLive:
         ]
         sample_greeting = random.choice(sweet_samples)
         
+        # Generate and read morning briefing dynamically!
+        briefing_text = ""
+        try:
+            from actions.morning_briefer import generate_briefing
+            briefing_text = generate_briefing(self.ui)
+            self.ui.write_log(briefing_text)
+        except Exception as e:
+            print(f"[IP PRIME] Morning Briefing startup error: {e}")
+
+        # Combine greeting with briefing
+        full_welcome = f"{sample_greeting}\n\nHere is your briefing for today, sir:\n{briefing_text}" if briefing_text else sample_greeting
         self.speak(
-            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish. "
-            f"Speak only this exact welcoming phrase and nothing else: '{sample_greeting}'"
+            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish, welcome him and tell him his daily morning briefing. "
+            f"Speak only this exact welcoming phrase and nothing else: '{full_welcome}'"
         )
 
     def _amplify_pcm(self, block: bytes, gain: float = 1.8) -> bytes:
@@ -413,6 +424,69 @@ class IPRayLive:
             self.ui.write_log("SYS: Intercepted 'exit' command.")
             self.ui.set_fullscreen(False)
             self.speak("Exiting fullscreen mode, sir.")
+            return
+
+        # ─── Voice command: Morning Briefing ────────────────────────────────────
+        briefing_triggers = ["morning briefing", "good morning prime", "aaj ka briefing", "morning brief"]
+        if any(t in txt_l for t in briefing_triggers):
+            self.ui.write_log("SYS: Morning Briefing triggered via voice.")
+            try:
+                from actions.morning_briefer import generate_briefing
+                brief = generate_briefing(self.ui)
+                self.ui.write_log(brief)
+                self.speak(brief)
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_briefing", lambda: None)())
+            except Exception as e:
+                self.speak("Bhai morning briefing generate nahi ho payi.")
+            return
+
+        # ─── Voice command: Clipboard AI ──────────────────────────────────────
+        clip_triggers = ["explain this", "clipboard explain", "kya hai yeh", "what is this"]
+        if any(t in txt_l for t in clip_triggers):
+            self.ui.write_log("SYS: Clipboard AI triggered via voice.")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_clipboard_ai", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Screen Time ─────────────────────────────────────────
+        st_triggers = ["screen time dikhao", "screentime", "computer usage stats"]
+        if any(t in txt_l for t in st_triggers):
+            self.ui.write_log("SYS: Screen Time report triggered via voice.")
+            try:
+                from actions.screen_time import get_screen_time_report
+                report = get_screen_time_report()
+                self.ui.write_log(report)
+                self.speak("Pratik Sir, aapka screen time report active log me print kar diya hai.")
+            except Exception:
+                self.speak("Screen time fetch nahi ho paya, bhai.")
+            return
+
+        # ─── Voice command: Spotify DJ / Music ──────────────────────────────────
+        music_triggers = ["music lagao", "chill music", "focus music", "play music"]
+        if any(t in txt_l for t in music_triggers):
+            self.ui.write_log("SYS: Spotify Controller triggered via voice.")
+            self.speak("Spotify launch kar raha hoon aur control panel khol raha hoon, bhai!")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_spotify", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: GitHub Streak ───────────────────────────────────────
+        streak_triggers = ["mera streak", "github status", "commit streak"]
+        if any(t in txt_l for t in streak_triggers):
+            self.ui.write_log("SYS: GitHub Streak triggered via voice.")
+            try:
+                from actions.github_assistant import get_git_streak
+                streak = get_git_streak()
+                self.speak(f"Pratik Sir, aapka commit streak {streak} days hai, sir! Keep it up!")
+            except Exception:
+                self.speak("GitHub streak calculate nahi ho payi, dost.")
             return
 
         # ─── Voice command: Viva Mode ───────────────────────────────────────────
@@ -978,7 +1052,63 @@ class IPRayLive:
                                     self.ui.write_log("SYS: Vocal exit fullscreen trigger detected.")
                                     self.ui.set_fullscreen(False)
 
-                                # ─── Voice panel shortcuts ──────────────────────
+                                # ─── Voice command: Morning Briefing ────────────────
+                                _brief_t = ["morning briefing", "good morning prime", "aaj ka briefing", "morning brief"]
+                                if any(t in txt_l for t in _brief_t):
+                                    self.ui.write_log("SYS: Morning Briefing triggered via mic.")
+                                    try:
+                                        from actions.morning_briefer import generate_briefing
+                                        brief = generate_briefing(self.ui)
+                                        self.ui.write_log(brief)
+                                        self.speak(brief)
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_briefing", lambda: None)())
+                                    except Exception as e:
+                                        self.speak("Bhai morning briefing generate nahi ho payi.")
+
+                                # ─── Voice command: Clipboard AI ────────────────────
+                                _clip_t = ["explain this", "clipboard explain", "kya hai yeh", "what is this"]
+                                if any(t in txt_l for t in _clip_t):
+                                    self.ui.write_log("SYS: Clipboard AI triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_clipboard_ai", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: Screen Time ─────────────────────
+                                _st_t = ["screen time dikhao", "screentime", "computer usage stats"]
+                                if any(t in txt_l for t in _st_t):
+                                    self.ui.write_log("SYS: Screen Time triggered via mic.")
+                                    try:
+                                        from actions.screen_time import get_screen_time_report
+                                        report = get_screen_time_report()
+                                        self.ui.write_log(report)
+                                        self.speak("Pratik Sir, screen time report active log me print kar diya hai.")
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: Spotify Controller ──────────────
+                                _music_t = ["music lagao", "chill music", "focus music", "play music"]
+                                if any(t in txt_l for t in _music_t):
+                                    self.ui.write_log("SYS: Spotify Controller triggered via mic.")
+                                    try:
+                                        from PyQt6.QtCore import QTimer
+                                        QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_spotify", lambda: None)())
+                                    except Exception:
+                                        pass
+
+                                # ─── Voice command: GitHub Streak ───────────────────
+                                _streak_t = ["mera streak", "github status", "commit streak"]
+                                if any(t in txt_l for t in _streak_t):
+                                    self.ui.write_log("SYS: GitHub Streak triggered via mic.")
+                                    try:
+                                        from actions.github_assistant import get_git_streak
+                                        streak = get_git_streak()
+                                        self.speak(f"Pratik Sir, aapka commit streak {streak} days hai, sir!")
+                                    except Exception:
+                                        pass
+
                                 _viva_t = ["viva mode", "start viva", "viva prep", "start exam", "viva shuru"]
                                 if any(t in txt_l for t in _viva_t):
                                     self.ui.write_log("SYS: Viva Mode triggered via mic.")
@@ -1234,8 +1364,27 @@ def main():
                 classifier = FileClassifierThread(check_interval_seconds=15)
                 classifier.start()
                 ui.write_log("SYS: Automated downloads file classifier online.")
+            try:
+                from actions.clipboard_manager import start_clipboard_monitor
+                from actions.screen_time import start_screen_time_monitor
+                start_clipboard_monitor()
+                start_screen_time_monitor(ui)
+                ui.write_log("SYS: Telemetry monitors started (Clipboard + Screen Time).")
             except Exception as e:
-                print(f"[IP PRIME] Failed to start FileClassifierThread: {e}")
+                ui.write_log(f"SYS WARNING: Telemetry startup fail: {e}")
+
+            # Register Ctrl+Alt+C hotkey for Clipboard AI Panel
+            def _clipboard_hotkey():
+                try:
+                    ui._win._clipboard_ai_sig.emit()
+                except Exception:
+                    pass
+            try:
+                import keyboard
+                keyboard.add_hotkey("ctrl+alt+c", _clipboard_hotkey)
+                ui.write_log("SYS: Clipboard AI hotkey registered: Ctrl+Alt+C")
+            except Exception as e:
+                ui.write_log(f"SYS WARNING: Clipboard AI hotkey fail: {e}")
         threading.Timer(8.0, _start_background).start()
         
         ip_ray = IPRayLive(ui)

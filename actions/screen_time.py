@@ -109,10 +109,21 @@ def _monitor_loop(player: Optional[Any] = None):
                 limits = data.get("limits", {})
                 limit_seconds = limits.get(app_name, 0)
                 if limit_seconds > 0 and apps[app_name] >= limit_seconds:
-                    # Exceeded! Alert!
-                    f"Alert: Pratik Sir, you have exceeded your configured screen limit of {limit_seconds // 60}m on app '{app_name}'!"
-                    if player and hasattr(player, "write_log"):
-                        player.write_log(f"⏰ LIMIT EXCEEDED: '{app_name}' screen limit hit!")
+                    if not hasattr(_monitor_loop, "alerted_apps"):
+                        _monitor_loop.alerted_apps = set()
+                    
+                    # Reset alerted apps if date rolls over
+                    today_str = time.strftime("%Y-%m-%d")
+                    if data.get("date") != today_str:
+                        _monitor_loop.alerted_apps.clear()
+
+                    if app_name not in _monitor_loop.alerted_apps:
+                        _monitor_loop.alerted_apps.add(app_name)
+                        msg = f"Pratik Sir, you have exceeded your screen limit of {limit_seconds // 60} minutes on '{app_name}'!"
+                        if player and hasattr(player, "write_log"):
+                            player.write_log(f"⏰ LIMIT EXCEEDED: '{app_name}' screen limit hit!")
+                        if player and hasattr(player, "_win") and hasattr(player._win, "ip_ray") and player._win.ip_ray:
+                            player._win.ip_ray.speak(msg)
                         
                 _save_data(data)
         except Exception as e:

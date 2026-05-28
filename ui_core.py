@@ -1642,6 +1642,13 @@ class MainWindow(QMainWindow):
     _ocr_translate_sig = pyqtSignal(list)
     _router_badge_sig  = pyqtSignal(str)
     _weather_sig       = pyqtSignal(str)
+    
+    _clipboard_ai_sig = pyqtSignal()
+    _briefing_sig      = pyqtSignal()
+    _pomodoro_sig      = pyqtSignal()
+    _dsa_sig           = pyqtSignal()
+    _study_sig         = pyqtSignal()
+    _spotify_sig        = pyqtSignal()
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -1669,6 +1676,13 @@ class MainWindow(QMainWindow):
         self._synth_personality_sig.connect(self._arc_synthesize_core)
         self._web_command_sig.connect(lambda cmd: self.on_text_command(cmd) if self.on_text_command else None)
         self._router_badge_sig.connect(self._on_router_badge_updated)
+        
+        self._clipboard_ai_sig.connect(self._toggle_clipboard_ai)
+        self._briefing_sig.connect(self._toggle_briefing)
+        self._pomodoro_sig.connect(self._toggle_pomodoro)
+        self._dsa_sig.connect(self._toggle_dsa)
+        self._study_sig.connect(self._toggle_study)
+        self._spotify_sig.connect(self._toggle_spotify)
 
         self._central_widget = SpaceCentralWidget()
         self._central_widget.setObjectName("CentralWidget")
@@ -1976,6 +1990,47 @@ class MainWindow(QMainWindow):
         if hasattr(self, "_date_val_lbl"):
             self._date_val_lbl.setText(time.strftime("%d %b %Y - %A").upper())
 
+        # Update Screen Time badge in footer (throttled to every 10 seconds)
+        self._st_tick = getattr(self, "_st_tick", 0) + 1
+        if self._st_tick >= 10 or not hasattr(self, "_screentime_val_cached"):
+            self._st_tick = 0
+            try:
+                from pathlib import Path
+                import json
+                st_path = Path(__file__).resolve().parent.parent / "data" / "screen_time.json"
+                if st_path.exists():
+                    with open(st_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    apps = data.get("apps", {})
+                    total_seconds = sum(apps.values())
+                    h = total_seconds // 3600
+                    m = (total_seconds % 3600) // 60
+                    
+                    if apps:
+                        top_app = max(apps, key=apps.get)
+                        top_min = apps[top_app] // 60
+                        self._screentime_val_cached = f"📊 SCREENTIME: {h}h {m}m | Top: {top_app} ({top_min}m)"
+                    else:
+                        self._screentime_val_cached = f"📊 SCREENTIME: {h}h {m}m"
+                else:
+                    self._screentime_val_cached = "📊 SCREENTIME: 0h 0m"
+            except Exception:
+                self._screentime_val_cached = "📊 SCREENTIME: --"
+        if hasattr(self, "_screentime_lbl"):
+            self._screentime_lbl.setText(self._screentime_val_cached)
+
+        # Update Git Streak (throttled to every 30 seconds)
+        self._git_streak_tick = getattr(self, "_git_streak_tick", 0) + 1
+        if self._git_streak_tick >= 30 or not hasattr(self, "_git_streak_cached"):
+            self._git_streak_tick = 0
+            try:
+                from actions.github_assistant import get_git_streak
+                self._git_streak_cached = get_git_streak()
+            except Exception:
+                self._git_streak_cached = 0
+        if hasattr(self, "_streak_lbl"):
+            self._streak_lbl.setText(f"🔥 STREAK: {getattr(self, '_git_streak_cached', 0)} DAYS")
+
         # Update MCP server rows connection states dynamically (throttled every 5 ticks)
         self._mcp_ticks = getattr(self, "_mcp_ticks", 0) + 1
         if self._mcp_ticks % 5 == 0 or self._mcp_ticks == 1:
@@ -2136,6 +2191,102 @@ class MainWindow(QMainWindow):
         """)
         self._git_btn.clicked.connect(self._toggle_git_autopilot)
         lay.addWidget(self._git_btn)
+
+        # BRIEF Button
+        self._brief_btn = QPushButton("BRIEF 🌅")
+        self._brief_btn.setFixedSize(90, 36)
+        self._brief_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._brief_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._brief_btn.setToolTip("Open Daily Morning Briefing")
+        self._brief_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(245, 158, 11, 0.12); color: #F59E0B;
+                border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(245, 158, 11, 0.22); color: #F59E0B; border: 1.5px solid #F59E0B;
+            }
+        """)
+        self._brief_btn.clicked.connect(self._toggle_briefing)
+        lay.addWidget(self._brief_btn)
+
+        # FOCUS Button
+        self._focus_btn = QPushButton("FOCUS 🍅")
+        self._focus_btn.setFixedSize(90, 36)
+        self._focus_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._focus_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._focus_btn.setToolTip("Open Pomodoro Focus Timer")
+        self._focus_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(239, 68, 68, 0.12); color: #EF4444;
+                border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(239, 68, 68, 0.22); color: #EF4444; border: 1.5px solid #EF4444;
+            }
+        """)
+        self._focus_btn.clicked.connect(self._toggle_pomodoro)
+        lay.addWidget(self._focus_btn)
+
+        # DSA Button
+        self._dsa_btn = QPushButton("DSA 💡")
+        self._dsa_btn.setFixedSize(80, 36)
+        self._dsa_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._dsa_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._dsa_btn.setToolTip("Open DSA/LeetCode AI Assistant")
+        self._dsa_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(139, 92, 246, 0.12); color: #8B5CF6;
+                border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(139, 92, 246, 0.22); color: #8B5CF6; border: 1.5px solid #8B5CF6;
+            }
+        """)
+        self._dsa_btn.clicked.connect(self._toggle_dsa)
+        lay.addWidget(self._dsa_btn)
+
+        # STUDY Button
+        self._study_btn = QPushButton("STUDY 📅")
+        self._study_btn.setFixedSize(90, 36)
+        self._study_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._study_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._study_btn.setToolTip("Open AI Study Scheduler")
+        self._study_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(59, 130, 246, 0.12); color: #3B82F6;
+                border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(59, 130, 246, 0.22); color: #3B82F6; border: 1.5px solid #3B82F6;
+            }
+        """)
+        self._study_btn.clicked.connect(self._toggle_study)
+        lay.addWidget(self._study_btn)
+
+        # MUSIC Button
+        self._music_btn = QPushButton("MUSIC 🎵")
+        self._music_btn.setFixedSize(90, 36)
+        self._music_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._music_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._music_btn.setToolTip("Open Spotify AI Controller")
+        self._music_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(16, 185, 129, 0.12); color: #10B981;
+                border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 18px;
+                letter-spacing: 0.5px;
+            }
+            QPushButton:hover {
+                background: rgba(16, 185, 129, 0.22); color: #10B981; border: 1.5px solid #10B981;
+            }
+        """)
+        self._music_btn.clicked.connect(self._toggle_spotify)
+        lay.addWidget(self._music_btn)
+
 
         self._settings_gear_btn = QPushButton("⚙")
         self._settings_gear_btn.setFixedSize(36, 36)
@@ -3103,6 +3254,86 @@ class MainWindow(QMainWindow):
             self._git_panel.move(x, y)
             self._git_panel.show()
 
+    def _toggle_briefing(self):
+        if not hasattr(self, "_briefing_panel") or self._briefing_panel is None:
+            from actions.briefing_gui import BriefingPanel
+            self._briefing_panel = BriefingPanel(self)
+        
+        if self._briefing_panel.isVisible():
+            self._briefing_panel.hide()
+        else:
+            self._briefing_panel.refresh()
+            x = int(self.x() + (self.width() - self._briefing_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._briefing_panel.height()) / 2)
+            self._briefing_panel.move(x, y)
+            self._briefing_panel.show()
+
+    def _toggle_spotify(self):
+        if not hasattr(self, "_spotify_panel") or self._spotify_panel is None:
+            from actions.spotify_gui import SpotifyPanel
+            self._spotify_panel = SpotifyPanel(self)
+        
+        if self._spotify_panel.isVisible():
+            self._spotify_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._spotify_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._spotify_panel.height()) / 2)
+            self._spotify_panel.move(x, y)
+            self._spotify_panel.show()
+
+    def _toggle_clipboard_ai(self):
+        if not hasattr(self, "_clipboard_panel") or self._clipboard_panel is None:
+            from actions.clipboard_ai_gui import ClipboardAIPanel
+            self._clipboard_panel = ClipboardAIPanel(self)
+        
+        if self._clipboard_panel.isVisible():
+            self._clipboard_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._clipboard_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._clipboard_panel.height()) / 2)
+            self._clipboard_panel.move(x, y)
+            self._clipboard_panel.show()
+            self._clipboard_panel.trigger_explanation()
+
+    def _toggle_pomodoro(self):
+        if not hasattr(self, "_pomodoro_panel") or self._pomodoro_panel is None:
+            from actions.pomodoro_gui import PomodoroPanel
+            self._pomodoro_panel = PomodoroPanel(self)
+        
+        if self._pomodoro_panel.isVisible():
+            self._pomodoro_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._pomodoro_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._pomodoro_panel.height()) / 2)
+            self._pomodoro_panel.move(x, y)
+            self._pomodoro_panel.show()
+
+    def _toggle_dsa(self):
+        if not hasattr(self, "_dsa_panel") or self._dsa_panel is None:
+            from actions.dsa_gui import DSAPanel
+            self._dsa_panel = DSAPanel(self)
+        
+        if self._dsa_panel.isVisible():
+            self._dsa_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._dsa_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._dsa_panel.height()) / 2)
+            self._dsa_panel.move(x, y)
+            self._dsa_panel.show()
+
+    def _toggle_study(self):
+        if not hasattr(self, "_study_panel") or self._study_panel is None:
+            from actions.study_planner_gui import StudyPlannerPanel
+            self._study_panel = StudyPlannerPanel(self)
+        
+        if self._study_panel.isVisible():
+            self._study_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._study_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._study_panel.height()) / 2)
+            self._study_panel.move(x, y)
+            self._study_panel.show()
+
     def _on_router_badge_updated(self, model: str):
         if not hasattr(self, "_router_badge"):
             return
@@ -3457,6 +3688,18 @@ class MainWindow(QMainWindow):
         self._prime_metrics_lbl.setFont(QFont("Segoe UI", 8))
         self._prime_metrics_lbl.setStyleSheet(f"color: {C.CYAN}; background: transparent;")
         lay.addWidget(self._prime_metrics_lbl)
+
+        # Screen Time footer badge
+        self._screentime_lbl = QLabel("📊 SCREENTIME: --")
+        self._screentime_lbl.setFont(QFont("Segoe UI", 8))
+        self._screentime_lbl.setStyleSheet(f"color: #10B981; background: transparent;")
+        lay.addWidget(self._screentime_lbl)
+
+        # Flame Git Streak footer badge
+        self._streak_lbl = QLabel("🔥 STREAK: --")
+        self._streak_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        self._streak_lbl.setStyleSheet(f"color: #EF4444; background: transparent;")
+        lay.addWidget(self._streak_lbl)
 
         lay.addStretch()
         self._footer_copyright_lbl = QLabel("© IP VERSE")

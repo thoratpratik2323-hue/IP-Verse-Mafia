@@ -155,3 +155,63 @@ def execute_git_automation(action: str, repo_path: str = None, commit_message: s
         
     else:
         return f"Error: Unknown git action '{action}'."
+
+def github_assistant(parameters: dict, player=None) -> str:
+    """Standard dispatcher for github_assistant action."""
+    action = parameters.get("action", "")
+    repo_path = parameters.get("repo_path")
+    commit_msg = parameters.get("commit_message") or parameters.get("commit_msg")
+    title = parameters.get("title")
+    body = parameters.get("body")
+    
+    if action == "streak":
+        return f"Pratik Sir, aapka current local repository commit streak **{get_git_streak(repo_path)} days** hai, sir!"
+    return execute_git_automation(action, repo_path, commit_msg, title, body)
+
+def get_git_streak(repo_path: str = None) -> int:
+    """Calculates local git commit streak in consecutive days."""
+    if not repo_path:
+        repo_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    
+    # Run git log to get commit dates
+    cmd = ["log", "--all", "--date=short", "--format=%ad"]
+    out, ok = _run_git_cmd(cmd, repo_path)
+    if not ok or not out:
+        return 0
+        
+    dates = sorted(list(set(out.splitlines())), reverse=True)
+    if not dates:
+        return 0
+        
+    from datetime import datetime, timedelta
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+    
+    parsed_dates = []
+    for d_str in dates:
+        try:
+            parsed_dates.append(datetime.strptime(d_str.strip(), "%Y-%m-%d").date())
+        except Exception:
+            pass
+            
+    if not parsed_dates:
+        return 0
+        
+    # Check if user committed today or yesterday to continue the streak
+    if parsed_dates[0] != today and parsed_dates[0] != yesterday:
+        return 0
+        
+    streak = 1
+    current_date = parsed_dates[0]
+    for d in parsed_dates[1:]:
+        diff = (current_date - d).days
+        if diff == 1:
+            streak += 1
+            current_date = d
+        elif diff == 0:
+            continue
+        else:
+            break
+            
+    return streak
+
