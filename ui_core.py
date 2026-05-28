@@ -399,9 +399,6 @@ class HudCanvas(QWidget):
         self._ring_angle_1 = (self._ring_angle_1 + ring_speed_1) % 360
         self._ring_angle_2 = (self._ring_angle_2 + ring_speed_2) % 360
 
-        # Update cyber ticker offset
-        self._ticker_offset = (self._ticker_offset + 0.65) % 10000.0
-
         # Ambient background particles drifting
         W, H = self.width(), self.height()
         for p in self._ambient_particles:
@@ -685,27 +682,6 @@ class HudCanvas(QWidget):
                 
                 p.setPen(QPen(qcol(color, alpha), 2))
                 p.drawPath(path)
-
-            # 10. Active Cyber-Ticker (Thoughts Matrix) at the bottom
-            ticker_h = 22
-            ticker_y = H - ticker_h
-            p.setBrush(QBrush(qcol("#010610", 185)))
-            p.setPen(QPen(qcol(C.BORDER, 90), 1))
-            p.drawRect(QRectF(-1, ticker_y, W + 2, ticker_h + 2))
-            
-            p.setFont(QFont("Consolas", 8))
-            text_col = qcol(C.CYAN if self.state in ("THINKING", "PROCESSING") else C.PRI, 180)
-            p.setPen(QPen(text_col))
-            
-            fm = p.fontMetrics()
-            text_w = fm.horizontalAdvance(self._ticker_text)
-            if text_w > 0:
-                x = - (self._ticker_offset % text_w)
-                while x < W:
-                    p.drawText(QRectF(x, ticker_y, text_w, ticker_h), 
-                               Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, 
-                               self._ticker_text)
-                    x += text_w
 
 
     def contextMenuEvent(self, event):
