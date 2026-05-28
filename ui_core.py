@@ -3068,8 +3068,8 @@ class MainWindow(QMainWindow):
         # 1. Chrono Card (Time)
         self._time_panel = QWidget()
         self._time_panel.setStyleSheet(
-            f"background: rgba(5, 12, 32, 0.48);"
-            f"border: 1.5px solid rgba(59, 130, 246, 0.35);"
+            f"background: rgba(2, 3, 5, 0.92);"
+            f"border: 1.5px solid rgba(59, 130, 246, 0.18);"
             f"border-radius: 12px;"
         )
         
@@ -3117,8 +3117,8 @@ class MainWindow(QMainWindow):
         # 2. Climate Card (Weather)
         self._weather_panel = QWidget()
         self._weather_panel.setStyleSheet(
-            f"background: rgba(5, 12, 32, 0.48);"
-            f"border: 1.5px solid rgba(139, 92, 246, 0.35);"
+            f"background: rgba(2, 3, 5, 0.92);"
+            f"border: 1.5px solid rgba(139, 92, 246, 0.18);"
             f"border-radius: 12px;"
         )
         
