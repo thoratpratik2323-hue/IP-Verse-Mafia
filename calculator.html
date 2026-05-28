@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Calculator | Premium Edition</title>
+    <!-- Google Fonts: Outfit & Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --calc-bg: rgba(17, 24, 39, 0.7);
+            --border-glow: rgba(39, 200, 245, 0.25);
+            --accent-cyan: #27C8F5;
+            --accent-purple: #8B5CF6;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --btn-bg: rgba(31, 41, 55, 0.5);
+            --btn-hover: rgba(55, 65, 81, 0.8);
+            --btn-op: rgba(139, 92, 246, 0.25);
+            --btn-op-hover: rgba(139, 92, 246, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(39, 200, 245, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Abstract cyber meshes behind calculator */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--accent-cyan);
+            filter: blur(150px);
+            opacity: 0.15;
+            top: 20%;
+            left: 25%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--accent-purple);
+            filter: blur(150px);
+            opacity: 0.15;
+            bottom: 20%;
+            right: 25%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            z-index: 10;
+            position: relative;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphic Calculator Frame */
+        .calculator {
+            background: var(--calc-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(39, 200, 245, 0.15);
+            border-radius: 32px;
+            width: 380px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .calculator:hover {
+            box-shadow: 
+                0 30px 60px -12px rgba(0, 0, 0, 0.6),
+                0 0 50px rgba(39, 200, 245, 0.25);
+            transform: translateY(-4px);
+        }
+
+        /* Header UI */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 14px;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .dot-r { background-color: #EF4444; }
+        .dot-y { background-color: #F59E0B; }
+        .dot-g { background-color: #10B981; }
+
+        /* Premium Digital Display */
+        .display-container {
+            background: rgba(3, 7, 18, 0.6);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            min-height: 110px;
+            border: 1px solid rgba(39, 200, 245, 0.15);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .display-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(39, 200, 245, 0.4), transparent);
+        }
+
+        .expression {
+            font-size: 16px;
+            color: var(--text-secondary);
+            min-height: 24px;
+            letter-spacing: 1px;
+            word-wrap: break-word;
+            word-break: break-all;
+            max-width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .value {
+            font-family: 'Orbitron', monospace;
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .value::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        /* Buttons Grid Layout */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            height: 64px;
+            border-radius: 18px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ripple effect */
+        button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        button:active::after {
+            opacity: 1;
+            transition: 0s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom styling classes */
+        .btn-num {
+            background-color: var(--btn-bg);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-num:hover {
+            background-color: var(--btn-hover);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-op {
+            background-color: var(--btn-op);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+        }
+
+        .btn-op:hover {
+            background-color: var(--btn-op-hover);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+        }
+
+        .btn-fn {
+            background-color: rgba(39, 200, 245, 0.08);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(39, 200, 245, 0.15);
+        }
+
+        .btn-fn:hover {
+            background-color: rgba(39, 200, 245, 0.18);
+            box-shadow: 0 0 15px rgba(39, 200, 245, 0.25);
+        }
+
+        .btn-eq {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(39, 200, 245, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-eq:hover {
+            box-shadow: 0 4px 25px rgba(39, 200, 245, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* Dynamic Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="calculator">
+            <div class="header">
+                <h1>Quantum Calc</h1>
+                <div class="dots">
+                    <div class="dot dot-r"></div>
+                    <div class="dot dot-y"></div>
+                    <div class="dot dot-g"></div>
+                </div>
+            </div>
+
+            <div class="display-container">
+                <div class="expression" id="expression"></div>
+                <div class="value" id="display">0</div>
+            </div>
+
+            <div class="buttons">
+                <!-- Row 1 -->
+                <button class="btn-fn" onclick="clearDisplay()">AC</button>
+                <button class="btn-fn" onclick="backspace()">DEL</button>
+                <button class="btn-fn" onclick="appendOperator('%')">%</button>
+                <button class="btn-op" onclick="appendOperator('/')">/</button>
+
+                <!-- Row 2 -->
+                <button class="btn-num" onclick="appendNum('7')">7</button>
+                <button class="btn-num" onclick="appendNum('8')">8</button>
+                <button class="btn-num" onclick="appendNum('9')">9</button>
+                <button class="btn-op" onclick="appendOperator('*')">&times;</button>
+
+                <!-- Row 3 -->
+                <button class="btn-num" onclick="appendNum('4')">4</button>
+                <button class="btn-num" onclick="appendNum('5')">5</button>
+                <button class="btn-num" onclick="appendNum('6')">6</button>
+                <button class="btn-op" onclick="appendOperator('-')">-</button>
+
+                <!-- Row 4 -->
+                <button class="btn-num" onclick="appendNum('1')">1</button>
+                <button class="btn-num" onclick="appendNum('2')">2</button>
+                <button class="btn-num" onclick="appendNum('3')">3</button>
+                <button class="btn-op" onclick="appendOperator('+')">+</button>
+
+                <!-- Row 5 -->
+                <button class="btn-num" style="grid-column: span 2;" onclick="appendNum('0')">0</button>
+                <button class="btn-num" onclick="appendNum('.')">.</button>
+                <button class="btn-eq" onclick="calculate()">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        const expressionDiv = document.getElementById('expression');
+        
+        let currentInput = '0';
+        let prevExpression = '';
+        let lastActionWasEquals = false;
+
+        function updateDisplay() {
+            display.innerText = currentInput;
+            expressionDiv.innerText = prevExpression;
+            
+            // Text autoscaling for large numbers
+            if (currentInput.length > 12) {
+                display.style.fontSize = '24px';
+            } else if (currentInput.length > 8) {
+                display.style.fontSize = '30px';
+            } else {
+                display.style.fontSize = '40px';
+            }
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            prevExpression = '';
+            lastActionWasEquals = false;
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (lastActionWasEquals) {
+                clearDisplay();
+                return;
+            }
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function appendNum(num) {
+            if (lastActionWasEquals) {
+                currentInput = num;
+                prevExpression = '';
+                lastActionWasEquals = false;
+                updateDisplay();
+                return;
+            }
+
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else if (num === '.' && currentInput.includes('.')) {
+                return; // Prevent multiple decimals
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (lastActionWasEquals) {
+                prevExpression = currentInput + ' ' + op + ' ';
+                currentInput = '0';
+                lastActionWasEquals = false;
+                updateDisplay();
+                return;
+            }
+
+            // If expression already exists, chain operations
+            if (prevExpression && currentInput !== '0') {
+                calculate();
+                prevExpression = currentInput + ' ' + op + ' ';
+                currentInput = '0';
+            } else {
+                prevExpression = currentInput + ' ' + op + ' ';
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (!prevExpression || lastActionWasEquals) return;
+
+            const fullExpr = prevExpression + currentInput;
+            // Clean up visual multiplication symbol for eval
+            const evalExpr = fullExpr.replace(/&times;/g, '*').replace(/×/g, '*');
+
+            try {
+                // Secure basic arithmetic eval using Function constructor
+                let result = new Function(`return ${evalExpr}`)();
+                
+                // Format decimal results
+                if (result % 1 !== 0) {
+                    result = parseFloat(result.toFixed(6));
+                }
+
+                prevExpression = fullExpr + ' =';
+                currentInput = String(result);
+                lastActionWasEquals = true;
+            } catch (error) {
+                currentInput = 'Error';
+                prevExpression = '';
+                lastActionWasEquals = true;
+            }
+            updateDisplay();
+        }
+
+        // Add keyboard support
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            if (/[0-9]/.test(key)) {
+                appendNum(key);
+            } else if (key === '.') {
+                appendNum('.');
+            } else if (key === '+' || key === '-' || key === '*' || key === '/' || key === '%') {
+                appendOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === 'Escape') {
+                clearDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
