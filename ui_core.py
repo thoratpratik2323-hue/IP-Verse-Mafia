@@ -27,6 +27,7 @@ from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget, QSlider, QCheckBox, QComboBox,
+    QGraphicsDropShadowEffect,
 )
 
 
@@ -78,7 +79,7 @@ def _load_theme():
             with open(theme_file, "r") as f:
                 idx = json.load(f).get("theme_idx", 0)
                 themes = [
-                    {"BG": "#030712", "PANEL": "rgba(15, 23, 42, 0.65)", "PRI": "#3B82F6", "PRI_DIM": "#1D4ED8", "PRI_GHO": "rgba(59, 130, 246, 0.12)", "BORDER": "rgba(59, 130, 246, 0.15)", "ACC": "#8B5CF6", "ACC2": "#A78BFA", "CYAN": "#06B6D4", "GREEN": "#10B981"},
+                    {"BG": "#020813", "PANEL": "rgba(255, 255, 255, 0.10)", "PRI": "#38BDF8", "PRI_DIM": "#0284C7", "PRI_GHO": "rgba(56, 189, 248, 0.12)", "BORDER": "rgba(56, 189, 248, 0.28)", "ACC": "#FFFFFF", "ACC2": "#E0F2FE", "CYAN": "#38BDF8", "GREEN": "#FFFFFF"},
                     {"BG": "#1a0505", "PANEL": "rgba(40, 10, 10, 0.65)", "PRI": "#EF4444", "PRI_DIM": "#B91C1C", "PRI_GHO": "rgba(239, 68, 68, 0.12)", "BORDER": "rgba(239, 68, 68, 0.15)", "ACC": "#F43F5E", "ACC2": "#FB7185", "CYAN": "#FCA5A5", "GREEN": "#10B981"},
                     {"BG": "#020a05", "PANEL": "rgba(5, 30, 15, 0.65)", "PRI": "#10B981", "PRI_DIM": "#047857", "PRI_GHO": "rgba(16, 185, 129, 0.12)", "BORDER": "rgba(16, 185, 129, 0.15)", "ACC": "#34D399", "ACC2": "#6EE7B7", "CYAN": "#A7F3D0", "GREEN": "#3B82F6"},
                     {"BG": "#0a0014", "PANEL": "rgba(25, 10, 45, 0.65)", "PRI": "#D946EF", "PRI_DIM": "#C026D3", "PRI_GHO": "rgba(217, 70, 239, 0.12)", "BORDER": "rgba(217, 70, 239, 0.15)", "ACC": "#06B6D4", "ACC2": "#22D3EE", "CYAN": "#F472B6", "GREEN": "#10B981"},
@@ -1842,11 +1843,17 @@ class MainWindow(QMainWindow):
         mic_on = not getattr(self, "_muted", False)
         if hasattr(self, "_status_mic_val"):
             if mic_on:
-                self._status_mic_val.setText("ON")
-                self._status_mic_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+                self._status_mic_val.setText("ACTIVE")
+                self._status_mic_val.setStyleSheet(
+                    "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+                    "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
             else:
-                self._status_mic_val.setText("OFF")
-                self._status_mic_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
+                self._status_mic_val.setText("MUTED")
+                self._status_mic_val.setStyleSheet(
+                    "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
+                    "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
 
         # 2. API Status (Green if Gemini Live session is active, Red if disconnected)
         api_on = False
@@ -1856,24 +1863,39 @@ class MainWindow(QMainWindow):
                 
         if hasattr(self, "_status_api_val"):
             if api_on:
-                self._status_api_val.setText("ON")
-                self._status_api_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+                self._status_api_val.setText("ONLINE")
+                self._status_api_val.setStyleSheet(
+                    "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+                    "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
             else:
-                self._status_api_val.setText("OFF")
-                self._status_api_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
+                self._status_api_val.setText("OFFLINE")
+                self._status_api_val.setStyleSheet(
+                    "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
+                    "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
 
         # 3. VOICE Status (Green if online and ready, pulsing cyan SPEAKING if synthesizing audio)
         if hasattr(self, "_status_voice_val"):
             if api_on:
                 if hasattr(self, "hud") and getattr(self.hud, "speaking", False):
-                    self._status_voice_val.setText("SPEAKING")
-                    self._status_voice_val.setStyleSheet("color: #06b6d4; font-weight: bold;") # Pulsing Cyan
+                    self._status_voice_val.setText("TRANSMIT")
+                    self._status_voice_val.setStyleSheet(
+                        "color: #06b6d4; font-weight: bold; background: rgba(6, 182, 212, 0.12); "
+                        "border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 2px 6px;"
+                    )
                 else:
-                    self._status_voice_val.setText("ON")
-                    self._status_voice_val.setStyleSheet("color: #10b981; font-weight: bold;") # Green
+                    self._status_voice_val.setText("STANDBY")
+                    self._status_voice_val.setStyleSheet(
+                        "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+                        "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+                    )
             else:
-                self._status_voice_val.setText("OFF")
-                self._status_voice_val.setStyleSheet("color: #ef4444; font-weight: bold;") # Red
+                self._status_voice_val.setText("OFFLINE")
+                self._status_voice_val.setStyleSheet(
+                    "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
+                    "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
 
         # 4. Live Terminal Uptime log
         try:
@@ -2962,10 +2984,18 @@ class MainWindow(QMainWindow):
         self._left_panel = QWidget()
         self._left_panel.setFixedWidth(190)  # Compact, elegant terminal layout!
         self._left_panel.setStyleSheet(
-            f"background: rgba(5, 10, 20, 0.72);"
-            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"background: rgba(5, 12, 32, 0.48);"
+            f"border: 1.5px solid rgba(6, 182, 212, 0.35);"
             f"border-radius: 12px;"
         )
+        
+        # Add gorgeous high-tech neon drop shadow
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(C.CYAN))
+        shadow.setOffset(0, 0)
+        self._left_panel.setGraphicsEffect(shadow)
+
         lay = QVBoxLayout(self._left_panel)
         lay.setContentsMargins(12, 16, 12, 16)
         lay.setSpacing(14)
@@ -2984,17 +3014,17 @@ class MainWindow(QMainWindow):
             row = QWidget()
             row.setStyleSheet("background: transparent; border: none;")
             row_lay = QHBoxLayout(row)
-            row_lay.setContentsMargins(4, 0, 4, 0)
+            row_lay.setContentsMargins(6, 2, 6, 2)
             
-            lbl_name = QLabel(f"{name}:")
+            lbl_name = QLabel(f"◰ {name}")
             lbl_name.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
-            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; letter-spacing: 1px;")
             row_lay.addWidget(lbl_name)
             
             row_lay.addStretch()
             
             lbl_val = QLabel("[ -- ]")
-            lbl_val.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_val.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
             lbl_val.setStyleSheet("background: transparent;")
             row_lay.addWidget(lbl_val)
             return row, lbl_val
@@ -3038,10 +3068,18 @@ class MainWindow(QMainWindow):
         # 1. Chrono Card (Time)
         self._time_panel = QWidget()
         self._time_panel.setStyleSheet(
-            f"background: rgba(5, 10, 20, 0.72);"
-            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"background: rgba(5, 12, 32, 0.48);"
+            f"border: 1.5px solid rgba(59, 130, 246, 0.35);"
             f"border-radius: 12px;"
         )
+        
+        # Add dynamic Cobalt-Blue glowing shadow matching C.PRI highlight
+        time_shadow = QGraphicsDropShadowEffect(self)
+        time_shadow.setBlurRadius(20)
+        time_shadow.setColor(QColor(C.PRI))
+        time_shadow.setOffset(0, 0)
+        self._time_panel.setGraphicsEffect(time_shadow)
+
         time_lay = QVBoxLayout(self._time_panel)
         time_lay.setContentsMargins(12, 16, 12, 16)
         time_lay.setSpacing(10)
@@ -3055,15 +3093,23 @@ class MainWindow(QMainWindow):
         time_lay.addWidget(self._time_hdr)
         
         self._time_val_lbl = QLabel("00:00:00 AM")
-        self._time_val_lbl.setFont(QFont("Consolas", 13, QFont.Weight.Bold))
+        self._time_val_lbl.setFont(QFont("Consolas", 12, QFont.Weight.Bold))
         self._time_val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._time_val_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent;")
+        self._time_val_lbl.setStyleSheet(
+            f"color: {C.GREEN}; background: rgba(16, 185, 129, 0.08); "
+            f"border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 6px; "
+            f"padding: 6px 10px; font-weight: bold; letter-spacing: 1px;"
+        )
         time_lay.addWidget(self._time_val_lbl)
         
         self._date_val_lbl = QLabel("00-00-0000 - DAY")
-        self._date_val_lbl.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
+        self._date_val_lbl.setFont(QFont("Consolas", 7, QFont.Weight.Bold))
         self._date_val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._date_val_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        self._date_val_lbl.setStyleSheet(
+            f"color: {C.TEXT_MED}; background: rgba(148, 163, 184, 0.08); "
+            f"border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px; "
+            f"padding: 4px 6px; letter-spacing: 0.5px;"
+        )
         time_lay.addWidget(self._date_val_lbl)
         
         lay.addWidget(self._time_panel)
@@ -3071,10 +3117,18 @@ class MainWindow(QMainWindow):
         # 2. Climate Card (Weather)
         self._weather_panel = QWidget()
         self._weather_panel.setStyleSheet(
-            f"background: rgba(5, 10, 20, 0.72);"
-            f"border: 1px solid rgba(6, 182, 212, 0.28);"
+            f"background: rgba(5, 12, 32, 0.48);"
+            f"border: 1.5px solid rgba(139, 92, 246, 0.35);"
             f"border-radius: 12px;"
         )
+        
+        # Add dynamic Royal Violet glowing shadow matching C.ACC highlight
+        weather_shadow = QGraphicsDropShadowEffect(self)
+        weather_shadow.setBlurRadius(20)
+        weather_shadow.setColor(QColor(C.ACC))
+        weather_shadow.setOffset(0, 0)
+        self._weather_panel.setGraphicsEffect(weather_shadow)
+
         weather_lay = QVBoxLayout(self._weather_panel)
         weather_lay.setContentsMargins(12, 16, 12, 16)
         weather_lay.setSpacing(10)
@@ -3091,28 +3145,37 @@ class MainWindow(QMainWindow):
             row = QWidget()
             row.setStyleSheet("background: transparent; border: none;")
             row_lay = QHBoxLayout(row)
-            row_lay.setContentsMargins(4, 0, 4, 0)
+            row_lay.setContentsMargins(6, 2, 6, 2)
             
-            lbl_name = QLabel(f"{name}:")
+            lbl_name = QLabel(f"◰ {name}")
             lbl_name.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
-            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+            lbl_name.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; letter-spacing: 1px;")
             row_lay.addWidget(lbl_name)
             
             row_lay.addStretch()
             
             lbl_val = QLabel(placeholder)
-            lbl_val.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+            lbl_val.setFont(QFont("Consolas", 8, QFont.Weight.Bold))
             lbl_val.setStyleSheet("background: transparent;")
             row_lay.addWidget(lbl_val)
             return row, lbl_val
             
-        row_loc, self._weather_loc_lbl = _make_row("LOC", "RETRIEVING...")
+        row_loc, self._weather_loc_lbl = _make_row("LOC", "SEARCHING")
         row_temp, self._weather_temp_lbl = _make_row("TEMP", "--°C")
         row_cond, self._weather_cond_lbl = _make_row("COND", "PENDING")
         
-        self._weather_loc_lbl.setStyleSheet(f"color: {C.CYAN}; font-weight: bold;")
-        self._weather_temp_lbl.setStyleSheet(f"color: {C.GREEN}; font-weight: bold;")
-        self._weather_cond_lbl.setStyleSheet(f"color: {C.CYAN}; font-weight: bold;")
+        self._weather_loc_lbl.setStyleSheet(
+            "color: #06b6d4; font-weight: bold; background: rgba(6, 182, 212, 0.12); "
+            "border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 2px 6px;"
+        )
+        self._weather_temp_lbl.setStyleSheet(
+            "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+            "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+        )
+        self._weather_cond_lbl.setStyleSheet(
+            "color: #06b6d4; font-weight: bold; background: rgba(6, 182, 212, 0.12); "
+            "border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 2px 6px;"
+        )
         
         weather_lay.addWidget(row_loc)
         weather_lay.addWidget(row_temp)
@@ -3411,33 +3474,43 @@ class MainWindow(QMainWindow):
                 )
 
         # 4. Metric Bars
-        self._bar_cpu._color = C.PRI
-        self._bar_mem._color = C.ACC2
-        self._bar_net._color = C.GREEN
-        self._bar_gpu._color = C.ACC
-        self._bar_cpu.update()
-        self._bar_mem.update()
-        self._bar_net.update()
-        self._bar_gpu.update()
-        self._bar_tmp.update()
+        if hasattr(self, "_bar_cpu"):
+            self._bar_cpu._color = C.PRI
+            self._bar_cpu.update()
+        if hasattr(self, "_bar_mem"):
+            self._bar_mem._color = C.ACC2
+            self._bar_mem.update()
+        if hasattr(self, "_bar_net"):
+            self._bar_net._color = C.GREEN
+            self._bar_net.update()
+        if hasattr(self, "_bar_gpu"):
+            self._bar_gpu._color = C.ACC
+            self._bar_gpu.update()
+        if hasattr(self, "_bar_tmp"):
+            self._bar_tmp.update()
 
         # 5. Left Info Panel
-        self._left_info_panel.setStyleSheet(f"background: {C.BG}; border: 1px solid {C.BORDER}; border-radius: 6px;")
-        self._uptime_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent; border: none;")
-        self._proc_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
-        self._os_lbl.setStyleSheet(f"color: {C.ACC2}; background: transparent; border: none;")
+        if hasattr(self, "_left_info_panel"):
+            self._left_info_panel.setStyleSheet(f"background: {C.BG}; border: 1px solid {C.BORDER}; border-radius: 6px;")
+        if hasattr(self, "_uptime_lbl"):
+            self._uptime_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent; border: none;")
+        if hasattr(self, "_proc_lbl"):
+            self._proc_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
+        if hasattr(self, "_os_lbl"):
+            self._os_lbl.setStyleSheet(f"color: {C.ACC2}; background: transparent; border: none;")
 
         # 6. Left Badges
-        for i, (txt, col) in enumerate([
-            ("AI CORE\nACTIVE",     C.GREEN),
-            ("SEC\nCLEARED",        C.PRI),
-            ("PROTOCOL\nXXXVIII",   C.TEXT_DIM),
-        ]):
-            if i < len(self._left_badges):
-                self._left_badges[i].setStyleSheet(
-                    f"color: {col}; background: {C.BG};"
-                    f"border: 1px solid {C.BORDER}; border-radius: 4px; padding: 4px;"
-                )
+        if hasattr(self, "_left_badges"):
+            for i, (txt, col) in enumerate([
+                ("AI CORE\nACTIVE",     C.GREEN),
+                ("SEC\nCLEARED",        C.PRI),
+                ("PROTOCOL\nXXXVIII",   C.TEXT_DIM),
+            ]):
+                if i < len(self._left_badges):
+                    self._left_badges[i].setStyleSheet(
+                        f"color: {col}; background: {C.BG};"
+                        f"border: 1px solid {C.BORDER}; border-radius: 4px; padding: 4px;"
+                    )
 
         # 7. HUD Container
         self._hud_container.setStyleSheet(f"background: transparent; border: none; border-radius: 12px;")
