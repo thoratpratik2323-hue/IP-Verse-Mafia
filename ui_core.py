@@ -514,6 +514,7 @@ class HudCanvas(QWidget):
         aura_grad.setColorAt(0.0, qcol(glow_c, glow_a))
         aura_grad.setColorAt(0.5, qcol(glow_c, int(glow_a * 0.35)))
         aura_grad.setColorAt(1.0, qcol(C.BG, 0))
+        p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QBrush(aura_grad))
         p.drawEllipse(QRectF(cx - aura_rad, cy - aura_rad, aura_rad * 2, aura_rad * 2))
 
