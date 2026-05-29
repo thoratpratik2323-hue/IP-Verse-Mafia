@@ -38,9 +38,9 @@ class VisionLoop:
             return "API Key not loaded, skipping vision loop."
             
         current_time = time.time()
-        # Enforce highly strict 10 minutes interval to protect Gemini API rate limits
-        if current_time - self.last_vision_run < 600:
-            return "Vision loop rate-limited (runs once every 10 minutes)."
+        # Enforce highly strict 60 minutes interval to protect Gemini API rate limits and CPU resources
+        if current_time - self.last_vision_run < 3600:
+            return "Vision loop rate-limited (runs once every 60 minutes)."
             
         self.last_vision_run = current_time
         print("[VisionLoop] 👁️ Capturing proactive screenshot for visual diagnostic...")

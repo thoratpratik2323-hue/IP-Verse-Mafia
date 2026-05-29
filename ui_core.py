@@ -2186,7 +2186,7 @@ class MainWindow(QMainWindow):
             }}
         """)
         self._sandbox_btn.clicked.connect(self._toggle_sandbox)
-        lay.addWidget(self._sandbox_btn)
+        # lay.addWidget(self._sandbox_btn)
 
         self._viva_btn = QPushButton("VIVA 🎤")
         self._viva_btn.setFixedSize(90, 36)
@@ -2204,7 +2204,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._viva_btn.clicked.connect(self._toggle_viva)
-        lay.addWidget(self._viva_btn)
+        # lay.addWidget(self._viva_btn)
 
         self._git_btn = QPushButton("GIT 🐙")
         self._git_btn.setFixedSize(80, 36)
@@ -2222,7 +2222,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._git_btn.clicked.connect(self._toggle_git_autopilot)
-        lay.addWidget(self._git_btn)
+        # lay.addWidget(self._git_btn)
 
         # BRIEF Button
         self._brief_btn = QPushButton("BRIEF 🌅")
@@ -2241,7 +2241,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._brief_btn.clicked.connect(self._toggle_briefing)
-        lay.addWidget(self._brief_btn)
+        # lay.addWidget(self._brief_btn)
 
         # FOCUS Button
         self._focus_btn = QPushButton("FOCUS 🍅")
@@ -2260,7 +2260,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._focus_btn.clicked.connect(self._toggle_pomodoro)
-        lay.addWidget(self._focus_btn)
+        # lay.addWidget(self._focus_btn)
 
         # DSA Button
         self._dsa_btn = QPushButton("DSA 💡")
@@ -2279,7 +2279,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._dsa_btn.clicked.connect(self._toggle_dsa)
-        lay.addWidget(self._dsa_btn)
+        # lay.addWidget(self._dsa_btn)
 
         # STUDY Button
         self._study_btn = QPushButton("STUDY 📅")
@@ -2298,7 +2298,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._study_btn.clicked.connect(self._toggle_study)
-        lay.addWidget(self._study_btn)
+        # lay.addWidget(self._study_btn)
 
         # MUSIC Button
         self._music_btn = QPushButton("MUSIC 🎵")
@@ -2317,7 +2317,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self._music_btn.clicked.connect(self._toggle_spotify)
-        lay.addWidget(self._music_btn)
+        # lay.addWidget(self._music_btn)
 
         # TRANSLATE Button
         self._translate_btn = QPushButton("TRANSLATE 🌐")
@@ -2353,7 +2353,7 @@ class MainWindow(QMainWindow):
             }}
         """)
         self._settings_gear_btn.clicked.connect(self._toggle_settings_panel)
-        lay.addWidget(self._settings_gear_btn)
+        # lay.addWidget(self._settings_gear_btn)
 
         self._slide_btn = QPushButton("ACTIVE LOG 📋")
         self._slide_btn.setFixedSize(130, 36)

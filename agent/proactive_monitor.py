@@ -52,8 +52,8 @@ class ProactiveMonitor:
             except Exception as e:
                 print(f"[ProactiveMonitor] ⚠️ Error in monitor loop: {e}")
                 
-            # Check every 15 seconds to be highly responsive yet resource-friendly
-            time.sleep(15)
+            # Check every 60 seconds to keep CPU/RAM usage minimal
+            time.sleep(60)
             
     def _check_for_proactive_actions(self):
         """Runs the monitoring pipelines for all autonomous proactive agents."""
@@ -101,8 +101,8 @@ class ProactiveMonitor:
         """Agent 1: Monitors RAM/CPU and proactively clears memory if high."""
         if not psutil:
             return
-        # Restrict check to once every 2 minutes to prevent high CPU utilization
-        if current_time - self.last_health_alert < 120:
+        # Restrict check to once every 5 minutes to prevent high CPU utilization
+        if current_time - self.last_health_alert < 300:
             return
             
         try:
