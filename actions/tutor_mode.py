@@ -86,12 +86,35 @@ def add_topic(name: str, quiz_question: str = "", quiz_answer: str = "") -> str:
     return "Failed to save the new topic, sir."
 
 def start_learning_session(topic_name: str) -> str:
-    """Activates tutoring text for a specific topic."""
+    """Activates tutoring text for a specific topic using dynamically generated AI guides."""
+    from actions.prime_utils import UnifiedModelClient
+    
+    ai_guide = ""
+    try:
+        client = UnifiedModelClient(category="coding")
+        prompt = f"""You are the Premium spaced repetition Leitner tutoring engine for IP Prime.
+Produce a high-value, beautifully structured learning guide for Pratik Sir on the topic: '{topic_name}'.
+Your guide should:
+1. Explain the topic's core concept clearly.
+2. Provide a 3-point critical breakdown of must-know elements.
+3. Keep the tone premium, direct, and use a friendly Hinglish style where appropriate.
+
+Use standard clean markdown. Keep it concise (150-250 words total)."""
+        response = client.models.generate_content(model=None, contents=prompt)
+        ai_guide = response.text.strip()
+    except Exception as e:
+        logger.warning("Failed to generate dynamic AI tutor guide: %s. Using fallback stub.", e)
+
+    if not ai_guide:
+        ai_guide = (
+            f"Pratik Sir, standard analysis suggests {topic_name} is highly important. "
+            "Let's review the fundamental elements today. Make sure to commit details to memory."
+        )
+
     return (
         f"### [TUTOR] Learning Session: {topic_name}\n"
-        f"Pratik Sir, standard analysis suggests {topic_name} is highly important. "
-        "Let's review the fundamental elements today. Make sure to commit details to memory. "
-        "Type 'quiz me' or ask me to check your knowledge whenever you feel ready, sir."
+        f"{ai_guide}\n\n"
+        "*(Type 'quiz me' or ask me to check your knowledge whenever you feel ready, sir)*"
     )
 
 def quiz_me(topic_name: Optional[str] = None) -> str:

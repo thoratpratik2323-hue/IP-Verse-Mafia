@@ -122,7 +122,9 @@ def _monitor_loop(player: Optional[Any] = None):
                         msg = f"Pratik Sir, you have exceeded your screen limit of {limit_seconds // 60} minutes on '{app_name}'!"
                         if player and hasattr(player, "write_log"):
                             player.write_log(f"⏰ LIMIT EXCEEDED: '{app_name}' screen limit hit!")
-                        if player and hasattr(player, "_win") and hasattr(player._win, "ip_ray") and player._win.ip_ray:
+                        if player and hasattr(player, "speak"):
+                            player.speak(msg)
+                        elif player and hasattr(player, "_win") and hasattr(player._win, "ip_ray") and player._win.ip_ray:
                             player._win.ip_ray.speak(msg)
                         
                 _save_data(data)
