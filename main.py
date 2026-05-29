@@ -330,6 +330,8 @@ class IPRayLive:
             text = self.tts_queue.get()
             if text is None:
                 break
+            if self._quiet_mode:
+                continue
             
             # Layer 1: Try Gemini Live Real-time Stream
             if self._try_gemini_live(text):
@@ -469,6 +471,42 @@ class IPRayLive:
             return block
 
 
+    def _is_wakeup_command(self, txt_l: str) -> bool:
+        wakeup_triggers = [
+            "wake buddy", "wakebuddy", "wake up buddy", "wakeup buddy",
+            "wake up", "wakeup",
+            "prime wakeup", "prime wake up", "wake up prime",
+            "wake buddy prime", "buddy wake up", "buddy wake"
+        ]
+        return any(trigger in txt_l for trigger in wakeup_triggers)
+
+    def _is_quiet_command(self, txt_l: str) -> bool:
+        quiet_triggers = [
+            "keep quiet", "keep quite", "quiet mode", "quite mode",
+            "chup ho jao", "chup hojao", "sant ho jao", "saant ho jao",
+            "be quiet", "shutup", "silent mode",
+            "prime quiet", "prime quite"
+        ]
+        return any(trigger in txt_l for trigger in quiet_triggers)
+
+    def _is_coding_command(self, txt_l: str, original_text: str = "") -> bool:
+        coding_triggers = [
+            "dsa help", "problem solve karo", "leetcode hint", "leetcode",
+            "git commit", "commit kar", "autopilot commit", "stage commit", "code commit", "git autopilot",
+            "sandbox mode", "open sandbox", "visualizer", "algo sandbox", "sorting sandbox",
+            "code", "coding", "program", "python", "run code", "compile", "freellmapi", "nvidia", "solve"
+        ]
+        if any(t in txt_l for t in coding_triggers):
+            return True
+        try:
+            from core.intent_router import is_coding_task
+            query = original_text if original_text else txt_l
+            if is_coding_task(query):
+                return True
+        except Exception:
+            pass
+        return False
+
     def _on_text_command(self, text: str):
         if not self._loop or not self.session:
             return
@@ -480,22 +518,25 @@ class IPRayLive:
         txt_l = text.lower().strip()
         
         # Quiet mode controls for text input
-        if "prime quiet" in txt_l or "prime quite" in txt_l or "chup ho jao" in txt_l or "chup hojao" in txt_l:
+        if self._is_wakeup_command(txt_l):
+            self._quiet_mode = False
+            self.ui.write_log("SYS: Quiet Mode deactivated. Welcome back, Pratik Sir!")
+            play_sfx("startup")
+            self.speak("I am awake and listening, sir!")
+            return
+        elif self._is_quiet_command(txt_l):
+            self.speak("Entering quiet mode, sir. I will remain silent until you say 'wake buddy'.")
             self._quiet_mode = True
             self.ui.write_log("SYS: Quiet Mode activated.")
-            self.speak("Entering quiet mode, sir. I will remain silent until you say 'prime wakeup'.")
             return
-        elif "prime wakeup" in txt_l or "prime wake up" in txt_l or "wake up prime" in txt_l:
-            if self._quiet_mode:
-                self._quiet_mode = False
-                self.ui.write_log("SYS: Quiet Mode deactivated.")
-                play_sfx("startup")
-                self.speak("I am awake and listening, sir!")
-                return
 
         if self._quiet_mode:
-            self.ui.write_log("SYS: [Quiet Mode Active] Command ignored. Type 'prime wakeup' to resume.")
-            return
+            if self._is_coding_command(txt_l, text):
+                self.ui.write_log(f"SYS: [Quiet Mode Active] Running coding command: {text}")
+                # Allow coding command to pass through and execute!
+            else:
+                # Silently ignore general text/chat/other commands while in quiet mode
+                return
 
         if txt_l in ["full screen", "fullscreen"]:
             self.ui.write_log("SYS: Intercepted 'full screen' command.")
@@ -747,6 +788,8 @@ class IPRayLive:
             self.ui.set_state("LISTENING")
 
     def speak(self, text: str):
+        if self._quiet_mode:
+            return
         # Chunk-based streaming: Use tts_queue for lower latency
         sentences = re.split(r'(?<=[.!?])\s+', text)
         for sentence in sentences:
@@ -1230,11 +1273,11 @@ class IPRayLive:
                                 txt_l = txt.lower()
                                 
                                 # Check quiet/wakeup vocal triggers
-                                if "prime quiet" in txt_l or "prime quite" in txt_l or "chup ho jao" in txt_l or "chup hojao" in txt_l:
+                                if self._is_quiet_command(txt_l):
+                                    self.speak("Entering quiet mode, sir. I will remain silent until you say 'wake buddy'.")
                                     self._quiet_mode = True
                                     self.ui.write_log("SYS: Quiet Mode activated via voice.")
-                                    self.speak("Entering quiet mode, sir. I will remain silent until you say 'prime wakeup'.")
-                                elif "prime wakeup" in txt_l or "prime wake up" in txt_l or "wake up prime" in txt_l:
+                                elif self._is_wakeup_command(txt_l):
                                     if self._quiet_mode:
                                         self._quiet_mode = False
                                         self.ui.write_log("SYS: Quiet Mode deactivated via voice.")
@@ -1438,7 +1481,11 @@ class IPRayLive:
                             out_buf = []
 
                             self.audio_playback_queue.put_nowait(None)
-                            if not self._quiet_mode:
+                            if self._quiet_mode:
+                                if full_in and self._is_coding_command(full_in.lower(), full_in):
+                                    self.ui.write_log(f"You (Quiet Mode Command): {full_in}")
+                                    self.route_user_message(full_in, is_voice=True)
+                            else:
                                 if full_in:
                                     self.ui.write_log(f"You: {full_in}")
                                     self.route_user_message(full_in, is_voice=True)
