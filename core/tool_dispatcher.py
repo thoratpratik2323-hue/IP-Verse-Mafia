@@ -403,6 +403,14 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             ))
             result = r or "Done."
 
+        elif name == "obsidian_rag_query":
+            from actions.obsidian_helper import obsidian_rag_query
+            r = await loop.run_in_executor(None, lambda: obsidian_rag_query(
+                query=args.get("query", ""),
+                player=self.player
+            ))
+            result = r or "Done."
+
         # --- Screen Multimodal Vision & OCR ---
         elif name == "capture_and_analyze_screen":
             from actions.screen_vision import capture_and_analyze_screen
