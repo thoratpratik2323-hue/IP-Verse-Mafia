@@ -90,20 +90,34 @@ def _get_api_key() -> str:
 
 
 def create_plan(goal: str, context: str = "") -> dict:
-    from google import genai
     from agent.skills_manager import format_tools_for_prompt
+    from actions.local_llm import is_offline_mode_active
 
-    client = genai.Client(api_key=_get_api_key())
-    
     tools_str = format_tools_for_prompt()
-    system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
-    
     system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
 
     user_input = f"Goal: {goal}"
     if context:
         user_input += f"\n\nContext: {context}"
 
+    if is_offline_mode_active():
+        print("[Planner] [Offline] Routing planning task to local Ollama...")
+        try:
+            from actions.local_llm import generate_local_response
+            text = generate_local_response(user_input, system_instruction)
+            text = re.sub(r"```(?:json)?", "", text).strip().rstrip("`").strip()
+            plan = json.loads(text)
+            if "steps" not in plan or not isinstance(plan["steps"], list):
+                raise ValueError("Invalid plan structure from local LLM")
+            print(f"[Planner] [Offline] [OK] Plan: {len(plan['steps'])} steps")
+            return plan
+        except Exception as e:
+            print(f"[Planner] [Offline] [Error] Ollama planning failed: {e}")
+            return _fallback_plan(goal)
+
+    from google import genai
+    client = genai.Client(api_key=_get_api_key())
+    
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
@@ -156,14 +170,10 @@ def _fallback_plan(goal: str) -> dict:
 
 
 def replan(goal: str, completed_steps: list, failed_step: dict, error: str) -> dict:
-    from google import genai
     from agent.skills_manager import format_tools_for_prompt
+    from actions.local_llm import is_offline_mode_active
 
-    client = genai.Client(api_key=_get_api_key())
-    
     tools_str = format_tools_for_prompt()
-    system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
-    
     system_instruction = PLANNER_PROMPT_TEMPLATE.replace("{AVAILABLE_TOOLS}", tools_str)
 
     completed_summary = "\n".join(
@@ -180,6 +190,22 @@ Error: {error}
 
 Create a REVISED plan for the remaining work only. Do not repeat completed steps."""
 
+    if is_offline_mode_active():
+        print("[Planner] [Offline] Routing replan task to local Ollama...")
+        try:
+            from actions.local_llm import generate_local_response
+            text = generate_local_response(prompt, system_instruction)
+            text = re.sub(r"```(?:json)?", "", text).strip().rstrip("`").strip()
+            plan = json.loads(text)
+            print(f"[Planner] [Offline] [Revised] Revised plan: {len(plan.get('steps', []))} steps")
+            return plan
+        except Exception as e:
+            print(f"[Planner] [Offline] [Error] Ollama replanning failed: {e}")
+            return _fallback_plan(goal)
+
+    from google import genai
+    client = genai.Client(api_key=_get_api_key())
+    
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash",

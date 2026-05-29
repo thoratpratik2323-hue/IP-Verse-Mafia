@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget, QSlider, QCheckBox, QComboBox,
-    QGraphicsDropShadowEffect,
+    QGraphicsDropShadowEffect, QDialog,
 )
 
 
@@ -4251,6 +4251,101 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
         super().closeEvent(event)
+
+    def setup_safety_guard_connections(self):
+        from agent.safety_guard import SafetyGuard
+        SafetyGuard._signals.request_approval.connect(self._on_safety_request)
+
+    def _on_safety_request(self, tool_name, reason, callback):
+        print(f"[UI] 🚨 SafetyGuard request_approval signal caught for tool: {tool_name}")
+        dialog = CyberSafetyDialog(tool_name, reason, self)
+        res = dialog.exec()
+        approved = (res == QDialog.DialogCode.Accepted)
+        callback(approved)
+
+
+class CyberSafetyDialog(QDialog):
+    def __init__(self, tool_name, reason, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("SECURITY AUTHORIZATION")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFixedSize(500, 260)
+        
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+        
+        # Cyberpunk Glassmorphic Overlay Frame
+        container = QFrame(self)
+        container.setObjectName("containerFrame")
+        container.setStyleSheet("""
+            #containerFrame {
+                background-color: rgba(5, 12, 32, 0.98);
+                border: 2px solid #ef4444;
+                border-radius: 16px;
+            }
+            QLabel {
+                color: #f8fafc;
+                background: transparent;
+                font-family: 'Segoe UI';
+            }
+            QPushButton {
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 11px;
+                font-family: 'Segoe UI';
+            }
+        """)
+        
+        lay = QVBoxLayout(container)
+        lay.setContentsMargins(25, 25, 25, 25)
+        lay.setSpacing(15)
+        
+        header = QLabel("🚨 SECURITY INTERCEPT")
+        header.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        header.setStyleSheet("color: #ef4444;")
+        lay.addWidget(header)
+        
+        desc = QLabel(f"IP Prime is requesting to execute a sensitive action:\n\n<b>{reason}</b>")
+        desc.setWordWrap(True)
+        desc.setFont(QFont("Segoe UI", 10))
+        lay.addWidget(desc)
+        
+        btn_lay = QHBoxLayout()
+        btn_lay.setSpacing(15)
+        
+        self.btn_allow = QPushButton("🟢 AUTHORIZE EXECUTION")
+        self.btn_allow.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(16, 185, 129, 0.15);
+                border: 1.5px solid #10b981;
+                color: #10b981;
+            }
+            QPushButton:hover {
+                background-color: rgba(16, 185, 129, 0.3);
+            }
+        """)
+        self.btn_allow.clicked.connect(self.accept)
+        btn_lay.addWidget(self.btn_allow)
+        
+        self.btn_deny = QPushButton("🔴 TERMINATE ACTION")
+        self.btn_deny.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(239, 68, 68, 0.15);
+                border: 1.5px solid #ef4444;
+                color: #ef4444;
+            }
+            QPushButton:hover {
+                background-color: rgba(239, 68, 68, 0.3);
+            }
+        """)
+        self.btn_deny.clicked.connect(self.reject)
+        btn_lay.addWidget(self.btn_deny)
+        
+        lay.addLayout(btn_lay)
+        main_lay.addWidget(container)
+
 
 class _RootShim:
     def __init__(self, app: QApplication):

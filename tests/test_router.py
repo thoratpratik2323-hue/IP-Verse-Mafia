@@ -42,31 +42,16 @@ class TestIntentRouter(unittest.TestCase):
 
     @patch('core.session._get_api_key', return_value="dummy_key")
     def test_ambiguous_gemini_fallback_yes(self, mock_get_key):
-        # Set up mock response
-        mock_client = MagicMock()
-        mock_genai.Client.return_value = mock_client
-        mock_response = MagicMock()
-        mock_response.text = "YES"
-        mock_client.models.generate_content.return_value = mock_response
-
-        # Ambiguous message that doesn't match keyword
-        self.assertTrue(is_coding_task("Can you make the array reverse?"))
-        mock_genai.Client.assert_called_once()
-        mock_client.models.generate_content.assert_called_once()
+        # The Gemini classify call has been disabled to preserve quota,
+        # so ambiguous queries default to False (general path) without calling Gemini API.
+        self.assertFalse(is_coding_task("Can you make the array reverse?"))
+        mock_genai.Client.assert_not_called()
 
     @patch('core.session._get_api_key', return_value="dummy_key")
     def test_ambiguous_gemini_fallback_no(self, mock_get_key):
-        # Set up mock response
-        mock_client = MagicMock()
-        mock_genai.Client.return_value = mock_client
-        mock_response = MagicMock()
-        mock_response.text = "NO"
-        mock_client.models.generate_content.return_value = mock_response
-
-        # Ambiguous message that doesn't match keyword
+        # Ambiguous message defaults to False without calling Gemini API.
         self.assertFalse(is_coding_task("How is the weather today?"))
-        mock_genai.Client.assert_called_once()
-        mock_client.models.generate_content.assert_called_once()
+        mock_genai.Client.assert_not_called()
 
     @patch.dict('os.environ', {'NVIDIA_API_KEY': 'dummy_nvidia_key'})
     def test_nvidia_client_streaming(self):

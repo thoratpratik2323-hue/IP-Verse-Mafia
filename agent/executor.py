@@ -181,6 +181,12 @@ def _translate_to_goal_language(content: str, goal: str) -> str:
         return content
 
 def _call_tool(tool: str, parameters: dict, speak: Callable | None) -> str:
+    # 1. Run through SafetyGuard first!
+    from agent.safety_guard import SafetyGuard
+    approved, msg = SafetyGuard.verify_action(tool, parameters)
+    if not approved:
+        raise PermissionError(f"SafetyGuard Blocked Action: {msg}")
+
     if tool == "generated_code":
         description = parameters.get("description", "")
         if not description:

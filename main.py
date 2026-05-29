@@ -259,6 +259,13 @@ class IPRayLive:
 
         if hasattr(self.ui, "_win") and self.ui._win:
             self.ui._win.ip_ray = self
+            try:
+                from agent.safety_guard import SafetyGuard
+                SafetyGuard.ui_instance = self.ui._win
+                self.ui._win.setup_safety_guard_connections()
+                print("[IP PRIME] SafetyGuard successfully hooked into PyQt UI.")
+            except Exception as e:
+                print(f"[IP PRIME] Failed to hook SafetyGuard: {e}")
 
         # Initialize 100% Autonomous AI Core in background
         def _start_autonomous_core():
