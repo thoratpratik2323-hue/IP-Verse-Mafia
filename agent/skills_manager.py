@@ -403,12 +403,18 @@ def execute_tool_action(name: str, parameters: dict, speak=None) -> str:
         raise RuntimeError(f"Failed to load module/function for tool '{name}': {e}")
     
     # Execute with correct parameters
+    import inspect
     try:
-        # Check if we should pass speak parameter
-        if info.get("pass_speak", False):
-            res = func(parameters=parameters, player=None, speak=speak)
-        else:
-            res = func(parameters=parameters, player=None)
+        sig = inspect.signature(func)
+        kwargs = {}
+        if "parameters" in sig.parameters:
+            kwargs["parameters"] = parameters
+        if "player" in sig.parameters:
+            kwargs["player"] = None
+        if "speak" in sig.parameters:
+            kwargs["speak"] = speak
+            
+        res = func(**kwargs)
         return res or "Done."
     except Exception as e:
         raise RuntimeError(f"Error executing tool '{name}': {e}")
