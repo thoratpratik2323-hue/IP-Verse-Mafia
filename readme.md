@@ -57,11 +57,15 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 ### 🧠 AI & Intelligence
 | Feature | Details |
 |---|---|
+| **🧠 Unlimited Memory Brain** | **8-layer unified memory — never forgets anything, ever** |
 | Smart AI Routing | Routes coding requests to NVIDIA NIM & general to Gemini |
 | Screen Vision | Analyze and describe what's on your screen in real-time |
 | Webcam Vision | See the world through your camera |
 | File Processor | Analyze PDFs, images, source code, and documents |
 | Semantic Memory | Persistent memory of your projects and preferences |
+| SQLite Knowledge Graph | Entities, facts (SPO triples), relations, timeline events |
+| Vector Store (LanceDB) | Semantic embeddings for every conversation & document |
+| Archive Compression | Weekly/monthly digests of past conversations |
 | Semantic Router | Intelligently routes intent to the right action module |
 | Agent Orchestrator | Autonomous multi-step task planning and execution |
 
@@ -221,7 +225,13 @@ ip-prime/
 ├── agent/                   # 🤖 Agent execution engine
 ├── core/                    # ⚙️ Core utilities
 ├── prime_platform/          # 🔧 Platform abstractions
-├── memory/                  # 🧠 Persistent memory store
+├── memory/                  # 🧠 Unlimited Memory Brain
+│   ├── brain.py                 # 🧠 Unified 8-layer brain orchestrator
+│   ├── summarizer.py            # 📦 Archive compression engine
+│   ├── memory_manager.py        # Memory persistence & extraction
+│   ├── autonomous_memory.py     # Episodic memory system
+│   └── archive/                 # Daily conversation JSONL logs
+│
 ├── config/                  # ⚙️ Configuration files
 ├── assets/                  # 🎨 Icons, sounds, resources
 ├── docs/                    # 📚 Documentation
@@ -232,7 +242,15 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v5.x — *CODING PROJECTS Workspace & Nvidia NIM Optimization (Current)*
+### v6.x — *Unlimited Memory Brain (Current)*
+- 🧠 **Unlimited Memory Brain** — Architected an **8-layer unified memory system** that searches ALL memory layers simultaneously: Long-term JSON, Episodic memory, Procedural workflows, Knowledge Base, Archive JSONL transcripts, SQLite Knowledge Graph, Compressed Digests, and LanceDB Vector Store. IP Prime now has effectively **infinite memory**.
+- 🗄️ **SQLite Knowledge Graph** (`memory/brain.py`) — New graph database with `entities`, `relations`, `facts` (subject-predicate-object triples), `timeline_events`, and `digests` tables. Thread-safe with WAL mode and mutex locks.
+- 📦 **Archive Compression Engine** (`memory/summarizer.py`) — Automatically compresses old daily JSONL archives into weekly/monthly digests to prevent storage bloat while keeping everything searchable.
+- 🔓 **Removed All Memory Caps** — `MEMORY_MAX_CHARS`: 100KB→10MB, `MAX_VALUE_LENGTH`: 1K→50K chars, `MAX_SESSION_TURNS`: 40→500, Episodic: 100→10K entries, Knowledge Base: 5K→100K entries.
+- 🔧 **4 New Brain Tools** — `brain_search` (unified cross-layer search), `brain_stats` (full 8-layer statistics), `brain_store_fact` (SPO graph triples), `brain_store_event` (dated timeline events).
+- ⚡ **Brain Startup Initialization** — Schema creation + archive compression runs automatically on every IP Prime session connect.
+
+### v5.x — *CODING PROJECTS Workspace & Nvidia NIM Optimization*
 - 📁 **Canonical CODING PROJECTS Workspace** — Remapped all default save directories, JSON configurations, system instructions, and tool descriptions in `core/tool_registry.py` to the new canonical `C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS` directory. No more path mismatches or saving to old folders!
 - 🧹 **UTF-8 BOM Clean & Self-Healing** — Cleaned all **24 JSON files** in the `memory/` and `config/` folders to remove UTF-8 Byte Order Marks (BOM), permanently preventing `JSONDecodeError` decodability crashes on startup.
 - 🔗 **Nvidia NIM completions 404 Routing Fix** — Patched `actions/prime_utils.py` to intelligently intercept explicit `"gemini"` model queries (such as `"gemini-2.5-flash"`) and route them straight to the Gemini SDK, preventing 404 errors on Nvidia completions endpoint.
