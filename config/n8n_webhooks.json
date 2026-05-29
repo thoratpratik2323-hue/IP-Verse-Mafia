@@ -1,4 +1,4 @@
 {
-    "invoice": "https://n8n.yourdomain.com/webhook/invoice-trigger",
-    "backup": "https://n8n.yourdomain.com/webhook/backup-trigger"
+  "invoice": "https://n8n.yourdomain.com/webhook/invoice-trigger",
+  "backup": "https://n8n.yourdomain.com/webhook/backup-trigger"
 }

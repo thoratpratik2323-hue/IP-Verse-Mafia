@@ -80,3 +80,6 @@ audit_report.md
 # LanceDB local vector database
 memory/lancedb_store/
 *.lance/
+
+# User local workspace
+CODING PROJECTS/

@@ -1814,7 +1814,7 @@ class MainWindow(QMainWindow):
                 try:
                     import urllib.request
                     req = urllib.request.Request(
-                        'http://wttr.in/?format=%l|%C|%t', 
+                        'http://wttr.in/Ukkalgaon?format=%l|%C|%t', 
                         headers={'User-Agent': 'curl/7.88.1'}
                     )
                     with urllib.request.urlopen(req, timeout=5) as response:

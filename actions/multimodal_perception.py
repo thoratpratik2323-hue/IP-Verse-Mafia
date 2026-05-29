@@ -133,8 +133,8 @@ def webcam_visual_watcher(player=None) -> str:
 # 3. Cloud Workspace Sync
 # ==========================================
 def cloud_workspace_sync(source_dir: str = "", player=None) -> str:
-    """Simulates/executes automated workspace syncing of IP Given folder to Google Drive / OneDrive backup."""
-    target_dir = source_dir if source_dir else str(Path(__file__).resolve().parent.parent.parent / "IP Given")
+    """Simulates/executes automated workspace syncing of CODING PROJECTS folder to Google Drive / OneDrive backup."""
+    target_dir = source_dir if source_dir else r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS"
     path = Path(target_dir)
     
     if not path.exists():

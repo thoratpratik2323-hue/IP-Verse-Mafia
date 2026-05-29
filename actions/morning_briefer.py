@@ -18,8 +18,8 @@ LOG_FILE = BRIEFING_DIR / "briefing_log.txt"
 RUNNER_SCRIPT = BRIEFING_DIR / "morning_briefer_runner.py"
 
 def generate_briefing(player=None) -> str:
-    """Generates the full dynamic morning briefing in Hinglish."""
-    # 1. Day & Time Greeting
+    """Generates the full dynamic morning briefing in Hinglish with randomized styles, themes, and fun dev quotes."""
+    import random
     now = datetime.now()
     days_hindi = {
         "Monday": "Monday (Somvaar)",
@@ -34,19 +34,53 @@ def generate_briefing(player=None) -> str:
     day_str = days_hindi.get(day_name, day_name)
     date_str = now.strftime("%d %B %Y, %I:%M %p")
     
-    greeting = f"Good morning Pratik Sir! Aaj {day_str} hai, aur time ho raha hai {date_str}, sir.\n\n"
+    # Randomly select a briefing style to keep it exciting!
+    styles = ["jarvis", "buddy", "roast", "coach"]
+    selected_style = random.choice(styles)
     
-    # 2. Live Weather from wttr.in
+    # 1. Day & Time Greeting based on Style
+    if selected_style == "jarvis":
+        greetings = [
+            f"A very pleasant morning, Pratik Sir. The date is {date_str} and the day is {day_str}. Systems are primed for your command, sir.\n\n",
+            f"Good morning, Pratik Sir. Chronos is ticking at {date_str} on this fine {day_str}. Ready to analyze some code, sir?\n\n"
+        ]
+    elif selected_style == "buddy":
+        greetings = [
+            f"Arey good morning Pratik bro! Aaj toh mast {day_str} hai, aur time dekh lo—{date_str} ho chuka hai. Kya plans hain aaj ke?\n\n",
+            f"Ram Ram Pratik bhai! 🌟 Aaj {day_str} hai, clock pe {date_str} baj rahe hain. Aaj kuch naya aur toofani karte hain!\n\n",
+            f"Suno bhai Pratik, good morning! Aaj {day_str} ki shuruaat ho gayi hai, date hai {date_str}. Let's rock it today, bro!\n\n"
+        ]
+    elif selected_style == "roast":
+        greetings = [
+            f"Oh ho, good morning Pratik Sir! 🥱 Time ho raha hai {date_str} on a lazy {day_str}. CPU is ready to do the heavy lifting while you decide when to wake up properly, bro!\n\n",
+            f"Arey, uth gaye Pratik bhai? Good morning! Clock pe {date_str} ho gaye hain iss pyare {day_str} ko. Chalo, check karte hain kitna productivity hone wala hai aaj!\n\n"
+        ]
+    else:  # coach
+        greetings = [
+            f"Rise and shine, Pratik Sir! 🔥 It's {day_str}, clocking in at {date_str}. No excuses today, only execution. Let's conquer the goals, sir!\n\n",
+            f"Good morning, champ! Today is {day_str} ({date_str}). Another 24 hours to write clean code, solve problems, and build amazing things. Let's go, Pratik!\n\n"
+        ]
+    greeting = random.choice(greetings)
+
+    # 2. Live Weather from wttr.in for Ukkalgaon
     weather_info = "Weather details pull nahi ho paye, sir."
     try:
         req = urllib.request.Request(
-            "http://wttr.in/?format=3",
+            "http://wttr.in/Ukkalgaon?format=3",
             headers={"User-Agent": "Mozilla/5.0"}
         )
         with urllib.request.urlopen(req, timeout=5) as response:
             weather_info = response.read().decode("utf-8").strip()
-            # Clean wttr.in output slightly (remove extra spaces/symbols if any)
-            weather_info = f"Mausam update: {weather_info}"
+            # Style the weather introduction
+            if selected_style == "jarvis":
+                intro = f"Meteo-sensors for Ukkalgaon report: {weather_info}"
+            elif selected_style == "buddy":
+                intro = f"Ukkalgaon ka mausam ekdum shandar lag raha hai: {weather_info}"
+            elif selected_style == "roast":
+                intro = f"Ukkalgaon ka live weather check kiya. wttr.in bol raha hai: {weather_info}. Perfect temperature to skip running and write some code, bro!"
+            else:  # coach
+                intro = f"Environmental status at Ukkalgaon: {weather_info}. Great day to push your limits!"
+            weather_info = intro
     except Exception as e:
         weather_info = f"Weather lookup failed: {e}"
 
@@ -61,7 +95,20 @@ def generate_briefing(player=None) -> str:
             bat = psutil.sensors_battery()
             if bat:
                 battery = f"{bat.percent}% {'(Charging)' if bat.power_plugged else '(Discharging)'}"
-        sys_metrics = f"CPU Usage: {cpu}% | RAM Usage: {ram}% | Battery: {battery}"
+        
+        # Style the metrics description
+        if selected_style == "jarvis":
+            sys_metrics = f"CPU Load at {cpu}% | RAM Utilization: {ram}% | Power State: {battery}."
+        elif selected_style == "buddy":
+            sys_metrics = f"Apna system damdar chal raha hai—CPU sirf {cpu}% pe chill kar raha hai, RAM: {ram}%, aur battery: {battery} hai, bro."
+        elif selected_style == "roast":
+            if cpu < 15:
+                cpu_roast = f"CPU sits idle at {cpu}% because someone is still reading logs instead of compiling! 😂"
+            else:
+                cpu_roast = f"CPU is working harder than us at {cpu}%! 🔥"
+            sys_metrics = f"{cpu_roast} RAM occupancy: {ram}%, Power level: {battery}."
+        else: # coach
+            sys_metrics = f"Hardware Vitals -> Engine Efficiency (CPU): {cpu}% | Memory Reserve (RAM): {ram}% | Power Reserve: {battery}."
     except Exception as e:
         sys_metrics = f"System metrics failed: {e}"
 
@@ -74,7 +121,23 @@ def generate_briefing(player=None) -> str:
         pending_count = sum(1 for t in all_tasks if t.get("status") == "pending")
         overdue_list = get_overdue_tasks()
         
-        tasks_summary = f"Aapke planner mein total {pending_count} pending tasks hain, sir."
+        if selected_style == "jarvis":
+            tasks_summary = f"There are currently {pending_count} pending tasks recorded in the kernel."
+            if overdue_list:
+                overdue_warning = f"\n[ALERT] Sir, {len(overdue_list)} items have exceeded their scheduled deadlines. Immediate review is advised."
+        elif selected_style == "buddy":
+            tasks_summary = f"Bhai, planner mein total {pending_count} pending tasks bache hue hain abhi."
+            if overdue_list:
+                overdue_warning = f"\n[DEKH LO BRO] Hamaare {len(overdue_list)} tasks overdue chal rahe hain! Inhe pehle niptaate hain na?"
+        elif selected_style == "roast":
+            tasks_summary = f"Planner states {pending_count} items are pending. No pressure, but they won't code themselves!"
+            if overdue_list:
+                overdue_warning = f"\n[OOF] {len(overdue_list)} tasks are overdue! Lagta hai backlog badhta ja raha hai, Pratik bro! 😜"
+        else: # coach
+            tasks_summary = f"Task planner status: {pending_count} active objectives remaining in queue."
+            if overdue_list:
+                overdue_warning = f"\n[WARNING] Critical Alert: {len(overdue_list)} objectives are overdue! Prioritize and eliminate these targets immediately, Pratik!"
+                
         try:
             from actions.study_planner import get_today_study_task
             study_task = get_today_study_task()
@@ -82,8 +145,6 @@ def generate_briefing(player=None) -> str:
                 tasks_summary += f"\n[STUDY PLAN] {study_task}"
         except Exception:
             pass
-        if overdue_list:
-            overdue_warning = f"[WARNING] Aapke {len(overdue_list)} tasks overdue chal rahe hain! Inhe jaldi dekhiye, sir.\n"
     except Exception as e:
         tasks_summary = f"Task planning count failed: {e}"
 
@@ -98,42 +159,100 @@ def generate_briefing(player=None) -> str:
             # Simple, robust XML regex-based title extraction
             titles = re.findall(r"<item>\s*<title>(.*?)</title>", xml_data, re.DOTALL)
             if titles:
-                # Clean html entities if any (like &amp;, &quot;)
                 cleaned_titles = []
                 for t in titles[:3]:
                     t_clean = t.replace("&amp;", "&").replace("&quot;", '"').replace("&#39;", "'").replace("&lt;", "<").replace("&gt;", ">")
-                    # Google news titles usually have " - Source" at the end, clean it up for brevity
                     t_clean = re.sub(r"\s*-\s*[^-$]+$", "", t_clean)
                     cleaned_titles.append(t_clean)
                 
-                news_summary = "Tech News Headlines:\n" + "\n".join([f"  {idx}. {title}" for idx, title in enumerate(cleaned_titles, 1)])
+                if selected_style == "jarvis":
+                    header = "Intel Core Feed (Tech Updates):\n"
+                elif selected_style == "buddy":
+                    header = "Internet par ye chal raha hai, tech world ke updates:\n"
+                elif selected_style == "roast":
+                    header = "Latest buzz in tech (so you can pretend to be working):\n"
+                else: # coach
+                    header = "Industry Reconnaissance (Tech News):\n"
+                
+                news_summary = header + "\n".join([f"  {idx}. {title}" for idx, title in enumerate(cleaned_titles, 1)])
             else:
                 news_summary = "Google News feed parse nahi ho payi, sir."
     except Exception as e:
         news_summary = f"News fetch error: {e}"
 
-    # 6. Motivational Closing in Hinglish
-    quotes = [
+    # 6. Dynamic Side-Quests and Quotes
+    buddy_quotes = [
         "Chaliye sir, aaj ka din shandaar banate hain. Aur yaad rakhiye, code runs on coffee and passion!",
         "Every single line of code is a step closer to greatness. Aaj fodna hai, sir!",
         "Chhota chhota progress hi bada success banata hai. Let's make today count, sir!",
-        "Consistency is key. Aap smart ho aur aap kuch bhi kar sakte ho. All the best for today, sir!"
+        "Consistency is key. Aap smart ho aur aap kuch bhi kar sakte ho. All the best for today, sir!",
+        "Code likhna ek kala hai, aur aap uske shandaar kalakaar ho, bro! 🎨"
     ]
-    # Simple hash of the current day of the year to pick a quote of the day
-    quote_of_day = quotes[now.timetuple().tm_yday % len(quotes)]
-
+    jarvis_quotes = [
+        "A quiet keyboard generates the loudest progress, sir. Let us optimize the day.",
+        "Precision in coding ensures longevity in software architectures. Ready when you are, sir.",
+        "Great ideas are only limited by computational bandwidth and human perseverance. Let's excel.",
+        "System diagnostics are fully clean. The platform is ready for your architectural creations, sir."
+    ]
+    roast_quotes = [
+        "Remember: It's not a bug, it's an undocumented feature! 🐛 Let's go write some bugs!",
+        "Coding is 10% writing code and 90% understanding why those 10% didn't work. Good luck today!",
+        "If at first you don't succeed, call it version 1.0! Let's get shipping, Pratik bro!",
+        "Don't worry if it doesn't work right. If everything did, you'd be out of a job!"
+    ]
+    coach_quotes = [
+        "Your only competition is the person you were yesterday. Push the limits today!",
+        "Success is built daily, not overnight. Write that test, refactor that module, hit that goal!",
+        "Greatness requires consistency. Stay focused, stay driven, and make today count!",
+        "Do not wish for fewer problems; wish for more skills. Let's level up today!"
+    ]
+    
+    # Pick a quote based on style
+    if selected_style == "jarvis":
+        quote_of_day = random.choice(jarvis_quotes)
+    elif selected_style == "buddy":
+        quote_of_day = random.choice(buddy_quotes)
+    elif selected_style == "roast":
+        quote_of_day = random.choice(roast_quotes)
+    else:
+        quote_of_day = random.choice(coach_quotes)
+        
+    # Generate a random fun developer "Side Quest" (Challenge of the Day)
+    side_quests = [
+        "Aaj code mein try/except block lagaye bina run mat karna! 😉",
+        "Aaj kam se kam 15 minutes screen break zaroori hai! 🚶‍♂️",
+        "Challenge: Rename at least 2 generic variable names in your active project to highly descriptive ones!",
+        "Challenge: Drink at least 3 litres of water today while building amazing tech!",
+        "Challenge: Commit your pending code with an extremely clear, descriptive commit message!",
+        "Aaj ek function ko at least 15% optimize karne ki koshish karna, bro!",
+        "Challenge: Teach me a new custom command today to level up my skills!"
+    ]
+    daily_quest = random.choice(side_quests)
+    
+    # Style styling format
+    style_names = {
+        "jarvis": "🤵 [Jarvis Protocol Active]",
+        "buddy": "😎 [Desi Buddy Mode Active]",
+        "roast": "🔥 [Sarcastic Dev Mode Active]",
+        "coach": "🏋️ [Motivational Coach Active]"
+    }
+    style_label = style_names.get(selected_style, "🤖 [Morning Briefing]")
+    
     # Assemble Briefing
     briefing = (
+        f"{style_label}\n\n"
         f"{greeting}"
         f"[WEATHER] {weather_info}\n"
-        f"[SYSTEM] System Health: {sys_metrics}\n"
-        f"[TASKS] Task Planner: {tasks_summary}\n"
-        f"{overdue_warning}"
-        f"\n[NEWS] {news_summary}\n\n"
-        f"[MOTIVATION] Motivation: \"{quote_of_day}\"\n\n"
-        "Have a great day, sir!"
+        f"[SYSTEM] Hardware Vitals: {sys_metrics}\n"
+        f"[TASKS] Tasks Status: {tasks_summary}\n"
+        f"{overdue_warning}\n"
+        f"[NEWS] {news_summary}\n\n"
+        f"[SIDE-QUEST] 🎯 Daily Challenge: \"{daily_quest}\"\n\n"
+        f"[WORDS OF WISDOM] \"{quote_of_day}\"\n\n"
+        "Have an absolute blast today, sir!"
     )
     return briefing
+
 
 def _create_runner_script():
     """Generates the morning briefer standalone runner python file."""

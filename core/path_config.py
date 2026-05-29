@@ -89,11 +89,11 @@ def _resolve(env_var: str, cfg_key: str, default: Path) -> Path:
 # User workspace paths (replaces hard-coded C:\Users\thora\Downloads\...)
 # ---------------------------------------------------------------------------
 
-# IP Given workspace — where generated code, projects, screenshots, etc. land
+# CODING PROJECTS workspace — where generated code, projects, screenshots, etc. land
 IP_GIVEN_DIR: Path = _resolve(
     "IP_GIVEN_DIR",
     "ip_given_dir",
-    Path.home() / "Downloads" / "IP Given",
+    Path.home() / "Downloads" / "CODING PROJECTS",
 )
 IP_GIVEN_CODE_DIR: Path = _resolve(
     "IP_GIVEN_CODE_DIR",

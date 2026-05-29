@@ -16,7 +16,11 @@ from typing import Any, Optional
 logger = logging.getLogger("ip_prime.presentation_generator")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-OUTPUT_DIR = Path("C:/Users/thora/Downloads/IP Given/code")
+try:
+    from core.path_config import IP_GIVEN_CODE_DIR
+    OUTPUT_DIR = IP_GIVEN_CODE_DIR
+except Exception:
+    OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS\code")
 
 def _ensure_output_dir():
     try:

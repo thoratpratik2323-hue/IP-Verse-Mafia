@@ -54,7 +54,43 @@ from core.session import _get_api_key, _load_system_prompt, _clean_transcript
 
 
 from core.tool_registry import TOOL_DECLARATIONS
+from multiprocessing import Process, Queue
 
+def _offline_tts_worker(queue_obj):
+    """
+    Standalone offline TTS process worker to completely bypass GIL thread blocking.
+    Runs entirely in a separate OS process on Windows.
+    """
+    import pyttsx3
+    import time
+    
+    try:
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 165)
+        engine.setProperty('volume', 0.9)
+    except Exception as e:
+        print(f"[Offline TTS Process] Failed to initialize pyttsx3: {e}")
+        engine = None
+
+    while True:
+        try:
+            text = queue_obj.get()
+            if text is None:
+                break
+            
+            if engine:
+                try:
+                    engine.say(text)
+                    engine.runAndWait()
+                except Exception as e:
+                    print(f"[Offline TTS Process] Speech error: {e}")
+                    print(f"[TTS OFFLINE FALLBACK] {text}")
+            else:
+                print(f"[TTS OFFLINE FALLBACK] {text}")
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f"[Offline TTS Process] Loop error: {e}")
 
 
 def play_sfx(sfx_type: str):
@@ -236,6 +272,10 @@ class IPRayLive:
         
         # Set up TTS streaming queue
         self.tts_queue = queue.Queue()
+        self.offline_tts_queue = Queue()
+        self.offline_tts_process = Process(target=_offline_tts_worker, args=(self.offline_tts_queue,), daemon=True)
+        self.offline_tts_process.start()
+        
         self._tts_thread = threading.Thread(target=self._tts_worker, daemon=True)
         self._tts_thread.start()
 
@@ -280,13 +320,58 @@ class IPRayLive:
         self._autonomous_thread.start()
 
     def _tts_worker(self):
+        """
+        Coordinates the smart fallback TTS chain:
+        Layer 1: Gemini Live (WebRTC realtime stream)
+        Layer 2: ElevenLabs (Premium file-based TTS fallback)
+        Layer 3: Local Offline Process (pyttsx3 completely isolated in an independent Process)
+        """
         while True:
             text = self.tts_queue.get()
-            if text is None: break
-            # Lower-latency chunk-based TTS streaming simulation logic here
-            # In a real impl, this would break text into sentences and stream
-            # to a low-latency TTS engine like pyttsx3 or similar.
-            pass
+            if text is None:
+                break
+            
+            # Layer 1: Try Gemini Live Real-time Stream
+            if self._try_gemini_live(text):
+                continue
+                
+            # Layer 2: Try ElevenLabs Premium Fallback
+            if self._try_elevenlabs(text):
+                continue
+                
+            # Layer 3: Local Offline Process (Guaranteed local voice fallback)
+            self._speak_offline(text)
+
+    def _try_gemini_live(self, text: str) -> bool:
+        try:
+            if self.session and hasattr(self.session, 'send_realtime_input'):
+                asyncio.run_coroutine_threadsafe(
+                    self.session.send_realtime_input(text=text),
+                    self._loop
+                )
+                return True
+            return False
+        except Exception:
+            return False
+
+    def _try_elevenlabs(self, text: str) -> bool:
+        try:
+            from actions.advanced_communicator import speak_elevenlabs
+            res = speak_elevenlabs(text, player=self.ui)
+            if "Generated simulated audio" in res or "API call failed" in res:
+                return False
+            return True
+        except Exception:
+            return False
+
+    def _speak_offline(self, text: str):
+        """Pushes speech to the independent process queue for zero-GIL offline rendering."""
+        try:
+            self.offline_tts_queue.put(text)
+        except Exception as e:
+            print(f"[TTS Parent Coordinator] Failed to queue offline speech: {e}")
+            print(f"[TTS OFFLINE FALLBACK] {text}")
+
 
     def _start_wake_word_spotter(self):
         try:
@@ -363,26 +448,16 @@ class IPRayLive:
         sweet_samples = [
             "System initialized, bhai! Main IP Prime online aa chuka hoon. Cockpit visualizers stable hain. Batao aaj kya build karein? Let's rule the day, bro!",
             "Yo Pratik! Core system fully operational hai, dost. Space nebulae and stardust are synchronized. Batao bhai, aaj code me kya aag lagani hai?",
-            "All visual systems and semantic stores are online, bhai! Antigravity AI completely ready hai. Sab set hai, batao aaj kis command par kaam karna hai, bro!",
+            "All visual systems and semantic stores are online, bhai! IP Prime completely ready hai. Sab set hai, batao aaj kis command par kaam karna hai, bro!",
             "Hey Pratik! Startup calibration complete! OLED cockpit is fully illuminated. Welcome back, bhai. Main ready hoon, tell me what's the plan today!",
             "Online and operational, dost! Your custom-built Second Brain is loaded and habits tracker is live. Boliye, aaj kya fodna hai, bhai!"
         ]
         sample_greeting = random.choice(sweet_samples)
         
-        # Generate and read morning briefing dynamically!
-        briefing_text = ""
-        try:
-            from actions.morning_briefer import generate_briefing
-            briefing_text = generate_briefing(self.ui)
-            self.ui.write_log(briefing_text)
-        except Exception as e:
-            print(f"[IP PRIME] Morning Briefing startup error: {e}")
-
-        # Combine greeting with briefing
-        full_welcome = f"{sample_greeting}\n\nHere is your briefing for today, sir:\n{briefing_text}" if briefing_text else sample_greeting
+        # Just greet — no auto briefing on startup
         self.speak(
-            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish, welcome him and tell him his daily morning briefing. "
-            f"Speak only this exact welcoming phrase and nothing else: '{full_welcome}'"
+            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish, "
+            f"just say this exact phrase and nothing else: '{sample_greeting}'"
         )
 
     def _amplify_pcm(self, block: bytes, gain: float = 1.8) -> bytes:
@@ -1524,17 +1599,13 @@ def _alarm_checker_loop(ui):
                             ui.write_log(f"⏰ ALARM TRIGGERED: {msg}")
                             play_sfx("alarm")
                             
-                            # Speak personalized greeting and briefing on alarm trigger
+                            # Speak alarm message only — no briefing
                             ip_ray = getattr(ui, "ip_ray", None) or getattr(getattr(ui, "_win", None), "ip_ray", None)
                             if ip_ray:
                                 def speak_alarm_details(alarm_msg):
                                     try:
-                                        time.sleep(5.0)  # Wait for siren alarm to finish playing
-                                        greeting_msg = f"Good morning Pratik bhaia! Uthiye chalo, alarm baj gaya hai. Message tha: {alarm_msg}."
-                                        from actions.morning_briefer import generate_briefing
-                                        brief = generate_briefing(ui)
-                                        full_text = f"{greeting_msg}\n\nAaj ka aapka morning briefing yeh raha sir:\n\n{brief}"
-                                        ip_ray.speak(full_text)
+                                        time.sleep(5.0)  # Wait for siren alarm to finish
+                                        ip_ray.speak(f"Good morning Pratik bhai! Alarm baj gaya. {alarm_msg}")
                                     except Exception as err:
                                         print(f"[Alarm Speech Error] {err}")
                                 import threading
@@ -1556,7 +1627,7 @@ def start_ipc_watcher(ui):
     import time
     from pathlib import Path
     
-    ipc_file = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output\ip_prime_ipc.json")
+    ipc_file = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS\ip_prime_ipc.json")
     print(f"[IP PRIME IPC] 🛡️ Watching for IPC signals at: {ipc_file}")
     
     # Clear file if it exists with completed/pending status

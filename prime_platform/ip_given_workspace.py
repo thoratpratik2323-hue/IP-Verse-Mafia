@@ -1,4 +1,4 @@
-"""Default workspace: all saves, code, and projects go under IP Given."""
+"""Default workspace: all saves, code, and projects go under CODING PROJECTS."""
 from __future__ import annotations
 
 import re
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from prime_platform.config import load_prime_config, save_prime_config
 
-DEFAULT_ROOT = Path(r"C:\Users\thora\Downloads\IP Given")
+DEFAULT_ROOT = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
 
 SUBDIRS = {
     "code": "code",
@@ -72,8 +72,8 @@ def resolve_save_path(
     extension: str = "",
 ) -> Path:
     """
-    Resolve any save path into IP Given workspace.
-    Absolute paths outside IP Given are still allowed if under user home.
+    Resolve any save path into CODING PROJECTS workspace.
+    Absolute paths outside CODING PROJECTS are still allowed if under user home.
     """
     ensure_workspace()
     base = subdir(category)
@@ -116,7 +116,7 @@ def new_project_dir(project_name: str) -> Path:
 
 def workspace_summary() -> str:
     root = ensure_workspace()
-    lines = [f"IP Given workspace: {root}"]
+    lines = [f"CODING PROJECTS workspace: {root}"]
     for key, folder in SUBDIRS.items():
         p = root / folder
         n = sum(1 for _ in p.rglob("*") if _.is_file()) if p.exists() else 0

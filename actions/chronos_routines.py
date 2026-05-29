@@ -85,11 +85,11 @@ class ChronosRoutines:
         print(f"[Chronos-AI] Executing {name}...")
         report_parts = []
         
-        # 1. Weather Bulletin
+        # 1. Weather Bulletin for Ukkalgaon
         if "weather" in actions:
             try:
                 from actions.weather_report import weather_action
-                weather_res = weather_action({})
+                weather_res = weather_action({"city": "Ukkalgaon"})
                 report_parts.append(f"Weather Update:\n{weather_res}")
             except Exception:
                 report_parts.append("Weather: Service temporarily unavailable.")

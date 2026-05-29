@@ -14,7 +14,11 @@ from PIL import Image
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 API_KEYS_PATH = BASE_DIR / "config" / "api_keys.json"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent / "IP Given" / "code"
+try:
+    from core.path_config import IP_GIVEN_CODE_DIR
+    OUTPUT_DIR = IP_GIVEN_CODE_DIR
+except Exception:
+    OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS\code")
 
 def _get_gemini_client():
     """Loads API key and returns a UnifiedModelClient configured for vision tasks."""

@@ -16,11 +16,15 @@
     "updated": "2026-05-27"
   },
   "rename_task": {
-    "value": "Rename 'prateek new ai advancements' (double 'e') and 'prateek ai future vision' (double 'e') files to 'pratik' (single 'i') format. Path is likely in Downloads/IP Given/code. Auto-rename when quota resets.",
+    "value": "Rename 'prateek new ai advancements' (double 'e') and 'prateek ai future vision' (double 'e') files to 'pratik' (single 'i') format. Path is likely in .gemini/antigravity/scratch/IP Prime/CODING PROJECTS/code. Auto-rename when quota resets.",
     "updated": "2026-05-27"
   },
   "github_access_query": {
     "value": "User asked about GitHub access, needs clarification or storage of details.",
     "updated": "2026-05-27"
+  },
+  "project_path": {
+    "value": "new_path_shared_by_user",
+    "updated": "2026-05-29"
   }
 }

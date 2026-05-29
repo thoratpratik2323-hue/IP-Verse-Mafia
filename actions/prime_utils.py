@@ -166,6 +166,9 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         base_url = cfg.get("coding_base_url", "")
         model = model_name or cfg.get("coding_model", "nvidia/llama-3.1-nemotron-70b-instruct")
 
+    if model and "gemini" in model.lower():
+        provider = "gemini"
+
     # If provider is gemini or fallback triggered, run Gemini SDK
     if provider == "gemini" or not base_url or not api_key:
         if provider != "gemini":

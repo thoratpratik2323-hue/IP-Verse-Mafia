@@ -33,28 +33,36 @@ class PatternEngine:
                 with open(screen_time_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 
-                # Dynamic inference of preferred tools
-                app_usage = {}
-                for entry in data.get("usage", []):
-                    app = entry.get("app")
-                    if app:
-                        app_usage[app] = app_usage.get(app, 0) + entry.get("duration", 0)
-                if app_usage:
-                    sorted_apps = sorted(app_usage.items(), key=lambda x: x[1], reverse=True)
+                # Dynamic inference of preferred tools from actual "apps" dictionary
+                apps = data.get("apps", {})
+                if apps:
+                    sorted_apps = sorted(apps.items(), key=lambda x: x[1], reverse=True)
                     patterns["preferred_tools"] = [app[0] for app in sorted_apps[:5]]
                     
-            # Check completed task logs to infer productive hours
+            # Check completed task logs to infer productive hours from actual "turns"
             session_log_path = Path("memory/session_log.json")
             if session_log_path.exists():
                 with open(session_log_path, "r", encoding="utf-8") as f:
-                    logs = json.load(f)
+                    logs_data = json.load(f)
                 
-                completions = [l for l in logs if "completed" in l.get("action", "").lower()]
-                if completions:
-                    hours = [datetime.fromisoformat(c.get("time")).hour for c in completions if c.get("time")]
-                    if hours:
-                        peak_hour = max(set(hours), key=hours.count)
-                        patterns["productive_hours"] = f"Peak task completion hour: {peak_hour}:00"
+                turns = logs_data.get("turns", [])
+                hours = []
+                for turn in turns:
+                    ts = turn.get("ts", "")
+                    if ts:
+                        try:
+                            # ts format: "2026-05-29 01:01"
+                            hour = int(ts.split()[1].split(":")[0])
+                            hours.append(hour)
+                        except Exception:
+                            pass
+                if hours:
+                    peak_hour = max(set(hours), key=hours.count)
+                    period = "AM" if peak_hour < 12 else "PM"
+                    display_hour = peak_hour if peak_hour <= 12 else peak_hour - 12
+                    if display_hour == 0:
+                        display_hour = 12
+                    patterns["productive_hours"] = f"Peak interactive hour: {display_hour}:00 {period}"
                         
             # Save detected patterns
             with open(self.patterns_file, "w", encoding="utf-8") as f:
@@ -168,15 +176,19 @@ Do NOT wrap the response in markdown blocks. Return only raw JSON."""
         if session_log_path.exists():
             try:
                 with open(session_log_path, "r", encoding="utf-8") as f:
-                    logs = json.load(f)
+                    logs_data = json.load(f)
                 
-                # Fetch logs matching today
-                for l in logs:
-                    t = l.get("time", "")
-                    if today_date in t:
-                        actions.append(l)
-            except Exception:
-                pass
+                # Fetch turns matching today
+                for turn in logs_data.get("turns", []):
+                    ts = turn.get("ts", "")
+                    if today_date in ts:
+                        actions.append({
+                            "action": f"User: {turn.get('user', '')} -> Assistant: {turn.get('assistant', '')}",
+                            "time": ts,
+                            "success": True
+                        })
+            except Exception as e:
+                print(f"[LearningSystem] Error loading session actions: {e}")
                 
         # If empty, provide mock data for demonstration
         if not actions:

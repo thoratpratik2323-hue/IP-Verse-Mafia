@@ -1,4 +1,4 @@
-"""
+﻿"""
 file_controller.py — Direct filesystem manager executing moves, copies, deletions, and updates.
 
 This is a standard action module for the IP Prime personal assistant suite.
@@ -18,7 +18,7 @@ except ImportError:
 
 _OS = platform.system()  # "Windows" | "Darwin" | "Linux"
 
-IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output")
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
 
 _SAFE_ROOTS: list[Path] = [
     Path.home(),
@@ -98,9 +98,15 @@ def _resolve_path(raw: str) -> Path:
         "ip_output": IP_OUTPUT_DIR,
         "ipoutput":  IP_OUTPUT_DIR,
         "output":    IP_OUTPUT_DIR,
+        "coding projects": IP_OUTPUT_DIR,
+        "coding_projects": IP_OUTPUT_DIR,
+        "projects":  IP_OUTPUT_DIR,
+        "workspace": IP_OUTPUT_DIR,
+        "save here": IP_OUTPUT_DIR,
+        "code":      IP_OUTPUT_DIR,
     }
     if ip_given is not None:
-        shortcuts["ip given"] = ip_given
+        shortcuts["CODING PROJECTS"] = ip_given
         shortcuts["ip_given"] = ip_given
         shortcuts["ipgiven"] = ip_given
         shortcuts["prime_workspace"] = ip_given

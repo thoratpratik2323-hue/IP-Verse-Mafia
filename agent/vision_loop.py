@@ -2,8 +2,7 @@ import time
 import os
 import json
 from pathlib import Path
-from google import genai
-from actions.prime_utils import get_api_key
+from actions.prime_utils import get_api_key, UnifiedModelClient
 
 try:
     import pyautogui
@@ -18,10 +17,18 @@ class VisionLoop:
     def __init__(self, core_engine):
         self.core = core_engine
         self.last_vision_run = 0
+        self._init_session()
+
+    def _init_session(self):
         try:
-            self.client = genai.Client(api_key=get_api_key())
+            self.client = UnifiedModelClient(category="vision")
         except Exception:
             self.client = None
+
+    def _reconnect_with_backoff(self, attempt):
+        wait = min(2 ** attempt, 300)  # Max 5 min wait
+        time.sleep(wait)
+        self._init_session()
 
     def proactive_screen_watch(self) -> str:
         """Captures screen and analyzes with Gemini Vision under rate-safe thresholds."""
@@ -64,7 +71,7 @@ Return a strict JSON response:
 Do NOT include markdown blocks. Return only raw JSON."""
 
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model=None,
                 contents=[
                     {"inline_data": {"mime_type": "image/png", "data": image_bytes}},
                     prompt

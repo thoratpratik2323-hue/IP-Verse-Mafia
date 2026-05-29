@@ -133,10 +133,10 @@ def morning_briefing() -> str:
         
     local_time = time.strftime('%A, %B %d, %I:%M %p')
     
-    # Get weather from wttr.in (a zero-dependency ASCII weather API)
+    # Get weather from wttr.in for Ukkalgaon
     weather_info = "Partly Cloudy, 24°C"
     try:
-        req = urllib.request.Request("http://wttr.in/?format=3", headers={'User-Agent': 'Mozilla/5.0'})
+        req = urllib.request.Request("http://wttr.in/Ukkalgaon?format=3", headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=3) as res:
             weather_info = res.read().decode('utf-8').strip()
     except Exception:

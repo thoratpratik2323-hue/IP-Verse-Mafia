@@ -102,15 +102,15 @@ class AutoIndexerThread(threading.Thread):
         if second_brain.exists() and second_brain.is_dir():
             paths_to_index.append(second_brain)
 
-        # 2. Index active IP Given Workspace
+        # 2. Index active CODING PROJECTS Workspace
         try:
             from prime_platform.ip_given_workspace import get_ip_given_root
-            ip_given = get_ip_given_root()
+            coding_projects = get_ip_given_root()
         except Exception:
-            ip_given = Path("C:/Users/thora/Downloads/IP Given")
+            coding_projects = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
 
-        if ip_given.exists() and ip_given.is_dir():
-            paths_to_index.append(ip_given)
+        if coding_projects.exists() and coding_projects.is_dir():
+            paths_to_index.append(coding_projects)
         else:
             # Fallback to home/Desktop projects
             projects_dir = Path.home() / "Desktop" / "IPRayProjects"

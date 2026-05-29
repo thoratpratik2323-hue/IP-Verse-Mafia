@@ -828,10 +828,10 @@ class _BrowserSession:
                 await Stealth().apply_stealth_async(self._page)
             except Exception as se:
                 print(f"[Browser] Stealth applied (non-critical): {se}")
-            print(f"[Browser] [OK] Launched [{label}] IP Given profile={profile}")
+            print(f"[Browser] [OK] Launched [{label}] CODING PROJECTS profile={profile}")
             return
         except Exception as e:
-            print(f"[Browser] [WARN] IP Given profile failed for {label}: {e}")
+            print(f"[Browser] [WARN] CODING PROJECTS profile failed for {label}: {e}")
 
         real_profile = _real_profile_dir(self.browser_name)
         try:

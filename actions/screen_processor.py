@@ -294,17 +294,20 @@ class _VisionSession:
                         tg.create_task(self._play_loop())
 
             except Exception as eg:
+                err_msgs = []
                 if hasattr(eg, 'exceptions'):
                     for exc in eg.exceptions:
                         print(f"[Vision] ⚠️  Session error: {exc}")
+                        err_msgs.append(str(exc))
                 else:
                     print(f"[Vision] ⚠️  Session error: {eg}")
+                    err_msgs.append(str(eg))
             finally:
                 self._session = None
                 self._ready_evt.clear()
 
             # If the error is an invalid API key, throttle backoff immediately to prevent log flooding
-            err_str = str(eg).lower()
+            err_str = " ".join(err_msgs).lower()
             if "api key not valid" in err_str or "unauthorized" in err_str or "forbidden" in err_str:
                 backoff = max(backoff, 300.0)
             else:

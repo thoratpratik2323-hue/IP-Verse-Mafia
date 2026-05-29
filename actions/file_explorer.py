@@ -746,13 +746,16 @@ def file_explorer(parameters: dict, player=None) -> str:
     params = parameters or {}
     action = params.get("action", "browse").lower().strip()
 
+    # Default workspace root — always CODING PROJECTS
+    _CP = r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS"
+
     if player:
         player.write_log(f"[FileExplorer] {action}")
 
     try:
         if action == "browse":
             return browse_directory(
-                params.get("path", "~"),
+                params.get("path", _CP),
                 params.get("show_hidden", False),
                 params.get("sort_by", "name"),
             )
@@ -760,7 +763,7 @@ def file_explorer(parameters: dict, player=None) -> str:
             return file_info(params.get("path", "~"))
         elif action == "search":
             return search_files(
-                params.get("root", "~"),
+                params.get("root", _CP),
                 params.get("pattern", "*"),
                 params.get("content", ""),
                 int(params.get("max_results", 50)),

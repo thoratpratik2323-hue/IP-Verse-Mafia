@@ -1,4 +1,4 @@
-"""Shared config loader for Prime platform features."""
+﻿"""Shared config loader for Prime platform features."""
 from __future__ import annotations
 
 import json
@@ -59,7 +59,7 @@ _DEFAULT = {
         "note": "PyQt6 remains primary UI; see desktop-tauri/README.md",
     },
     "workspace": {
-        "root": r"C:\Users\thora\Downloads\IP Given",
+        "root": r"C:\\Users\\thora\\.gemini\\antigravity\\scratch\\IP Prime\\CODING PROJECTS",
         "auto_save_all": True,
     },
 }

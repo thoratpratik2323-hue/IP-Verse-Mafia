@@ -1,7 +1,7 @@
 {
-  "C:\\Users\\thora\\Downloads\\IP Prime\\memory\\_test_rag_sample.txt": {
+  "C:\\Users\\thora\\.gemini\\antigravity\\scratch\\IP Prime\\memory\\_test_rag_sample.txt": {
     "file_name": "_test_rag_sample.txt",
-    "file_path": "C:\\Users\\thora\\Downloads\\IP Prime\\memory\\_test_rag_sample.txt",
+    "file_path": "C:\\Users\\thora\\.gemini\\antigravity\\scratch\\IP Prime\\memory\\_test_rag_sample.txt",
     "file_size": "2.4 KB",
     "updated": "2026-05-21",
     "overall_summary": "IP Prime is a voice-controlled desktop assistant built with Python and Google Generative AI, featuring a modular architecture for planning, execution, memory, and skills. Its self-evolving capabilities include a dynamic skills registry and a tool for creating new Python skills at runtime, along with a local RAG system for document analysis and retrieval.",

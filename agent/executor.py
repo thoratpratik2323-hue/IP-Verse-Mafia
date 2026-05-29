@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP output")
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
 IP_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from agent.planner       import create_plan, replan
