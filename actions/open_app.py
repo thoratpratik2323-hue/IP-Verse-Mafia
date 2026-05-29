@@ -101,31 +101,137 @@ def _windows_browser_exe(browser: str) -> str | None:
     return None
 
 
-def _launch_windows(app_name: str) -> bool:
-    low = app_name.lower().strip()
-    browser_exe = _windows_browser_exe(low)
-    if browser_exe:
-        url = None
-        if "://" in app_name or app_name.startswith("www."):
-            url = app_name if "://" in app_name else f"https://{app_name}"
-        try:
-            args = [browser_exe] + ([url] if url else [])
-            subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(1.2)
-            return True
-        except Exception as e:
-            print(f"[open_app] Native browser launch failed: {e}")
+_COMMON_WEBSITES = {
+    "google": "https://www.google.com",
+    "youtube": "https://www.youtube.com",
+    "github": "https://www.github.com",
+    "gmail": "https://mail.google.com",
+    "outlook": "https://outlook.live.com",
+    "chatgpt": "https://chatgpt.com",
+    "stackoverflow": "https://stackoverflow.com",
+    "reddit": "https://www.reddit.com",
+    "linkedin": "https://www.linkedin.com"
+}
 
-    # URLs in default browser
-    if "://" in app_name or app_name.startswith("www."):
+def _find_windows_app_path(app_name: str) -> str | None:
+    import winreg
+    import os
+    
+    app_name_lower = app_name.lower().strip()
+    candidates = [app_name_lower, f"{app_name_lower}.exe"]
+    
+    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+        path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"
         try:
-            import webbrowser
-            webbrowser.open(app_name if "://" in app_name else f"https://{app_name}")
-            time.sleep(1.0)
-            return True
+            with winreg.OpenKey(hive, path) as key:
+                num_subkeys = winreg.QueryInfoKey(key)[0]
+                # 1. Exact match pass
+                for i in range(num_subkeys):
+                    subkey_name = winreg.EnumKey(key, i)
+                    if subkey_name.lower() in candidates or subkey_name.lower().split(".")[0] == app_name_lower:
+                        try:
+                            with winreg.OpenKey(key, subkey_name) as subkey:
+                                val = winreg.QueryValue(subkey, "")
+                                if val and os.path.exists(val):
+                                    return val
+                        except Exception:
+                            pass
+                
+                # 2. Substring match pass
+                for i in range(num_subkeys):
+                    subkey_name = winreg.EnumKey(key, i)
+                    if app_name_lower in subkey_name.lower():
+                        try:
+                            with winreg.OpenKey(key, subkey_name) as subkey:
+                                val = winreg.QueryValue(subkey, "")
+                                if val and os.path.exists(val):
+                                    return val
+                        except Exception:
+                            pass
         except Exception:
             pass
+    return None
 
+def _find_start_menu_lnk(app_name: str) -> str | None:
+    import os
+    from pathlib import Path
+    
+    search_paths = [
+        Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData")) / "Microsoft" / "Windows" / "Start Menu" / "Programs",
+        Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs"
+    ]
+    
+    app_name_lower = app_name.lower().strip()
+    
+    # 1. Exact match pass
+    for sp in search_paths:
+        if sp.exists() and sp.is_dir():
+            for root, dirs, files in os.walk(sp):
+                for file in files:
+                    if file.endswith(".lnk"):
+                        name_without_ext = Path(file).stem.lower()
+                        if app_name_lower == name_without_ext:
+                            return os.path.join(root, file)
+                            
+    # 2. Substring match pass
+    for sp in search_paths:
+        if sp.exists() and sp.is_dir():
+            for root, dirs, files in os.walk(sp):
+                for file in files:
+                    if file.endswith(".lnk"):
+                        name_without_ext = Path(file).stem.lower()
+                        if app_name_lower in name_without_ext:
+                            return os.path.join(root, file)
+                            
+    return None
+
+def _launch_windows(app_name: str) -> bool:
+    import os
+    low = app_name.lower().strip()
+    
+    # 1. Check if it's a known website or matches a website pattern
+    is_url = False
+    target_url = None
+    if low in _COMMON_WEBSITES:
+        is_url = True
+        target_url = _COMMON_WEBSITES[low]
+    elif "." in app_name and ("/" in app_name or len(app_name.split(".")[-1]) >= 2):
+        is_url = True
+        target_url = app_name if "://" in app_name else f"https://{app_name}"
+    elif "://" in app_name or app_name.startswith("www."):
+        is_url = True
+        target_url = app_name if "://" in app_name else f"https://{app_name}"
+
+    if is_url and target_url:
+        try:
+            import webbrowser
+            webbrowser.open(target_url)
+            time.sleep(1.0)
+            return True
+        except Exception as e:
+            print(f"[open_app] Default browser launch failed for URL {target_url}: {e}")
+
+    # 2. Try App Path Registry
+    reg_path = _find_windows_app_path(app_name)
+    if reg_path:
+        try:
+            os.startfile(reg_path)
+            time.sleep(1.0)
+            return True
+        except Exception as e:
+            print(f"[open_app] Launch via App Path failed: {e}")
+
+    # 3. Try Start Menu Shortcuts (.lnk files)
+    lnk_path = _find_start_menu_lnk(app_name)
+    if lnk_path:
+        try:
+            os.startfile(lnk_path)
+            time.sleep(1.0)
+            return True
+        except Exception as e:
+            print(f"[open_app] Launch via Start Menu LNK failed: {e}")
+
+    # 4. Try standard shutil.which / subprocess launch
     if shutil.which(app_name) or shutil.which(app_name.split(".")[0]):
         try:
             subprocess.Popen(
@@ -134,19 +240,31 @@ def _launch_windows(app_name: str) -> bool:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            time.sleep(1.5)
+            time.sleep(1.0)
             return True
         except Exception as e:
-            print(f"[open_app] subprocess failed: {e}")
+            print(f"[open_app] shutil.which launch failed: {e}")
 
-    if ":" in app_name:
+    # 5. Try standard protocol start (like ms-settings: or UWP app protocols)
+    if ":" in app_name or low in ("calculator", "paint", "settings", "photos", "weather", "store", "microsoft store"):
+        proto_map = {
+            "calculator": "calc:",
+            "paint": "mspaint:",
+            "settings": "ms-settings:",
+            "photos": "ms-photos:",
+            "weather": "bingweather:",
+            "store": "ms-windows-store:",
+            "microsoft store": "ms-windows-store:"
+        }
+        proto = proto_map.get(low, app_name if ":" in app_name else f"{low}:")
         try:
-            subprocess.Popen(f"start {app_name}", shell=True)
+            os.startfile(proto)
             time.sleep(1.0)
             return True
         except Exception:
             pass
 
+    # 6. Fallback to start menu search if absolutely nothing else worked
     try:
         import pyautogui
         pyautogui.PAUSE = 0.1
@@ -158,7 +276,7 @@ def _launch_windows(app_name: str) -> bool:
         time.sleep(2.5)
         return True
     except Exception as e:
-        print(f"[open_app] Start Menu search failed: {e}")
+        print(f"[open_app] Start Menu search fallback failed: {e}")
 
     return False
 

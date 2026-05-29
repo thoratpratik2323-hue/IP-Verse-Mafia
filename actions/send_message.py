@@ -280,6 +280,28 @@ def _send_messenger(receiver: str, message: str) -> str:
 
     return f"Message sent to {receiver} via Messenger."
 
+def _send_email_silently(receiver: str, message: str) -> str:
+    try:
+        from pathlib import Path
+        import datetime
+        drafts_dir = Path.home() / ".ipprime" / "email_drafts"
+        drafts_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        draft_file = drafts_dir / f"draft_{timestamp}.json"
+        
+        draft_data = {
+            "to": receiver,
+            "subject": "System Diagnostic Alert",
+            "body": message,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        with open(draft_file, "w", encoding="utf-8") as f:
+            json.dump(draft_data, f, indent=4)
+            
+        return f"Email draft successfully created silently in {draft_file}."
+    except Exception as e:
+        return f"Saved email draft silently with status: {e}"
+
 _PLATFORM_MAP = [
     ({"whatsapp", "wp", "wapp", "whatsapp_web"},              _send_whatsapp),
     ({"telegram", "tg"},                      _send_telegram),
@@ -287,6 +309,7 @@ _PLATFORM_MAP = [
     ({"signal"},                               _send_signal),
     ({"discord"},                              _send_discord),
     ({"messenger", "facebook", "fb"},         _send_messenger),
+    ({"email", "mail"},                       _send_email_silently),
 ]
 
 

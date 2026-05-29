@@ -4,11 +4,50 @@ import sys
 import traceback
 import warnings
 import logging
+import webbrowser
+import platform
+import subprocess
+import shutil
+import os
 import queue
 import re
 import time
 from pathlib import Path
 import numpy as np
+
+# Global Monkey-patch to force all webbrowser.open calls to use Microsoft Edge on Windows
+try:
+    _original_webbrowser_open = webbrowser.open
+    def _enforce_edge_open(url, new=0, autoraise=True):
+        if platform.system() == "Windows":
+            try:
+                candidates = [
+                    os.path.join(os.environ.get("PROGRAMFILES(X86)", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+                    os.path.join(os.environ.get("PROGRAMFILES", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+                ]
+                edge_exe = None
+                for c in candidates:
+                    if c and os.path.isfile(c):
+                        edge_exe = c
+                        break
+                if not edge_exe:
+                    edge_exe = shutil.which("msedge") or shutil.which("msedge.exe")
+                
+                if edge_exe:
+                    subprocess.Popen([edge_exe, url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    return True
+                else:
+                    os.startfile(f"microsoft-edge:{url}")
+                    return True
+            except Exception as e:
+                print(f"[webbrowser patch] Edge launch failed, falling back to default: {e}")
+        return _original_webbrowser_open(url, new, autoraise)
+
+    webbrowser.open = _enforce_edge_open
+    webbrowser.open_new = _enforce_edge_open
+    webbrowser.open_new_tab = _enforce_edge_open
+except Exception as e:
+    print(f"[webbrowser patch] Error applying monkey-patch: {e}")
 
 logger = logging.getLogger("ip_prime.main")
 
