@@ -92,8 +92,11 @@ class TestNewFeatures(unittest.TestCase):
         self.assertIn("clipboard", res.lower())
 
         # PR Reviewer
-        res = pr_reviewer({"action": "list", "repo": "thoratpratik2323-hue/IP-Verse-Mafia"}, player=self.player)
-        self.assertIn("pull requests", res.lower())
+        from unittest.mock import patch
+        import os
+        with patch.dict(os.environ, {"GITHUB_TOKEN": ""}):
+            res = pr_reviewer({"action": "list", "repo": "thoratpratik2323-hue/IP-Verse-Mafia"}, player=self.player)
+            self.assertIn("pull requests", res.lower())
 
         # Venv Manager
         res = venv_manager({"action": "list"}, player=self.player)
