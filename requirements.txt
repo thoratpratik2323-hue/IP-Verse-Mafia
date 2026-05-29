@@ -41,4 +41,3 @@ chromadb
 sentence-transformers
 mcp
 pypdf
-repowire-mesh
