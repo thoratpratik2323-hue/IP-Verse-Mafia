@@ -31,7 +31,10 @@ def _get_api_key() -> str:
         return ""
 
 def _get_gemini():
-    import google.generativeai as genai
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        import google.generativeai as genai
     api_key = _get_api_key()
     if not api_key:
         raise ValueError("Coding API Key or Gemini API Key is missing inside config/api_keys.json.")

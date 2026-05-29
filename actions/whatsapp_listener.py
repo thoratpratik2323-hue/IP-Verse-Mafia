@@ -393,7 +393,10 @@ class WhatsAppListenerService:
 def execute_ip_prime_command(command_text: str, player=None) -> str:
     cleaned = re.sub(r'^[/*!]ip\s+', '', command_text, flags=re.IGNORECASE).strip()
     
-    import google.generativeai as genai
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        import google.generativeai as genai
     from actions.dev_agent import _get_api_key, _strip_fences
     
     try:

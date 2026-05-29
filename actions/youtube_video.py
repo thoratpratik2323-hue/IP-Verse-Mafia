@@ -159,7 +159,10 @@ def _get_transcript(video_id: str) -> str | None:
 
 
 def _summarize_with_gemini(transcript: str, video_url: str) -> str:
-    import google.generativeai as genai
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        import google.generativeai as genai
 
     genai.configure(api_key=_get_api_key())
     model = genai.GenerativeModel(

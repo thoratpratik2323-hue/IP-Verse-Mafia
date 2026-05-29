@@ -12,7 +12,6 @@ pygetwindow; sys_platform == 'win32'
 opencv-python
 numpy
 mss
-Pillow
 psutil
 comtypes; sys_platform == 'win32'
 pycaw; sys_platform == 'win32'
@@ -43,4 +42,3 @@ sentence-transformers
 mcp
 pypdf
 repowire-mesh
-

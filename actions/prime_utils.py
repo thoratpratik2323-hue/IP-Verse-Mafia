@@ -207,7 +207,10 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         except Exception as e:
             # Try legacy google-generativeai style fallback
             try:
-                import google.generativeai as genai
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=FutureWarning)
+                    import google.generativeai as genai
                 genai.configure(api_key=api_key or get_api_key())
                 legacy_model = genai.GenerativeModel(gemini_model)
                 response = legacy_model.generate_content(contents, **kwargs)

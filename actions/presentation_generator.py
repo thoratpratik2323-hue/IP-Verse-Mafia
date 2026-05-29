@@ -54,7 +54,10 @@ def generate_presentation_from_topic(topic: str, slide_count: int = 5, player: O
 
     if gemini_key:
         try:
-            import google.generativeai as genai
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                import google.generativeai as genai
             genai.configure(api_key=gemini_key)
             model = genai.GenerativeModel("gemini-2.0-flash")
             

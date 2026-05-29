@@ -6,7 +6,10 @@ from prime_platform.local_first import run_local_prompt
 
 
 def _cloud_generate(prompt: str) -> str:
-    import google.generativeai as genai
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        import google.generativeai as genai
     from pathlib import Path
     import json
 
