@@ -232,7 +232,13 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v4.x — *Multi-Agent & Unified Workspace Upgrades (Current)*
+### v5.x — *CODING PROJECTS Workspace & Nvidia NIM Optimization (Current)*
+- 📁 **Canonical CODING PROJECTS Workspace** — Remapped all default save directories, JSON configurations, system instructions, and tool descriptions in `core/tool_registry.py` to the new canonical `C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS` directory. No more path mismatches or saving to old folders!
+- 🧹 **UTF-8 BOM Clean & Self-Healing** — Cleaned all **24 JSON files** in the `memory/` and `config/` folders to remove UTF-8 Byte Order Marks (BOM), permanently preventing `JSONDecodeError` decodability crashes on startup.
+- 🔗 **Nvidia NIM completions 404 Routing Fix** — Patched `actions/prime_utils.py` to intelligently intercept explicit `"gemini"` model queries (such as `"gemini-2.5-flash"`) and route them straight to the Gemini SDK, preventing 404 errors on Nvidia completions endpoint.
+- 👁️ **Proactive Llama-3.2-Vision NIM Integration** — Updated `agent/vision_loop.py` to pass `model=None` to the unified model adapter. Proactive vision screenshot diagnostics now automatically load the user's configured Nvidia NIM vision model (`meta/llama-3.2-11b-vision-instruct`), cleanly integrating Nvidia NIM power into daily workflow!
+
+### v4.x — *Multi-Agent & Unified Workspace Upgrades*
 - 🔗 **Bidirectional Multi-Agent Integration** — Fully operationalized a custom bidirectional channel between IP Prime and Antigravity. IP Prime can now delegate complex coding and design requests dynamically via the newly implemented `ask_antigravity` tool, triggering headless execution in the Antigravity CLI and returning standard outputs seamlessly.
 - 📁 **Unified Development Sandbox** — Remapped IP Prime's workspace directories and paths configuration (`paths.json` / `prime_features.json`) directly to the unified `C:\Users\thora\.gemini\antigravity\scratch\IP output` directory, ensuring both assistants write and execute code in the exact same workspace with zero path mismatches.
 - 🐍 **Google GenAI SDK Migration** — Upgraded the entire IP Prime AI core (`brain/perception.py`, `brain/reasoning.py`, `agent/executor.py`, etc.) by fully replacing deprecated `google.generativeai` imports with the modern, officially supported `google.genai` SDK (`genai.Client`).
