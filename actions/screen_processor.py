@@ -303,9 +303,15 @@ class _VisionSession:
                 self._session = None
                 self._ready_evt.clear()
 
+            # If the error is an invalid API key, throttle backoff immediately to prevent log flooding
+            err_str = str(eg).lower()
+            if "api key not valid" in err_str or "unauthorized" in err_str or "forbidden" in err_str:
+                backoff = max(backoff, 300.0)
+            else:
+                backoff = min(backoff * 2.0, 300.0)
+                
             print(f"[Vision] 🔄 Reconnecting in {backoff:.0f}s...")
             await asyncio.sleep(backoff)
-            backoff = min(backoff * 1.5, 30.0)
             self._ready_evt.set()  
 
     async def _send_loop(self) -> None:
