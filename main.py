@@ -1064,6 +1064,10 @@ class IPRayLive:
             "send_message":      "Composing and routing communication payload...",
             "prime_local_first": "Scanning local-first neural pathways (Ollama)...",
             "prime_infinite_memory": "Querying infinite memory archive...",
+            "brain_search": "🧠 Searching the Unlimited Brain across all memory layers...",
+            "brain_stats": "🧠 Loading Unlimited Brain statistics...",
+            "brain_store_fact": "🧠 Storing fact in the brain's knowledge graph...",
+            "brain_store_event": "🧠 Recording timeline event in the brain...",
             "prime_energy_dashboard": "Loading energy and cost telemetry...",
             "prime_messaging": "Routing message across comms hub...",
             "prime_homelab": "Interfacing with homelab Docker grid...",
@@ -1560,6 +1564,27 @@ class IPRayLive:
                         ChronosRoutines.instance().start(player=self)
                     except Exception as err:
                         print(f"[IP PRIME] Chronos startup error: {err}")
+
+                    # ── Unlimited Brain: initialize schema + compress old archives ──
+                    def _brain_startup():
+                        try:
+                            from memory.brain import _get_db, format_brain_stats
+                            _get_db().close()  # Ensure schema exists
+                            print("[Brain] 🧠 SQLite graph schema initialized.")
+                            stats_str = format_brain_stats()
+                            print(f"[Brain] {stats_str}")
+                        except Exception as be:
+                            print(f"[Brain] Schema init error: {be}")
+                        try:
+                            from memory.summarizer import compress_old_archives
+                            result = compress_old_archives(days_threshold=7)
+                            if result and "nothing new" not in result.lower():
+                                print(f"[Brain] 📦 Archive compression:\n{result}")
+                            else:
+                                print("[Brain] 📦 Archives already up-to-date.")
+                        except Exception as ce:
+                            print(f"[Brain] Compression error: {ce}")
+                    threading.Thread(target=_brain_startup, daemon=True).start()
                         
                     tg.create_task(self._send_startup_welcome())
 

@@ -87,9 +87,9 @@ class AutonomousMemory:
         }
         data.append(episode)
 
-        # Keep last 100 episodes
-        if len(data) > 100:
-            data = data[-100:]
+        # Keep last 10000 episodes (unlimited brain)
+        if len(data) > 10000:
+            data = data[-10000:]
 
         EPISODIC_MEMORY_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
         print(f"[Memory] Episodic memory saved: '{goal}' (Success: {success})")

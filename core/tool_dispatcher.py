@@ -501,6 +501,39 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: prime_infinite_memory(args, player))
             result = r or "Done."
 
+        elif name == "brain_search":
+            from memory.brain import brain_search
+            r = await loop.run_in_executor(None, lambda: brain_search(
+                query=args.get("query", ""),
+                limit=int(args.get("limit", 10))
+            ))
+            result = r or "No results."
+
+        elif name == "brain_stats":
+            from memory.brain import format_brain_stats
+            r = await loop.run_in_executor(None, format_brain_stats)
+            result = r or "Done."
+
+        elif name == "brain_store_fact":
+            from memory.brain import store_fact
+            await loop.run_in_executor(None, lambda: store_fact(
+                subject=args.get("subject", ""),
+                predicate=args.get("predicate", ""),
+                obj=args.get("object", ""),
+                source="tool_call"
+            ))
+            result = f"Fact stored: {args.get('subject')} → {args.get('predicate')} → {args.get('object')}"
+
+        elif name == "brain_store_event":
+            from memory.brain import store_timeline_event
+            await loop.run_in_executor(None, lambda: store_timeline_event(
+                event_date=args.get("event_date", ""),
+                summary=args.get("summary", ""),
+                event_type=args.get("event_type", "general"),
+                importance=int(args.get("importance", 5))
+            ))
+            result = f"Event recorded: [{args.get('event_date')}] {args.get('summary')}"
+
         elif name == "prime_energy_dashboard":
             from actions.prime_features import prime_energy_dashboard
             r = await loop.run_in_executor(None, lambda: prime_energy_dashboard(args, player))

@@ -1073,6 +1073,61 @@ TOOL_DECLARATIONS: list[dict] = [
         },
     },
     {
+        "name": "brain_search",
+        "description": (
+            "🧠 UNLIMITED BRAIN — searches ALL memory layers at once: long-term, episodic, "
+            "knowledge base, archive transcripts, SQLite graph (entities/facts/timeline), "
+            "compressed digests, and vector store. Use when Pratik Sir asks to remember, "
+            "recall, search, or find ANYTHING from the past."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Search query — keywords, names, topics, anything"},
+                "limit": {"type": "INTEGER", "description": "Max results to return (default: 10)"},
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "brain_stats",
+        "description": "Shows full statistics of the Unlimited Memory Brain — counts across all 8 layers.",
+        "parameters": {"type": "OBJECT", "properties": {}},
+    },
+    {
+        "name": "brain_store_fact",
+        "description": (
+            "Stores a structured fact (subject-predicate-object triple) in the brain's graph. "
+            "Use for permanent knowledge: 'Pratik likes Python', 'IP Prime was created in 2025'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "subject": {"type": "STRING", "description": "Who/what the fact is about"},
+                "predicate": {"type": "STRING", "description": "The relationship or property"},
+                "object": {"type": "STRING", "description": "The value or target"},
+            },
+            "required": ["subject", "predicate", "object"],
+        },
+    },
+    {
+        "name": "brain_store_event",
+        "description": (
+            "Records a dated event in the brain's timeline. Use for birthdays, milestones, "
+            "important dates, achievements, or anything that happened on a specific date."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "event_date": {"type": "STRING", "description": "Date in YYYY-MM-DD format"},
+                "summary": {"type": "STRING", "description": "What happened"},
+                "event_type": {"type": "STRING", "description": "general | birthday | milestone | project | personal"},
+                "importance": {"type": "INTEGER", "description": "1-10 importance scale (default: 5)"},
+            },
+            "required": ["event_date", "summary"],
+        },
+    },
+    {
         "name": "prime_energy_dashboard",
         "description": "Real-time energy metrics and API cost comparison dashboard (tokens, USD estimates, system watts).",
         "parameters": {"type": "OBJECT", "properties": {}}

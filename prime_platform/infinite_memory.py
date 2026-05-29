@@ -81,7 +81,7 @@ def store_knowledge(topic: str, content: str, tags: list | None = None) -> str:
         "tags": tags or [],
         "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
     })
-    kb["entries"] = entries[-5000:]
+    kb["entries"] = entries[-100000:]  # Unlimited brain: 100K entries
     _save_kb(kb)
     return f"Stored knowledge: {topic} ({len(content)} chars)"
 

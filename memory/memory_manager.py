@@ -15,8 +15,8 @@ BASE_DIR         = get_base_dir()
 OLD_MEMORY_PATH  = BASE_DIR / "memory" / "long_term.json"
 LONG_TERM_DIR    = BASE_DIR / "memory" / "long_term"
 _lock            = Lock()
-MAX_VALUE_LENGTH = 1000
-MEMORY_MAX_CHARS = 100000
+MAX_VALUE_LENGTH = 50000
+MEMORY_MAX_CHARS = 10000000
 
 def _empty_memory() -> dict:
     return {
@@ -241,7 +241,7 @@ forget_memory = forget
 
 SESSION_LOG_PATH = BASE_DIR / "memory" / "session_log.json"
 LAST_SESSION_SUMMARY_PATH = BASE_DIR / "memory" / "last_session_summary.json"
-MAX_SESSION_TURNS = 40
+MAX_SESSION_TURNS = 500
 SHUTDOWN_HIGHLIGHT_TURNS = 8
 
 
@@ -324,6 +324,13 @@ def append_session_turn(user: str = "", assistant: str = "") -> None:
 
     try:
         auto_capture_from_turn(user=user, assistant=assistant)
+    except Exception:
+        pass
+
+    # Feed into the Unlimited Brain's auto-extractor
+    try:
+        from memory.brain import auto_extract_from_turn
+        auto_extract_from_turn(user=user, assistant=assistant)
     except Exception:
         pass
 
