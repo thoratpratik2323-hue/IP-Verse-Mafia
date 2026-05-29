@@ -23,7 +23,8 @@ DEFAULT_MODELS = {
     "gemini": "gemini-3.1-flash-live-preview",
     "claude": "claude-3-5-sonnet-20241022",
     "gpt-4o": "gpt-4o",
-    "ollama": "llama3"
+    "ollama": "llama3",
+    "freellmapi": "gemini-2.5-flash"
 }
 
 def _ensure_config_dir():
@@ -81,6 +82,19 @@ def force_nvidia(player: Optional[Any] = None) -> str:
             player.write_log("SYS: Routing mode forced to NVIDIA.")
         if player and hasattr(player, "set_router_badge"):
             player.set_router_badge("NVIDIA")
+        return msg
+    return "Failed to save configuration update, sir."
+
+def force_freellmapi(player: Optional[Any] = None) -> str:
+    """Forces all query responses through FreeLLMAPI until reset."""
+    cfg = load_model_preference()
+    cfg["routing_mode"] = "freellmapi"
+    if save_model_preference_dict(cfg):
+        msg = "IP Prime will now route all queries to FreeLLMAPI, sir!"
+        if player and hasattr(player, "write_log"):
+            player.write_log("SYS: Routing mode forced to FreeLLMAPI.")
+        if player and hasattr(player, "set_router_badge"):
+            player.set_router_badge("FREELLM")
         return msg
     return "Failed to save configuration update, sir."
 
@@ -167,6 +181,12 @@ def switch_model(model_name: str, player: Optional[Any] = None) -> str:
         target_model = DEFAULT_MODELS["ollama"]
         # No API key needed for local ollama
         
+    elif "freellmapi" in m_name or "freeapi" in m_name:
+        provider = "freellmapi"
+        target_model = DEFAULT_MODELS["freellmapi"]
+        if "/" in model_name:
+            target_model = model_name.split("/", 1)[1]
+            
     elif "gemini" in m_name or "google" in m_name:
         provider = "gemini"
         target_model = DEFAULT_MODELS["gemini"]
@@ -225,6 +245,8 @@ def model_switcher(parameters: dict[str, Any], player: Optional[Any] = None) -> 
         return f"Current active LLM backend: {cfg.get('active_provider', 'gemini').upper()} model: {cfg.get('active_model', 'N/A')}, sir."
     elif action == "force_nvidia":
         return force_nvidia(player)
+    elif action == "force_freellmapi" or action == "force_free":
+        return force_freellmapi(player)
     elif action == "force_gemini":
         return force_gemini(player)
     elif action == "auto_route":

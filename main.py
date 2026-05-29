@@ -773,17 +773,22 @@ class IPRayLive:
             routing_mode = pref.get("routing_mode", "auto")
             
             is_code = False
+            source = "NVIDIA"
             if routing_mode == "nvidia":
                 is_code = True
+                source = "NVIDIA"
+            elif routing_mode == "freellmapi":
+                is_code = True
+                source = "FREELLM"
             elif routing_mode == "gemini":
                 is_code = False
             else:  # auto
                 is_code = is_coding_task(user_message)
+                source = "NVIDIA"
                 
             if is_code:
-                source = "NVIDIA"
                 if hasattr(self.ui, "set_router_badge"):
-                    self.ui.set_router_badge("NVIDIA")
+                    self.ui.set_router_badge(source)
                     
                 print(f"[Router] '{user_message[:40]}...' -> handled by {source}")
                 logger.info("[Router] '%s...' -> handled by %s", user_message[:40], source)
@@ -792,19 +797,19 @@ class IPRayLive:
                 if is_voice:
                     self._trigger_immediate_interruption()
                     
-                # Run NVIDIA client in background thread to keep event loop responsive
+                # Run FreeLLMAPI/NVIDIA client in background thread to keep event loop responsive
                 def run_nvidia():
                     try:
                         resp = ask_nvidia(
                             prompt=user_message,
                             system_prompt="You are IP Prime's coding engine. Give clean, well-commented code with brief explanations."
                         )
-                        self.ui.write_log(f"IP Prime (NVIDIA): {resp}")
+                        self.ui.write_log(f"IP Prime ({source}): {resp}")
                         self.speak(resp)
                     except Exception as err:
-                        logger.error("NVIDIA NIM query failed: %s", err)
-                        self.ui.write_log(f"SYS: NVIDIA routing failure: {err}")
-                        self.speak(f"NVIDIA API request failed, sir. {err}")
+                        logger.error("%s query failed: %s", source, err)
+                        self.ui.write_log(f"SYS: {source} routing failure: {err}")
+                        self.speak(f"{source} API request failed, sir. {err}")
                 
                 threading.Thread(target=run_nvidia, daemon=True, name="NvidiaQueryThread").start()
                 

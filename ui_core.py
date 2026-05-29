@@ -2159,6 +2159,12 @@ class MainWindow(QMainWindow):
                     "color: #76B900; background: rgba(118, 185, 0, 0.1); "
                     "border: 1px solid #76B900; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
                 )
+            elif pref.get("routing_mode", "auto") == "freellmapi":
+                default_text = "🔗 FreeLLM"
+                default_style = (
+                    "color: #a855f7; background: rgba(168, 85, 247, 0.1); "
+                    "border: 1px solid #a855f7; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px; margin-left: 10px;"
+                )
         except Exception:
             pass
 
@@ -3400,6 +3406,12 @@ class MainWindow(QMainWindow):
             self._router_badge.setStyleSheet(
                 "color: #76B900; background: rgba(118, 185, 0, 0.1); "
                 "border: 1px solid #76B900; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
+            )
+        elif model.upper() == "FREELLM":
+            self._router_badge.setText("🔗 FreeLLM")
+            self._router_badge.setStyleSheet(
+                "color: #a855f7; background: rgba(168, 85, 247, 0.1); "
+                "border: 1px solid #a855f7; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
             )
         elif model.upper() == "HACKER":
             self._router_badge.setText("💀 Hacker Mode")

@@ -166,11 +166,18 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         base_url = cfg.get("coding_base_url", "")
         model = model_name or cfg.get("coding_model", "nvidia/llama-3.1-nemotron-70b-instruct")
 
-    if model and "gemini" in model.lower():
+    # If provider is freellmapi and key/url is missing, use standard defaults
+    if provider == "freellmapi":
+        if not api_key:
+            api_key = "freellmapi-key"
+        if not base_url:
+            base_url = "http://localhost:3000/v1"
+
+    if model and "gemini" in model.lower() and provider != "freellmapi":
         provider = "gemini"
 
     # If provider is gemini or fallback triggered, run Gemini SDK
-    if provider == "gemini" or not base_url or not api_key:
+    if (provider == "gemini" or not base_url or not api_key) and provider != "freellmapi":
         if provider != "gemini":
             print(f"[Unified Model] Fallback to Gemini: provider is {provider} but base_url or api_key is missing.")
         
@@ -272,6 +279,8 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         text_out = res_json["choices"][0]["message"]["content"]
         return UnifiedModelResponse(text=text_out)
     except Exception as e:
+        if provider == "freellmapi":
+            raise RuntimeError(f"FreeLLMAPI execution failed: {e}")
         print(f"[Unified Model] NVIDIA/OpenAI request failed: {e}. Falling back to Gemini...")
         # Graceful fallback to Gemini on HTTP error
         try:

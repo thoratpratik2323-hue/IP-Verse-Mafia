@@ -62,31 +62,35 @@ def set_coding_model_preference(model_name: str) -> bool:
 
 def ask_nvidia(prompt: str, system_prompt: str = "", model: str = None) -> str:
     """
-    Queries NVIDIA NIM API utilizing streaming chunks for high response speed.
+    Queries NVIDIA NIM API or FreeLLMAPI utilizing streaming chunks for high response speed.
     """
-    api_key = os.environ.get("NVIDIA_API_KEY", "").strip()
-    if not api_key:
-        try:
-            with open(CONFIG_DIR / "api_keys.json", "r", encoding="utf-8") as f:
-                config = json.load(f)
+    try:
+        with open(CONFIG_DIR / "api_keys.json", "r", encoding="utf-8") as f:
+            config = json.load(f)
+    except Exception:
+        config = {}
+
+    provider = config.get("coding_provider", "nvidia").lower()
+
+    if provider == "freellmapi":
+        base_url = config.get("coding_base_url", "http://localhost:3000/v1")
+        api_key = config.get("coding_api_key") or "freellmapi-key"
+        target_model = model or config.get("coding_model", "gemini-2.5-flash")
+        logger.info("Routing query to FreeLLMAPI utilizing model: %s", target_model)
+    else:
+        base_url = "https://integrate.api.nvidia.com/v1"
+        api_key = os.environ.get("NVIDIA_API_KEY", "").strip()
+        if not api_key:
             api_key = (config.get("coding_api_key") or config.get("gemini_api_key") or "").strip()
-        except Exception:
-            pass
-            
-    if not api_key:
-        raise ValueError("NVIDIA_API_KEY not set. Add it to your environment variables.")
-
-    # Resolve target model
-    target_model = model
-    if not target_model:
-        target_model = get_coding_model()
-
-    logger.info("Routing query to NVIDIA NIM utilizing model: %s", target_model)
+        if not api_key:
+            raise ValueError("NVIDIA_API_KEY not set. Add it to your environment variables.")
+        target_model = model or get_coding_model()
+        logger.info("Routing query to NVIDIA NIM utilizing model: %s", target_model)
 
     try:
         from openai import OpenAI
         client = OpenAI(
-            base_url="https://integrate.api.nvidia.com/v1",
+            base_url=base_url,
             api_key=api_key
         )
 
