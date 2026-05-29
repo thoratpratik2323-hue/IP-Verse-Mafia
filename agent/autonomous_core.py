@@ -195,6 +195,12 @@ class AutonomousCore:
             print(f"[AutonomousCore] 🧠 Self-Learning failed: {e}")
         print("[AutonomousCore] 🛑 Heartbeat stopped.")
 
+    def goal_exists(self, goal_name: str) -> bool:
+        """Checks if a goal is already present in the active planner queue."""
+        if hasattr(self, "planner") and self.planner:
+            return self.planner.has_goal(goal_name)
+        return False
+
 if __name__ == "__main__":
     # Simple test
     core = AutonomousCore()

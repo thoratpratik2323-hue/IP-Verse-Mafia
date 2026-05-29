@@ -105,3 +105,11 @@ If the plan is flawed, return a newly corrected JSON plan using the exact same J
             print(f"[Planner] ⚠️ Self-reflection error: {e}")
             
         return plan
+
+    def has_goal(self, goal_name: str) -> bool:
+        """Checks if a goal is already in the priority queue."""
+        g_l = goal_name.lower().strip()
+        for task in list(self.task_queue.queue):
+            if g_l in task.goal.lower():
+                return True
+        return False
