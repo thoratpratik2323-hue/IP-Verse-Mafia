@@ -537,6 +537,18 @@ Fixed code for {fix_path}:"""
             full_path.parent.mkdir(parents=True, exist_ok=True)
             full_path.write_text(fixed, encoding="utf-8")
 
+            # Run AISlop scan & auto-fix on the fixed code
+            try:
+                from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+                target_file_str = str(full_path)
+                scan_res = run_aislop_scan(target_file_str)
+                score = scan_res.get("score", 100)
+                if score < 95:
+                    run_aislop_fix(target_file_str)
+                    fixed = full_path.read_text(encoding="utf-8")
+            except Exception as ae:
+                print(f"[DevAgent] AISlop fix warning: {ae}")
+
             updated_codes[fix_path] = fixed
             print(f"[DevAgent] 🔧 Fixed: {fix_path}")
 
@@ -615,17 +627,40 @@ def _build_project(
             pass
 
         log(f"Writing {file_path}...")
+        current_desc = description
         for attempt in range(2):
             try:
                 code = _write_file(
                     file_info=file_info,
-                    project_description=description,
+                    project_description=current_desc,
                     all_files=files,
                     language=language,
                     project_dir=project_dir,
                     already_written=file_codes,
                 )
                 file_codes[file_path] = code
+                
+                # Run AISlop Scan & Fix
+                try:
+                    from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+                    target_file_str = str(project_dir / file_path)
+                    scan_res = run_aislop_scan(target_file_str, player)
+                    score = scan_res.get("score", 100)
+                    if score < 95:
+                        log(f"AISlop Score: {score}/100. Running auto-fix...")
+                        run_aislop_fix(target_file_str, player)
+                        scan_res = run_aislop_scan(target_file_str, player)
+                        score = scan_res.get("score", 100)
+                    
+                    if score < 90 and attempt == 0:
+                        issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
+                        log(f"Code quality score {score} < 90. Forcing self-correction on attempt 2...")
+                        current_desc = f"{description}\n\nCRITICAL FIX REQUIRED: The previous attempt generated suboptimal code / stubs with an AI-slop score of {score}/100. You MUST rewrite the file completely ensuring zero placeholders, zero 'pass' stubs, zero 'TODO' comments, and fully written production-grade logic. Issues detected:\n{issues_summary}"
+                        time.sleep(1)
+                        continue
+                except Exception as ae:
+                    log(f"AISlop quality gate warning: {ae}")
+
                 time.sleep(0.4)
                 break
             except RateLimitError:

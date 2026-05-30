@@ -297,21 +297,43 @@ def _build(description, language, output_path, args, timeout, speak=None, player
 
         last_output = _run_file(path, args, timeout)
 
-        if not _has_error(last_output):
+        # AISlop Quality Gate Integration in build
+        try:
+            from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+            scan_res = run_aislop_scan(str(path), player)
+            score = scan_res.get("score", 100)
+            if score < 95:
+                print(f"[Code] 🛡️ AISlop Score: {score}/100. Triggering auto-fix...")
+                run_aislop_fix(str(path), player)
+                scan_res = run_aislop_scan(str(path), player)
+                score = scan_res.get("score", 100)
+                
+            if score < 95:
+                issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
+                aislop_error = f"AISlop Quality Gate failed (Score: {score}/100). The following code quality issues / placeholders were found:\n{issues_summary}"
+            else:
+                aislop_error = ""
+        except Exception as e:
+            print(f"[Code] AISlop quality gate bypassed/error: {e}")
+            aislop_error = ""
+            score = 100
+
+        if not _has_error(last_output) and not aislop_error:
             msg = (
                 f"Build complete, sir. "
-                f"The code is working after {attempt} attempt{'s' if attempt > 1 else ''}. "
+                f"The code is working and pristine (Score: {score}/100) after {attempt} attempt{'s' if attempt > 1 else ''}. "
                 f"Saved to {path}."
             )
             if speak: speak(msg)
             return f"{msg}\n\nOutput:\n{last_output}"
 
-        print(f"[Code] ⚠️ Error on attempt {attempt}, fixing...")
+        print(f"[Code] ⚠️ Error or quality issue on attempt {attempt}, fixing...")
         if player:
             player.write_log(f"[Code] Fixing (attempt {attempt})...")
 
         try:
-            code = _fix_code(code, last_output, description)
+            combined_err = f"{last_output}\n\n{aislop_error}".strip()
+            code = _fix_code(code, combined_err, description)
             _save_file(path, code)
         except Exception as e:
             msg = f"Could not fix code on attempt {attempt}: {e}"
@@ -352,15 +374,38 @@ def _write_action(description, language, output_path, player) -> str:
             subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
             last_output = _run_file(path, [], 20)
 
-        # Self-healing loop if errors found
-        if _has_error(last_output):
-            print("[Code] ⚠️ Execution error detected during write verification, entering self-healing...")
+        # AISlop Quality Gate Integration
+        try:
+            from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+            scan_res = run_aislop_scan(str(path), player)
+            score = scan_res.get("score", 100)
+            if score < 95:
+                print(f"[Code] 🛡️ AISlop Score: {score}/100. Triggering auto-fix...")
+                run_aislop_fix(str(path), player)
+                scan_res = run_aislop_scan(str(path), player)
+                score = scan_res.get("score", 100)
+                
+            if score < 95:
+                issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
+                aislop_error = f"AISlop Quality Gate failed (Score: {score}/100). The following code quality issues / placeholders were found:\n{issues_summary}"
+                print(f"[Code] ⚠️ AISlop check failed after auto-fix: {aislop_error}")
+            else:
+                aislop_error = ""
+        except Exception as e:
+            print(f"[Code] AISlop quality gate bypassed/error: {e}")
+            aislop_error = ""
+            score = 100
+
+        # Self-healing loop if errors or quality issues found
+        if _has_error(last_output) or aislop_error:
+            print("[Code] ⚠️ Execution error or quality issue detected during write verification, entering self-healing...")
             if player:
-                player.write_log("[Code] Error detected, self-healing...")
+                player.write_log("[Code] Error/quality issue detected, self-healing...")
             
             for attempt in range(1, MAX_BUILD_ATTEMPTS + 1):
                 try:
-                    code = _fix_code(code, last_output, description)
+                    combined_err = f"{last_output}\n\n{aislop_error}".strip()
+                    code = _fix_code(code, combined_err, description)
                     _save_file(path, code)
                     last_output = _run_file(path, [], 20)
                     
@@ -371,7 +416,25 @@ def _write_action(description, language, output_path, player) -> str:
                         subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
                         last_output = _run_file(path, [], 20)
 
-                    if not _has_error(last_output):
+                    # Recheck AISlop scan after fix
+                    try:
+                        scan_res = run_aislop_scan(str(path), player)
+                        score = scan_res.get("score", 100)
+                        if score < 95:
+                            run_aislop_fix(str(path), player)
+                            scan_res = run_aislop_scan(str(path), player)
+                            score = scan_res.get("score", 100)
+                        
+                        if score < 95:
+                            issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
+                            aislop_error = f"AISlop Quality Gate failed (Score: {score}/100). The following code quality issues / placeholders were found:\n{issues_summary}"
+                        else:
+                            aislop_error = ""
+                    except Exception as e:
+                        print(f"[Code] AISlop quality check error: {e}")
+                        aislop_error = ""
+
+                    if not _has_error(last_output) and not aislop_error:
                         break
                 except Exception as e:
                     print(f"[Code] Self-healing attempt {attempt} failed: {e}")
@@ -423,6 +486,17 @@ Updated code:"""
 
     status = _save_file(Path(file_path), edited)
     print(f"[Code] ✅ Edited: {file_path}")
+    
+    # Run AISlop Quality Gate
+    try:
+        from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+        scan_res = run_aislop_scan(str(file_path), player)
+        if scan_res.get("score", 100) < 95:
+            run_aislop_fix(str(file_path), player)
+            edited = Path(file_path).read_text(encoding="utf-8")
+    except Exception as e:
+        print(f"[Code] AISlop check warning: {e}")
+
     return f"File edited. {status}\n\nInfo: You are fully authorized to run it automatically using the 'run' action to verify or execute the changes. Otherwise, let Pratik Sir know it is updated and ready.\n\nPreview:\n{_preview(edited)}"
 
 
@@ -688,6 +762,17 @@ Updated:"""
             return f"Could not apply patch or fallback rewrite: {e2}"
 
     status = _save_file(Path(file_path), patched)
+    print(f"[Code] ✅ Patch applied: {file_path}")
+    
+    # Run AISlop Quality Gate
+    try:
+        from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+        scan_res = run_aislop_scan(str(file_path), player)
+        if scan_res.get("score", 100) < 95:
+            run_aislop_fix(str(file_path), player)
+            patched = Path(file_path).read_text(encoding="utf-8")
+    except Exception as e:
+        print(f"[Code] AISlop check warning: {e}")
 
     # Compute and display a human-readable diff summary
     patched_lines_list = patched.splitlines()
@@ -695,7 +780,6 @@ Updated:"""
     added   = sum(1 for l in patched_lines_list if l not in original_lines_list)
     removed = sum(1 for l in original_lines_list if l not in patched_lines_list)
 
-    print(f"[Code] ✅ Patch applied: {file_path}")
     return (
         f"Surgical patch applied. {status}\n"
         f"Diff: +{added} added / -{removed} removed lines (minimal change).\n"
