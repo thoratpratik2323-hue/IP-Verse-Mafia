@@ -640,8 +640,13 @@ class IPRayLive:
             return
 
         # ─── Voice command: Team Introduction ──────────────────────────────────
-        intro_triggers = ["introduce our team", "team introduction", "introduce the team", "board members"]
-        if any(t in txt_l for t in intro_triggers):
+        is_intro = ("introduce" in txt_l and "team" in txt_l) or \
+                   ("team" in txt_l and "intro" in txt_l) or \
+                   ("board" in txt_l and "member" in txt_l) or \
+                   ("meet" in txt_l and "team" in txt_l) or \
+                   ("introduce" in txt_l and "our" in txt_l)
+                   
+        if is_intro:
             self.ui.write_log("SYS: Team introduction triggered.")
             try:
                 from actions.introduce_team import TeamIntroCoordinator
