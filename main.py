@@ -640,11 +640,14 @@ class IPRayLive:
             return
 
         # ─── Voice command: Team Introduction ──────────────────────────────────
-        is_intro = ("introduce" in txt_l and "team" in txt_l) or \
-                   ("team" in txt_l and "intro" in txt_l) or \
-                   ("board" in txt_l and "member" in txt_l) or \
-                   ("meet" in txt_l and "team" in txt_l) or \
-                   ("introduce" in txt_l and "our" in txt_l)
+        is_intro = "intro" in txt_l or \
+                   ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "who", "is", "about", "conglom"])) or \
+                   "board" in txt_l or \
+                   "member" in txt_l or \
+                   "antigravity" in txt_l or \
+                   "claude" in txt_l or \
+                   "hermes" in txt_l or \
+                   "obsidian" in txt_l
                    
         if is_intro:
             self.ui.write_log("SYS: Team introduction triggered.")
@@ -872,11 +875,14 @@ class IPRayLive:
         Smart intent router that routes coding tasks to NVIDIA NIM API and general tasks to Gemini.
         """
         txt_l = user_message.lower().strip()
-        is_intro = ("introduce" in txt_l and "team" in txt_l) or \
-                   ("team" in txt_l and "intro" in txt_l) or \
-                   ("board" in txt_l and "member" in txt_l) or \
-                   ("meet" in txt_l and "team" in txt_l) or \
-                   ("introduce" in txt_l and "our" in txt_l)
+        is_intro = "intro" in txt_l or \
+                   ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "who", "is", "about", "conglom"])) or \
+                   "board" in txt_l or \
+                   "member" in txt_l or \
+                   "antigravity" in txt_l or \
+                   "claude" in txt_l or \
+                   "hermes" in txt_l or \
+                   "obsidian" in txt_l
                    
         if is_intro:
             self.ui.write_log("SYS: Team introduction triggered via router.")
