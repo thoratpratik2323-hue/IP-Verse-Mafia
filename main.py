@@ -871,6 +871,26 @@ class IPRayLive:
         """
         Smart intent router that routes coding tasks to NVIDIA NIM API and general tasks to Gemini.
         """
+        txt_l = user_message.lower().strip()
+        is_intro = ("introduce" in txt_l and "team" in txt_l) or \
+                   ("team" in txt_l and "intro" in txt_l) or \
+                   ("board" in txt_l and "member" in txt_l) or \
+                   ("meet" in txt_l and "team" in txt_l) or \
+                   ("introduce" in txt_l and "our" in txt_l)
+                   
+        if is_intro:
+            self.ui.write_log("SYS: Team introduction triggered via router.")
+            try:
+                from actions.introduce_team import TeamIntroCoordinator
+                from PyQt6.QtCore import QTimer
+                def run_intro():
+                    coordinator = TeamIntroCoordinator(self.ui, self.speak)
+                    coordinator.start()
+                QTimer.singleShot(100, run_intro)
+            except Exception as e:
+                self.speak(f"Bhai team introduction fail ho gaya: {e}")
+            return
+
         try:
             from core.intent_router import is_coding_task
             from core.nvidia_client import ask_nvidia
