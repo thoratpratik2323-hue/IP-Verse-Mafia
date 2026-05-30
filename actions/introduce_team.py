@@ -153,6 +153,14 @@ class TeamIntroCoordinator:
                 "description": "I am Obsidian, the Head of Security and Data Governance. I protect the IP Verse empire by indexing our infinite memory databases, performing advanced vulnerability scans, and securing our neural networks.",
                 "color": "#9933ff",
                 "audio_text": "Finally, we have Obsidian, the Head of Security and Data Governance. He says: I am Obsidian. I protect the IP Verse empire by indexing our infinite memory databases, performing advanced vulnerability scans, and securing our neural networks."
+            },
+            {
+                "name": "IP VERSE",
+                "title": "Parent Autonomous Conglomerate",
+                "department": "Founder: Pratik Thorat",
+                "description": "IP Verse is the grand parent conglomerate of Pratik Thorat's technology empire. Power-charged by Prime, Antigravity, Claude, Hermes, and Obsidian, IP Verse launches, secures, and scales an infinite galaxy of startups from A to Z.",
+                "color": "#ffd700",
+                "audio_text": "And finally, Pratik Sir, all of this operates under the legendary banner of IP Verse, the parent autonomous conglomerate founded and led by you, Pratik Thorat. IP Verse is your personal technology empire, designed to launch and scale a galaxy of startups from A to Z. With us as your dedicated executive board, we are ready to conquer the next horizon under your vision, Emperor Pratik. System check complete, all board members online."
             }
         ]
         self.current_idx = 0
@@ -160,8 +168,8 @@ class TeamIntroCoordinator:
         
     def start(self):
         self.ui.write_log("SYS: Team introduction sequence initiated.")
-        self.speak("Pratik Sir, I am extremely proud to introduce the founding board members of your autonomous empire, IP Verse. Let's meet the team.")
-        QTimer.singleShot(7500, self.show_next)
+        self.speak("Pratik Thorat Sir, I am extremely proud to introduce the founding board members of your autonomous empire, IP Verse. Let's meet the team.")
+        QTimer.singleShot(8500, self.show_next)
         
     def show_next(self):
         if self.active_dialog:
@@ -170,7 +178,7 @@ class TeamIntroCoordinator:
             
         if self.current_idx >= len(self.cards):
             self.ui.write_log("SYS: Team introduction sequence completed successfully.")
-            self.speak("And that is your core team, sir. Together under your vision, we are ready to scale IP Verse from A to Z.")
+            self.speak("And that is your core team and empire, sir. Together under your vision, we are ready to scale IP Verse from A to Z. Ready to build!")
             return
             
         card_data = self.cards[self.current_idx]
@@ -189,7 +197,7 @@ class TeamIntroCoordinator:
         self.speak(card_data["audio_text"])
         
         self.current_idx += 1
-        QTimer.singleShot(14500, self.show_next)
+        QTimer.singleShot(17000 if card_data["name"] == "IP VERSE" else 14500, self.show_next)
 
 
 def introduce_team(parameters: dict, player=None) -> str:
