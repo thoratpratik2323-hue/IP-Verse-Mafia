@@ -639,6 +639,21 @@ class IPRayLive:
                 pass
             return
 
+        # ─── Voice command: Team Introduction ──────────────────────────────────
+        intro_triggers = ["introduce our team", "team introduction", "introduce the team", "board members"]
+        if any(t in txt_l for t in intro_triggers):
+            self.ui.write_log("SYS: Team introduction triggered.")
+            try:
+                from actions.introduce_team import TeamIntroCoordinator
+                from PyQt6.QtCore import QTimer
+                def run_intro():
+                    coordinator = TeamIntroCoordinator(self.ui, self.speak)
+                    coordinator.start()
+                QTimer.singleShot(100, run_intro)
+            except Exception as e:
+                self.speak(f"Bhai team introduction fail ho gaya: {e}")
+            return
+
         # ─── Voice command: GitHub Streak ───────────────────────────────────────
         streak_triggers = ["mera streak", "github status", "commit streak"]
         if any(t in txt_l for t in streak_triggers):
