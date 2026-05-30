@@ -547,7 +547,7 @@ class IPRayLive:
         return False
 
     def _on_text_command(self, text: str):
-        if not self._loop or not self.session:
+        if not self._loop:
             return
 
         if self._tool_active:
@@ -823,6 +823,11 @@ class IPRayLive:
                 os._exit(0)
             threading.Thread(target=_shutdown, daemon=True).start()
             return
+        if not self.session:
+            self.ui.write_log("SYS: Gemini Session is currently rate-limited, sir. Local system commands are fully operational.")
+            self.speak("Bhai, Gemini rate limits ki vajah se general connection offline hai, lekin local team introduction aur offline system commands working hain.")
+            return
+
         with self._speaking_lock:
             is_speaking = self._is_speaking
 
