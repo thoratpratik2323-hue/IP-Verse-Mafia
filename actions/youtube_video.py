@@ -285,6 +285,16 @@ def _handle_play(parameters: dict, player) -> str:
     video_url = _scrape_first_video_url(query)
 
     if video_url:
+        # Default to premium full-screen ad-free embed format to bypass pre-roll and mid-roll ads
+        ad_free = parameters.get("ad_free", True)
+        if ad_free:
+            video_id = _extract_video_id(video_url)
+            if video_id:
+                embed_url = f"https://www.youtube.com/embed/{video_id}?autoplay=1"
+                print(f"[YouTube] ▶️ Opening Ad-Free Embed: {embed_url}")
+                _open_url(embed_url)
+                return f"Playing {query} in Premium Ad-Free Embed Mode, sir!"
+
         print(f"[YouTube] ▶️ Opening: {video_url}")
         _open_url(video_url)
         return f"Playing: {query}"
