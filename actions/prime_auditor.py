@@ -156,9 +156,9 @@ Source Code:
                 contents=prompt
             )
         except Exception as model_err:
-            log(f"gemini-2.5-flash unavailable ({model_err}). Falling back to gemini-1.5-flash...")
+            log(f"gemini-2.5-flash unavailable ({model_err}). Falling back to gemini-flash-latest...")
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-flash-latest",
                 contents=prompt
             )
 

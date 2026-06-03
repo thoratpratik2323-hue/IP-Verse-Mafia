@@ -138,7 +138,7 @@ Source Code:
             )
         except Exception:
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-flash-latest",
                 contents=mythos_prompt
             )
 
@@ -310,11 +310,288 @@ def run_system_vuln_check(player=None) -> str:
     return "\n".join(lines)
 
 
+def run_mythos_patcher(code: str, language: str, player=None) -> str:
+    """
+    Identifies vulnerabilities in a code snippet and refactors it to be secure,
+    implementing secure logic bounds, input sanitization, and overflow protection.
+    """
+    api_key = _get_api_key()
+    if not api_key:
+        return "Error: Gemini API key is missing."
+
+    prompt = f"""You are Claude Mythos, a senior secure code refactoring engineer.
+Audit the following {language} snippet for security flaws. Provide a complete patched secure rewrite of the code, and explain what vulnerability you mitigated.
+
+Return your response in a JSON document with this exact schema:
+{{
+  "vulnerability_found": "Explanation of vulnerabilities detected",
+  "secure_rewrite": "Provide the complete, compiler-ready patched source code code here",
+  "explanation_of_fix": "Explain specifically what changes you made to prevent memory corruption, injection, or logical issues."
+}}
+
+Snippet:
+```
+{code}
+```
+"""
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=prompt
+            )
+
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+            raw = raw.strip()
+
+        data = json.loads(raw)
+        
+        lines = [
+            "==========================================================",
+            "          🛠️  CLAUDE MYTHOS SECURE AUTO-PATCHER            ",
+            "==========================================================",
+            f"VULNERABILITY ID: {data.get('vulnerability_found')}",
+            "",
+            "⚙️ SECURE CODE REWRITE:",
+            "----------------------------------------------------------",
+            data.get('secure_rewrite', '// No rewrite generated.'),
+            "----------------------------------------------------------",
+            "",
+            f"REMEDIATION EXPLANATION: {data.get('explanation_of_fix')}",
+            "=========================================================="
+        ]
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Secure Patch execution erred: {e}"
+
+
+def run_stride_threat_model(architecture: str, player=None) -> str:
+    """
+    Evaluates system architectures against the Microsoft STRIDE framework.
+    (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)
+    """
+    api_key = _get_api_key()
+    if not api_key:
+        return "Error: Gemini API key is missing."
+
+    prompt = f"""You are Claude Mythos, threat modeling expert. Assess the following system architecture description using the Microsoft STRIDE threat classification. Identify threat risks and map security controls.
+
+Architecture:
+{architecture}
+
+Return your assessment as a JSON document:
+{{
+  "executive_summary": "Summary of system exposure",
+  "stride_threats": {{
+    "spoofing": {{"threat": "description of spoofing threat", "mitigation": "mitigation approach"}},
+    "tampering": {{"threat": "description", "mitigation": "mitigation"}},
+    "repudiation": {{"threat": "description", "mitigation": "mitigation"}},
+    "info_disclosure": {{"threat": "description", "mitigation": "mitigation"}},
+    "denial_of_service": {{"threat": "description", "mitigation": "mitigation"}},
+    "elevation_of_privilege": {{"threat": "description", "mitigation": "mitigation"}}
+  }},
+  "security_controls": [
+    "Recommended architecture security controls"
+  ]
+}}
+"""
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=prompt
+            )
+
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+            raw = raw.strip()
+
+        data = json.loads(raw)
+        
+        lines = [
+            "==========================================================",
+            "          🔒 CLAUDE MYTHOS STRIDE THREAT MODEL             ",
+            "==========================================================",
+            f"System Summary: {data.get('executive_summary')}",
+            ""
+        ]
+        
+        threats = data.get("stride_threats", {})
+        for category, info in threats.items():
+            lines.append(f"◈ {category.upper()}:")
+            lines.append(f"  - Threat    : {info.get('threat')}")
+            lines.append(f"  - Mitigation: {info.get('mitigation')}\n")
+
+        lines.append("----------------------------------------------------------")
+        lines.append("💡 ARCHITECTURAL CONTROLS:")
+        for control in data.get("security_controls", []):
+            lines.append(f"  * {control}")
+        lines.append("==========================================================")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Threat modeling analysis failed: {e}"
+
+
+def run_asm_audit(assembly_text: str, player=None) -> str:
+    """
+    Decompiles and explains x86/ARM assembly instructions, identifying buffer offset risks,
+    integer errors, and unsafe system calls.
+    """
+    api_key = _get_api_key()
+    if not api_key:
+        return "Error: Gemini API key is missing."
+
+    prompt = f"""You are Claude Mythos, a reverse engineering specialist. 
+Examine this assembly/pseudocode listing. Detail the execution logic line-by-line and point out any memory unsafe boundaries or logic bypass vulnerabilities present.
+
+Listing:
+{assembly_text}
+
+Return your assessment as a JSON document:
+{{
+  "compilation_targets": "Expected compiler/architecture context",
+  "flow_analysis": "Step by step execution explanation",
+  "potential_vulns": "Any overflow bounds or stack corruption issues detected",
+  "ctf_notes": "Defensive recommendations or bypass keys for flag capture"
+}}
+"""
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=prompt
+            )
+
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+            raw = raw.strip()
+
+        data = json.loads(raw)
+        lines = [
+            "==========================================================",
+            "          🧩 CLAUDE MYTHOS ASSEMBLY/REVERSE AUDIT         ",
+            "==========================================================",
+            f"Arch Context   : {data.get('compilation_targets')}",
+            "",
+            "📖 EXECUTION FLOW ANALYSIS:",
+            data.get('flow_analysis', ''),
+            "",
+            "🚨 CRITICAL OVERFLOW & BOUNDS RISKS:",
+            data.get('potential_vulns', 'None identified.'),
+            "",
+            "⛳ CTF STRATEGY NOTES:",
+            data.get('ctf_notes', 'N/A'),
+            "=========================================================="
+        ]
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Assembly audit failed: {e}"
+
+
+def run_dependency_audit(manifest_path: str, player=None) -> str:
+    """
+    Statically audits requirements.txt or package.json files using Gemini,
+    mapping library names to security considerations.
+    """
+    p = Path(manifest_path)
+    if not p.exists() or not p.is_file():
+        return f"Manifest file not found: {manifest_path}"
+
+    content = _read_source_file(p)
+    api_key = _get_api_key()
+    if not api_key:
+        return "Error: Gemini API key is missing."
+
+    prompt = f"""You are Claude Mythos, dependency compliance manager. Audit this library manifest file for security liabilities. Highlight packages with historical vulnerabilities and recommend clean patching.
+
+Manifest Content:
+{content}
+
+Return your assessment as a JSON document:
+{{
+  "analyzed_manifest": "File format type",
+  "alerts": [
+    {{"library": "package-name", "cve_risks": "Description of vulnerability issues", "patch_version": "safe version target"}}
+  ]
+}}
+"""
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=prompt
+            )
+
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+            raw = raw.strip()
+
+        data = json.loads(raw)
+        alerts = data.get("alerts", [])
+        
+        lines = [
+            "==========================================================",
+            "          📦 CLAUDE MYTHOS DEPENDENCY AUDIT               ",
+            "==========================================================",
+            f"Manifest File  : {p.name}",
+            f"Identified Format: {data.get('analyzed_manifest')}",
+            f"Flagged Packages : {len(alerts)}",
+            ""
+        ]
+        
+        for i, alert in enumerate(alerts, 1):
+            lines.append(f"[{i}] Package: '{alert.get('library')}'")
+            lines.append(f"    Safety Risk : {alert.get('cve_risks')}")
+            lines.append(f"    Patch Target: {alert.get('patch_version')}\n")
+            
+        lines.append("[END OF MANIFEST SCANS]")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Dependency audit failed: {e}"
+
+
 def mythos_sentinel(parameters: dict, player=None) -> str:
     """Main entry point for tool execution."""
     action = parameters.get("action", "").lower().strip()
     if not action:
-        return "Error: parameter 'action' is required (audit, network_audit, tutor, decode)."
+        return "Error: parameter 'action' is required (audit, network_audit, tutor, decode, threat_model, patch_code)."
 
     if action == "audit":
         target = parameters.get("target", "").strip()
@@ -325,8 +602,20 @@ def mythos_sentinel(parameters: dict, player=None) -> str:
     elif action == "network_audit":
         return run_system_vuln_check(player=player)
 
+    elif action == "threat_model":
+        architecture = parameters.get("target", "").strip()
+        if not architecture:
+            return "Error: architecture description target is required."
+        return run_stride_threat_model(architecture, player=player)
+
+    elif action == "patch_code":
+        code_content = parameters.get("text", "").strip()
+        language = parameters.get("target", "C/C++").strip()
+        if not code_content:
+            return "Error: text parameter representing vulnerable code is required."
+        return run_mythos_patcher(code_content, language, player=player)
+
     elif action == "tutor":
-        # Forward parameters to cyber_tutor
         try:
             from actions.cyber_tutor import cyber_tutor
             tutor_params = dict(parameters)
@@ -336,14 +625,21 @@ def mythos_sentinel(parameters: dict, player=None) -> str:
             return f"Error loading Cybersecurity Tutor: {e}"
 
     elif action == "decode":
-        # Forward parameters to ctf_helper
-        try:
-            from actions.ctf_helper import ctf_helper
-            ctf_params = dict(parameters)
-            ctf_params["action"] = parameters.get("sub_action", "")
-            return ctf_helper(ctf_params, player=player)
-        except Exception as e:
-            return f"Error loading CTF Helper: {e}"
+        sub_action = parameters.get("sub_action", "").lower().strip()
+        if sub_action == "asm_auditor":
+            text = parameters.get("text", "")
+            return run_asm_audit(text, player=player)
+        elif sub_action == "dependency_auditor":
+            file_path = parameters.get("file_path", "")
+            return run_dependency_audit(file_path, player=player)
+        else:
+            try:
+                from actions.ctf_helper import ctf_helper
+                ctf_params = dict(parameters)
+                ctf_params["action"] = sub_action
+                return ctf_helper(ctf_params, player=player)
+            except Exception as e:
+                return f"Error loading CTF Helper: {e}"
 
     else:
         return f"Unknown action: '{action}'."

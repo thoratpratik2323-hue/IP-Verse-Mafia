@@ -5730,6 +5730,8 @@ class MythosSentinelDialog(QDialog):
     network_completed_sig = pyqtSignal(str)
     tutor_completed_sig = pyqtSignal(str)
     decode_completed_sig = pyqtSignal(str)
+    patch_completed_sig = pyqtSignal(str)
+    threat_completed_sig = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -5744,7 +5746,7 @@ class MythosSentinelDialog(QDialog):
         self.setWindowTitle("🛡️ MYTHOS SENTINEL")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(820, 620)
+        self.setFixedSize(920, 660)
 
         main_lay = QVBoxLayout(self)
         main_lay.setContentsMargins(0, 0, 0, 0)
@@ -5817,14 +5819,15 @@ class MythosSentinelDialog(QDialog):
 
         # Tab Navigation Row
         self.nav_lay = QHBoxLayout()
-        self.nav_lay.setSpacing(10)
+        self.nav_lay.setSpacing(8)
 
-        self.tab_btn_audit = QPushButton("🛡️ CODE AUDIT")
+        self.tab_btn_audit = QPushButton("🛡️ CODE AUDIT & PATCH")
         self.tab_btn_network = QPushButton("🌐 LOCAL PORTS")
+        self.tab_btn_threat = QPushButton("🔒 THREAT MODEL")
         self.tab_btn_ctf = QPushButton("⚡ CTF DECODER")
         self.tab_btn_tutor = QPushButton("📚 CYBER TUTOR")
 
-        for btn in [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_ctf, self.tab_btn_tutor]:
+        for btn in [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_threat, self.tab_btn_ctf, self.tab_btn_tutor]:
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setFixedHeight(32)
             self.nav_lay.addWidget(btn)
@@ -5838,14 +5841,16 @@ class MythosSentinelDialog(QDialog):
         # Initialize the tabs
         self._init_audit_tab()
         self._init_network_tab()
+        self._init_threat_tab()
         self._init_ctf_tab()
         self._init_tutor_tab()
 
         # Connections for tabs
         self.tab_btn_audit.clicked.connect(lambda: self._switch_tab(0, self.tab_btn_audit))
         self.tab_btn_network.clicked.connect(lambda: self._switch_tab(1, self.tab_btn_network))
-        self.tab_btn_ctf.clicked.connect(lambda: self._switch_tab(2, self.tab_btn_ctf))
-        self.tab_btn_tutor.clicked.connect(lambda: self._switch_tab(3, self.tab_btn_tutor))
+        self.tab_btn_threat.clicked.connect(lambda: self._switch_tab(2, self.tab_btn_threat))
+        self.tab_btn_ctf.clicked.connect(lambda: self._switch_tab(3, self.tab_btn_ctf))
+        self.tab_btn_tutor.clicked.connect(lambda: self._switch_tab(4, self.tab_btn_tutor))
 
         self._switch_tab(0, self.tab_btn_audit)
 
@@ -5868,13 +5873,15 @@ class MythosSentinelDialog(QDialog):
         self.network_completed_sig.connect(self._on_network_completed)
         self.tutor_completed_sig.connect(self._on_tutor_completed)
         self.decode_completed_sig.connect(self._on_decode_completed)
+        self.patch_completed_sig.connect(self._on_patch_completed)
+        self.threat_completed_sig.connect(self._on_threat_completed)
 
         self.drag_position = None
 
     def _switch_tab(self, index, active_btn):
         self.stack.setCurrentIndex(index)
         # Style reset and active highlight
-        btns = [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_ctf, self.tab_btn_tutor]
+        btns = [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_threat, self.tab_btn_ctf, self.tab_btn_tutor]
         for btn in btns:
             if btn == active_btn:
                 btn.setStyleSheet("""
@@ -5903,27 +5910,39 @@ class MythosSentinelDialog(QDialog):
                 """)
 
     def _init_audit_tab(self):
-        from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QLabel
+        from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QLabel, QTextEdit, QComboBox, QFrame
         page = QWidget()
-        lay = QVBoxLayout(page)
+        lay = QHBoxLayout(page)
         lay.setContentsMargins(0, 8, 0, 8)
-        lay.setSpacing(12)
+        lay.setSpacing(16)
 
-        lbl = QLabel("Perform a static vulnerability security audit on a file or project folder.\nUses Claude Mythos persona to scan for buffer overflows, memory leaks, and logic flaws.")
-        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
-        lbl.setWordWrap(True)
-        lay.addWidget(lbl)
+        # Left Column: Static Scanner
+        left_col = QFrame()
+        left_col.setStyleSheet("background-color: rgba(255, 255, 255, 0.01); border-radius: 8px;")
+        left_lay = QVBoxLayout(left_col)
+        left_lay.setContentsMargins(12, 12, 12, 12)
+        left_lay.setSpacing(10)
+
+        left_title = QLabel("◈ STATIC SECURITY SCANNER")
+        left_title.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        left_title.setStyleSheet("color: #A78BFA;")
+        left_lay.addWidget(left_title)
+
+        left_desc = QLabel("Scan local files/folders for buffer overflows, memory leaks, or logic flaws.")
+        left_desc.setStyleSheet("color: #cbd5e1; font-size: 10px;")
+        left_desc.setWordWrap(True)
+        left_lay.addWidget(left_desc)
 
         target_lay = QHBoxLayout()
         self.audit_path_input = QLineEdit()
-        self.audit_path_input.setPlaceholderText("Select file or folder path...")
+        self.audit_path_input.setPlaceholderText("Select target path...")
         
-        btn_file = QPushButton("Browse File")
+        btn_file = QPushButton("File")
         btn_file.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_file.setStyleSheet(self._accent_btn_style())
         btn_file.clicked.connect(self._browse_audit_file)
 
-        btn_dir = QPushButton("Browse Dir")
+        btn_dir = QPushButton("Dir")
         btn_dir.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_dir.setStyleSheet(self._accent_btn_style())
         btn_dir.clicked.connect(self._browse_audit_dir)
@@ -5931,16 +5950,54 @@ class MythosSentinelDialog(QDialog):
         target_lay.addWidget(self.audit_path_input)
         target_lay.addWidget(btn_file)
         target_lay.addWidget(btn_dir)
-        lay.addLayout(target_lay)
+        left_lay.addLayout(target_lay)
 
-        self.btn_run_audit = QPushButton("🛡️  RUN DEFENSIVE AUDIT SCAN")
+        self.btn_run_audit = QPushButton("🛡️  RUN SYSTEM AUDIT")
         self.btn_run_audit.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_run_audit.setFixedHeight(35)
+        self.btn_run_audit.setFixedHeight(32)
         self.btn_run_audit.setStyleSheet(self._fill_btn_style())
         self.btn_run_audit.clicked.connect(self._run_audit)
+        left_lay.addWidget(self.btn_run_audit)
+        left_lay.addStretch()
 
-        lay.addWidget(self.btn_run_audit)
-        lay.addStretch()
+        # Right Column: Auto-Patcher
+        right_col = QFrame()
+        right_col.setStyleSheet("background-color: rgba(255, 255, 255, 0.01); border-radius: 8px;")
+        right_lay = QVBoxLayout(right_col)
+        right_lay.setContentsMargins(12, 12, 12, 12)
+        right_lay.setSpacing(10)
+
+        right_title = QLabel("◈ SECURE CODE AUTO-PATCHER")
+        right_title.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        right_title.setStyleSheet("color: #A78BFA;")
+        right_lay.addWidget(right_title)
+
+        right_desc = QLabel("Paste vulnerable code snippet below to generate secure refactored versions.")
+        right_desc.setStyleSheet("color: #cbd5e1; font-size: 10px;")
+        right_desc.setWordWrap(True)
+        right_lay.addWidget(right_desc)
+
+        self.patch_code_input = QTextEdit()
+        self.patch_code_input.setPlaceholderText("Paste code snippet here...")
+        self.patch_code_input.setFixedHeight(85)
+        right_lay.addWidget(self.patch_code_input)
+
+        lang_lay = QHBoxLayout()
+        self.patch_lang_combo = QComboBox()
+        self.patch_lang_combo.addItems(["C/C++", "Python", "JavaScript/TypeScript", "Go", "Rust", "Java"])
+        
+        self.btn_run_patch = QPushButton("🩹  AUTO-PATCH SNIPPET")
+        self.btn_run_patch.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_run_patch.setStyleSheet(self._fill_btn_style())
+        self.btn_run_patch.clicked.connect(self._run_code_patch)
+
+        lang_lay.addWidget(self.patch_lang_combo, 2)
+        lang_lay.addWidget(self.btn_run_patch, 3)
+        right_lay.addLayout(lang_lay)
+        right_lay.addStretch()
+
+        lay.addWidget(left_col, 1)
+        lay.addWidget(right_col, 1)
         self.stack.addWidget(page)
 
     def _init_network_tab(self):
@@ -5964,6 +6021,32 @@ class MythosSentinelDialog(QDialog):
         lay.addStretch()
         self.stack.addWidget(page)
 
+    def _init_threat_tab(self):
+        from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QTextEdit
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 8, 0, 8)
+        lay.setSpacing(10)
+
+        lbl = QLabel("Provide your system architecture description below. Claude Mythos will compile a threat model using the Microsoft STRIDE framework.")
+        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        lay.addWidget(lbl)
+
+        self.threat_input = QTextEdit()
+        self.threat_input.setPlaceholderText("Describe system components (e.g. Web client, Python API server, MySQL database on AWS RDS, secure authentication method)...")
+        self.threat_input.setFixedHeight(120)
+        lay.addWidget(self.threat_input)
+
+        self.btn_run_threat = QPushButton("🔒  GENERATE ARCHITECTURE THREAT MODEL")
+        self.btn_run_threat.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_run_threat.setFixedHeight(35)
+        self.btn_run_threat.setStyleSheet(self._fill_btn_style())
+        self.btn_run_threat.clicked.connect(self._run_threat_model)
+        lay.addWidget(self.btn_run_threat)
+        
+        lay.addStretch()
+        self.stack.addWidget(page)
+
     def _init_ctf_tab(self):
         from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QLabel, QComboBox
         page = QWidget()
@@ -5984,11 +6067,13 @@ class MythosSentinelDialog(QDialog):
         self.ctf_combo.addItem("Caesar Cipher Brute", "crack_caesar")
         self.ctf_combo.addItem("Detect Encoding", "detect_encoding")
         self.ctf_combo.addItem("Hash Identifier", "hash_identifier")
+        self.ctf_combo.addItem("Assembly / Decompile Audit", "asm_auditor")
+        self.ctf_combo.addItem("Dependency manifest audit", "dependency_auditor")
         self.ctf_combo.addItem("Extract Strings from File", "extract_strings")
         self.ctf_combo.addItem("EXIF Steganography Check", "stego_check")
 
         self.ctf_payload = QLineEdit()
-        self.ctf_payload.setPlaceholderText("Enter ciphertext or target file path...")
+        self.ctf_payload.setPlaceholderText("Enter ciphertext, code instructions, or target file path...")
 
         self.btn_ctf_browse = QPushButton("Browse File")
         self.btn_ctf_browse.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -6128,7 +6213,7 @@ class MythosSentinelDialog(QDialog):
             self.audit_path_input.setText(dir_path)
 
     def _browse_ctf_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Target Stego/Strings File")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Target Stego/Strings/Manifest File")
         if file_path:
             self.ctf_payload.setText(file_path)
 
@@ -6159,6 +6244,34 @@ class MythosSentinelDialog(QDialog):
         self.console.append(result)
         self.console.ensureCursorVisible()
 
+    def _run_code_patch(self):
+        code = self.patch_code_input.toPlainText().strip()
+        lang = self.patch_lang_combo.currentText()
+        if not code:
+            self.console.append("SYS ERROR: Please paste some vulnerable code to patch, sir.")
+            return
+
+        self.btn_run_patch.setEnabled(False)
+        self.console.clear()
+        self.console.append(f"SYS: Analysing {lang} snippet for secure auto-patches...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import run_mythos_patcher
+                res = run_mythos_patcher(code, lang, player=self.parent())
+                self.patch_completed_sig.emit(res)
+            except Exception as e:
+                self.patch_completed_sig.emit(f"SYS ERROR: Auto-patcher failed: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_patch_completed(self, result: str):
+        self.btn_run_patch.setEnabled(True)
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
     def _run_network_scan(self):
         self.btn_run_network.setEnabled(False)
         self.console.clear()
@@ -6181,12 +6294,39 @@ class MythosSentinelDialog(QDialog):
         self.console.append(result)
         self.console.ensureCursorVisible()
 
+    def _run_threat_model(self):
+        arch_desc = self.threat_input.toPlainText().strip()
+        if not arch_desc:
+            self.console.append("SYS ERROR: System architecture details description cannot be blank, sir.")
+            return
+
+        self.btn_run_threat.setEnabled(False)
+        self.console.clear()
+        self.console.append("SYS: Compiling architecture specifications for STRIDE threat model...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import run_stride_threat_model
+                res = run_stride_threat_model(arch_desc, player=self.parent())
+                self.threat_completed_sig.emit(res)
+            except Exception as e:
+                self.threat_completed_sig.emit(f"SYS ERROR: STRIDE Threat modeling failed: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_threat_completed(self, result: str):
+        self.btn_run_threat.setEnabled(True)
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
     def _run_ctf_decode(self):
         sub_action = self.ctf_combo.currentData()
         payload = self.ctf_payload.text().strip()
 
         if not payload:
-            self.console.append("SYS ERROR: Payload text or file path input cannot be blank.")
+            self.console.append("SYS ERROR: Payload input cannot be blank.")
             return
 
         self.btn_run_ctf.setEnabled(False)
@@ -6200,7 +6340,11 @@ class MythosSentinelDialog(QDialog):
                     "action": "decode",
                     "sub_action": sub_action
                 }
-                if sub_action in ["extract_strings", "stego_check"]:
+                if sub_action == "dependency_auditor":
+                    params["file_path"] = payload
+                elif sub_action == "asm_auditor":
+                    params["text"] = payload
+                elif sub_action in ["extract_strings", "stego_check"]:
                     params["file_path"] = payload
                 else:
                     params["text"] = payload
@@ -6251,7 +6395,6 @@ class MythosSentinelDialog(QDialog):
         def thread_task():
             try:
                 from actions.mythos_sentinel import mythos_sentinel
-                # We request a quiz question
                 params = {
                     "action": "tutor",
                     "sub_action": "quiz"
@@ -6270,13 +6413,12 @@ class MythosSentinelDialog(QDialog):
         self.console.ensureCursorVisible()
 
         # Parse question if it matches quiz output syntax to load options in dropdown
-        # Syntax: ❓ **QUIZ QUESTION** (ID: `q1`)
         if "QUIZ QUESTION" in result:
             id_match = re.search(r"ID: `([^`]+)`", result)
             if id_match:
                 self.current_quiz_id = id_match.group(1)
                 
-                # Extract options from text block: Options:\n  - A\n  - B
+                # Extract options from text block
                 options = []
                 opt_lines = result.splitlines()
                 start_parsing = False
