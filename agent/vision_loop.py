@@ -78,9 +78,16 @@ Do NOT include markdown blocks. Return only raw JSON."""
             )
             
             result = response.text.strip()
-            if "```" in result:
-                result = result.replace("```json", "").replace("```", "").strip()
-                
+            # Robust JSON extraction — strip markdown fences and grab first valid JSON object
+            import re
+            # Remove markdown code fences if present
+            result = re.sub(r"```json\s*", "", result)
+            result = re.sub(r"```\s*", "", result)
+            result = result.strip()
+            # Extract first {...} JSON block to avoid "Extra data" errors
+            json_match = re.search(r'\{.*?\}', result, re.DOTALL)
+            if json_match:
+                result = json_match.group(0)
             data = json.loads(result)
             
             # Clean up temp file

@@ -773,12 +773,30 @@
       "tool": "brain_search",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:01:06",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:01:50",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:02:20",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 129,
-    "est_tokens": 103200,
-    "est_usd": 0.01548
+    "tool_calls": 132,
+    "est_tokens": 105600,
+    "est_usd": 0.01584
   },
   "by_day": {
     "2026-05-29": {
@@ -802,9 +820,9 @@
       "est_usd": 0.006
     },
     "2026-06-03": {
-      "tool_calls": 53,
-      "est_tokens": 42400,
-      "est_usd": 0.00636
+      "tool_calls": 56,
+      "est_tokens": 44800,
+      "est_usd": 0.00672
     }
   }
 }

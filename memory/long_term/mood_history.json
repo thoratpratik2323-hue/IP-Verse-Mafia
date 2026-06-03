@@ -1,16 +1,6 @@
 [
     {
         "timestamp": "2026-06-03 10:11",
-        "input": "อ ปล่อย",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-03 10:11",
-        "input": "Gaca ni tijet.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-03 10:11",
         "input": "Gaca ni tijet.",
         "mood": "neutral"
     },
@@ -247,6 +237,16 @@
     {
         "timestamp": "2026-06-03 12:30",
         "input": "イ ス カ の ね 、 イ ス カ の これ イスカロ に 来る よう",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-03 15:00",
+        "input": "है प्राइम",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-03 15:01",
+        "input": "I want to bu y a lap top ski ll ju st fi nd some skins.",
         "mood": "neutral"
     }
 ]

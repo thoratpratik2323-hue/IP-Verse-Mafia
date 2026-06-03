@@ -1,12 +1,12 @@
 {
     "date": "2026-06-03",
     "apps": {
-        "antigravity": 8560,
-        "python": 930,
+        "antigravity": 8640,
+        "python": 1030,
         "applicationframehost": 30,
         "firefox": 830,
         "msedge": 840,
-        "explorer": 130,
+        "explorer": 140,
         "shellexperiencehost": 40,
         "notepad": 120,
         "pickerhost": 10,
