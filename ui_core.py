@@ -3062,6 +3062,13 @@ class MainWindow(QMainWindow):
         )
         self._pv_percept_btn.setToolTip("Explain active window context, OCR screens, and analyze webcam presence")
 
+        # 8. Awesome Repos Explorer (Gold)
+        self._pv_repos_btn = make_matrix_btn(
+            "🌟  AWESOME REPOS", self._pv_awesome_repos,
+            "rgba(234, 179, 8, 0.12)", "#EAB308", "rgba(234, 179, 8, 0.35)"
+        )
+        self._pv_repos_btn.setToolTip("Explore and clone premium coding and agent repositories directly")
+
 
         lay.addStretch()
 
@@ -4602,6 +4609,13 @@ class MainWindow(QMainWindow):
         import threading
         threading.Thread(target=run_bg, daemon=True).start()
 
+    def _pv_awesome_repos(self):
+        try:
+            dialog = AwesomeReposDialog(self)
+            dialog.exec()
+        except Exception as e:
+            self.write_log(f"SYS ERROR: Awesome Repos Explorer failed to launch: {e}")
+
     def _apply_state(self, state: str):
 
         self.hud.state    = state
@@ -4808,6 +4822,241 @@ class CyberSafetyDialog(QDialog):
         
         lay.addLayout(btn_lay)
         main_lay.addWidget(container)
+
+
+class AwesomeReposDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from PyQt6.QtWidgets import QListWidget, QScrollArea, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+        self.setWindowTitle("🌟 AWESOME REPOS EXPLORER")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFixedSize(820, 520)
+        
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+        
+        # Cyberpunk Frame
+        container = QFrame(self)
+        container.setObjectName("containerFrame")
+        container.setStyleSheet(f"""
+            #containerFrame {{
+                background-color: rgba(10, 18, 36, 0.98);
+                border: 2px solid {C.CYAN};
+                border-radius: 16px;
+            }}
+            QLabel {{
+                color: #f8fafc;
+                background: transparent;
+                font-family: 'Segoe UI';
+            }}
+            QListWidget {{
+                background-color: rgba(15, 23, 42, 0.6);
+                border: 1px solid {C.BORDER};
+                border-radius: 8px;
+                color: #f8fafc;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                padding: 5px;
+            }}
+            QListWidget::item {{
+                padding: 8px;
+                border-radius: 4px;
+            }}
+            QListWidget::item:selected {{
+                background-color: rgba(6, 182, 212, 0.2);
+                color: {C.CYAN};
+                border: 1px solid {C.CYAN};
+            }}
+            QListWidget::item:hover {{
+                background-color: rgba(255, 255, 255, 0.05);
+            }}
+            QPushButton {{
+                border-radius: 8px;
+                padding: 10px 15px;
+                font-weight: bold;
+                font-size: 11px;
+                font-family: 'Segoe UI';
+            }}
+            QScrollBar:vertical {{
+                border: none;
+                background: transparent;
+                width: 6px;
+            }}
+            QScrollBar::handle:vertical {{
+                background: rgba(6, 182, 212, 0.3);
+                border-radius: 3px;
+            }}
+        """)
+        
+        lay = QVBoxLayout(container)
+        lay.setContentsMargins(20, 20, 20, 20)
+        lay.setSpacing(15)
+        
+        # Header
+        header_lay = QHBoxLayout()
+        header = QLabel("🌟 AWESOME REPOS EXPLORER")
+        header.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        header.setStyleSheet(f"color: {C.CYAN}; letter-spacing: 1px;")
+        header_lay.addWidget(header)
+        
+        btn_close_top = QPushButton("✕")
+        btn_close_top.setFixedSize(30, 30)
+        btn_close_top.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                color: {C.TEXT_MED};
+                border: none;
+                font-size: 16px;
+            }}
+            QPushButton:hover {{
+                color: {C.RED};
+            }}
+        """)
+        btn_close_top.clicked.connect(self.reject)
+        header_lay.addWidget(btn_close_top)
+        
+        lay.addLayout(header_lay)
+        
+        # Split layout
+        split_lay = QHBoxLayout()
+        split_lay.setSpacing(15)
+        
+        # Left: List widget
+        self.list_widget = QListWidget()
+        self.list_widget.setFixedWidth(240)
+        split_lay.addWidget(self.list_widget)
+        
+        # Right: Detail Scroll Area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("background: transparent; border: none;")
+        
+        detail_widget = QWidget()
+        detail_widget.setStyleSheet("background: transparent;")
+        detail_lay = QVBoxLayout(detail_widget)
+        detail_lay.setContentsMargins(10, 0, 10, 0)
+        detail_lay.setSpacing(15)
+        
+        self.lbl_title = QLabel("Select a Repository")
+        self.lbl_title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        self.lbl_title.setStyleSheet(f"color: {C.WHITE};")
+        self.lbl_title.setWordWrap(True)
+        detail_lay.addWidget(self.lbl_title)
+        
+        self.lbl_author_url = QLabel("")
+        self.lbl_author_url.setFont(QFont("Segoe UI", 9))
+        self.lbl_author_url.setStyleSheet(f"color: {C.TEXT_MED};")
+        self.lbl_author_url.setWordWrap(True)
+        self.lbl_author_url.setOpenExternalLinks(True)
+        detail_lay.addWidget(self.lbl_author_url)
+        
+        self.lbl_desc = QLabel("Please select a repository from the left panel to explore details.")
+        self.lbl_desc.setFont(QFont("Segoe UI", 10))
+        self.lbl_desc.setStyleSheet(f"color: #cbd5e1; line-height: 1.4;")
+        self.lbl_desc.setWordWrap(True)
+        detail_lay.addWidget(self.lbl_desc)
+        
+        # Key Features header
+        self.lbl_feat_hdr = QLabel("Key Features:")
+        self.lbl_feat_hdr.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        self.lbl_feat_hdr.setStyleSheet(f"color: {C.CYAN};")
+        self.lbl_feat_hdr.hide()
+        detail_lay.addWidget(self.lbl_feat_hdr)
+        
+        self.lbl_features = QLabel("")
+        self.lbl_features.setFont(QFont("Segoe UI", 9.5))
+        self.lbl_features.setStyleSheet(f"color: #94a3b8;")
+        self.lbl_features.setWordWrap(True)
+        detail_lay.addWidget(self.lbl_features)
+        
+        detail_lay.addStretch()
+        
+        # Clone button
+        self.btn_clone = QPushButton("📥 CLONE TO ACTIVE WORKSPACE")
+        self.btn_clone.setFixedHeight(40)
+        self.btn_clone.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_clone.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgba(6, 182, 212, 0.15);
+                border: 1.5px solid {C.CYAN};
+                color: {C.CYAN};
+                font-size: 12px;
+                letter-spacing: 0.5px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(6, 182, 212, 0.35);
+                border: 2px solid {C.CYAN};
+            }}
+            QPushButton:disabled {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.3);
+            }}
+        """)
+        self.btn_clone.setEnabled(False)
+        self.btn_clone.clicked.connect(self._clone_repo)
+        detail_lay.addWidget(self.btn_clone)
+        
+        scroll.setWidget(detail_widget)
+        split_lay.addWidget(scroll)
+        
+        lay.addLayout(split_lay)
+        
+        # Load repositories
+        try:
+            from actions.awesome_repos_helper import AWESOME_REPOS
+            self.repos = AWESOME_REPOS
+            for r in self.repos:
+                self.list_widget.addItem(f"{r['id']}. {r['name']}")
+        except Exception as e:
+            self.lbl_desc.setText(f"Error loading repositories: {e}")
+            self.repos = []
+            
+        self.list_widget.currentRowChanged.connect(self._on_repo_selected)
+        main_lay.addWidget(container)
+        
+    def _on_repo_selected(self, index):
+        if 0 <= index < len(self.repos):
+            repo = self.repos[index]
+            self.lbl_title.setText(repo["name"])
+            
+            author_html = f"by <b>{repo['author']}</b> · <a href='{repo['url']}' style='color: {C.CYAN}; text-decoration: none;'>View on GitHub</a>"
+            self.lbl_author_url.setText(author_html)
+            self.lbl_desc.setText(repo["description"])
+            
+            features_text = "\n".join([f"• {f}" for f in repo.get("features", [])])
+            self.lbl_features.setText(features_text)
+            
+            self.lbl_feat_hdr.show()
+            self.btn_clone.setEnabled(True)
+            self.selected_repo = repo
+            
+    def _clone_repo(self):
+        if hasattr(self, "selected_repo"):
+            repo_name = self.selected_repo["name"]
+            parent_win = self.parent()
+            if parent_win and hasattr(parent_win, "write_log"):
+                parent_win.write_log(f"SYS: Initiating cloning of repository: {repo_name}...")
+            
+            self.btn_clone.setEnabled(False)
+            self.btn_clone.setText("⏳ CLONING REPOSITORY...")
+            
+            def run_bg():
+                try:
+                    from actions.awesome_repos_helper import clone_awesome_repo
+                    res = clone_awesome_repo(repo_name)
+                    if parent_win and hasattr(parent_win, "_log_sig"):
+                        parent_win._log_sig.emit(res)
+                except Exception as e:
+                    if parent_win and hasattr(parent_win, "_log_sig"):
+                        parent_win._log_sig.emit(f"SYS ERROR: Failed cloning repository: {e}")
+                finally:
+                    from PyQt6.QtCore import QTimer
+                    QTimer.singleShot(0, lambda: self.btn_clone.setEnabled(True))
+                    QTimer.singleShot(0, lambda: self.btn_clone.setText("📥 CLONE TO ACTIVE WORKSPACE"))
+            import threading
+            threading.Thread(target=run_bg, daemon=True).start()
 
 
 class _RootShim:

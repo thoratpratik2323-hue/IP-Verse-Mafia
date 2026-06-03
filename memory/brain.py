@@ -628,9 +628,9 @@ def brain_stats() -> dict:
         db_path = BASE_DIR / "memory" / "lancedb_store"
         if db_path.exists():
             db = lancedb.connect(str(db_path))
-            if "conversations" in db.table_names():
+            if "conversations" in db.list_table_names():
                 stats["vector_conversations"] = db.open_table("conversations").count_rows()
-            if "documents" in db.table_names():
+            if "documents" in db.list_table_names():
                 stats["vector_documents"] = db.open_table("documents").count_rows()
     except Exception:
         pass

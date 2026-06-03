@@ -38,7 +38,7 @@ def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = lancedb.connect(str(DB_PATH))
     
-    if "documents" not in db.table_names():
+    if "documents" not in db.list_table_names():
         schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
@@ -48,7 +48,7 @@ def init_db():
         ])
         db.create_table("documents", schema=schema)
         
-    if "conversations" not in db.table_names():
+    if "conversations" not in db.list_table_names():
         conv_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("role", pa.string()),
@@ -58,7 +58,7 @@ def init_db():
         ])
         db.create_table("conversations", schema=conv_schema)
         
-    if "code_reviews" not in db.table_names():
+    if "code_reviews" not in db.list_table_names():
         rev_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
