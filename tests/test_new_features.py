@@ -162,5 +162,18 @@ class TestNewFeatures(unittest.TestCase):
         res = printer_3d_controller({"action": "status"}, player=self.player)
         self.assertIn("print", res.lower())
 
+    def test_phase8_autonomy_upgrades(self):
+        # Test compact_memory import and execution
+        from actions.semantic_store import compact_memory
+        res = compact_memory()
+        self.assertIn("maintenance", res.lower())
+
+        # Test API key loading functions
+        from actions.prime_utils import get_all_gemini_keys, get_api_key
+        keys = get_all_gemini_keys()
+        self.assertIsInstance(keys, list)
+        active = get_api_key()
+        self.assertIsInstance(active, str)
+
 if __name__ == "__main__":
     unittest.main()

@@ -404,6 +404,13 @@ CORE_TOOLS = {
         "module": "actions.wifi_security",
         "func": "wifi_security",
         "pass_speak": False
+    },
+    "compact_memory": {
+        "description": "Compacts and vacuums local database memory tables (LanceDB) and cleans up old versions to optimize search performance and save disk space.",
+        "parameters": {},
+        "module": "actions.semantic_store",
+        "func": "compact_memory",
+        "pass_speak": False
     }
 }
 

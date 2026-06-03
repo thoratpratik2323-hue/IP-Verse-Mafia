@@ -17,17 +17,47 @@ def get_base_dir() -> Path:
         return Path(sys.executable).parent
     return Path(__file__).resolve().parent.parent
 
-def get_api_key() -> str:
-    """Returns the central Gemini API key from config/api_keys.json."""
+_current_key_index = 0
+
+def get_all_gemini_keys() -> list[str]:
+    """Loads primary and backup Gemini API keys from config/api_keys.json."""
     path = get_base_dir() / "config" / "api_keys.json"
+    keys = []
     if path.exists():
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("gemini_api_key") or data.get("coding_api_key") or ""
+            primary = data.get("gemini_api_key") or data.get("coding_api_key") or ""
+            if primary:
+                keys.append(primary)
+            backups = data.get("gemini_api_key_backups", [])
+            for bk in backups:
+                if bk and bk not in keys:
+                    keys.append(bk)
         except Exception as e:
-            print(f"[Prime Utils] Error loading API Key: {e}")
-    return ""
+            print(f"[Prime Utils] Error loading keys for rotation: {e}")
+    return keys
+
+def get_api_key() -> str:
+    """Returns the currently active Gemini API key from the rotation list."""
+    global _current_key_index
+    keys = get_all_gemini_keys()
+    if not keys:
+        return ""
+    if _current_key_index >= len(keys):
+        _current_key_index = 0
+    return keys[_current_key_index]
+
+def rotate_api_key() -> bool:
+    """Rotates to the next available API key in the backup list. Returns True if successfully rotated."""
+    global _current_key_index
+    keys = get_all_gemini_keys()
+    if len(keys) <= 1:
+        print("[Prime Utils] ⚠️ No backup API keys available to rotate.")
+        return False
+    _current_key_index = (_current_key_index + 1) % len(keys)
+    print(f"[Prime Utils] 🔄 Rotated to Gemini API key index {_current_key_index} (ending with ...{keys[_current_key_index][-6:] if len(keys[_current_key_index]) > 6 else ''})")
+    return True
 
 # ==========================================
 # Unified Model Adapter for NVIDIA/OpenAI & Gemini
@@ -184,39 +214,59 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         # Determine standard models
         gemini_model = model_name or ("gemini-2.5-flash" if category == "vision" else "gemini-2.5-flash")
         
-        try:
-            # Check which client call style is being simulated
-            # For google-genai style (Client.models.generate_content):
-            from google import genai
-            client = genai.Client(api_key=api_key or get_api_key())
-            
-            # Map standard structure
-            native_contents = []
-            if isinstance(contents, list):
-                native_contents = contents
-            else:
-                native_contents = [contents]
-
-            response = client.models.generate_content(
-                model=gemini_model,
-                contents=native_contents,
-                config=config,
-                **kwargs
-            )
-            return UnifiedModelResponse(text=response.text or "")
-        except Exception as e:
-            # Try legacy google-generativeai style fallback
+        keys = get_all_gemini_keys()
+        max_attempts = max(1, len(keys))
+        
+        for attempt in range(max_attempts):
+            active_key = api_key or get_api_key()
             try:
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=FutureWarning)
-                    import google.generativeai as genai
-                genai.configure(api_key=api_key or get_api_key())
-                legacy_model = genai.GenerativeModel(gemini_model)
-                response = legacy_model.generate_content(contents, **kwargs)
+                # Check which client call style is being simulated
+                # For google-genai style (Client.models.generate_content):
+                from google import genai
+                client = genai.Client(api_key=active_key)
+                
+                # Map standard structure
+                native_contents = []
+                if isinstance(contents, list):
+                    native_contents = contents
+                else:
+                    native_contents = [contents]
+
+                response = client.models.generate_content(
+                    model=gemini_model,
+                    contents=native_contents,
+                    config=config,
+                    **kwargs
+                )
                 return UnifiedModelResponse(text=response.text or "")
-            except Exception as le:
-                raise RuntimeError(f"Unified model call failed on both modern and legacy Gemini fallbacks: {e} | {le}")
+            except Exception as e:
+                err_msg = str(e)
+                is_rate_limit = "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "quota" in err_msg.lower()
+                if is_rate_limit and attempt < max_attempts - 1:
+                    print(f"[Unified Model] Rate limit hit (429) on attempt {attempt+1}. Attempting key rotation...")
+                    if rotate_api_key():
+                        continue
+                
+                # Try legacy google-generativeai style fallback
+                try:
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings("ignore", category=FutureWarning)
+                        import google.generativeai as genai
+                    genai.configure(api_key=active_key)
+                    legacy_model = genai.GenerativeModel(gemini_model)
+                    response = legacy_model.generate_content(contents, **kwargs)
+                    return UnifiedModelResponse(text=response.text or "")
+                except Exception as le:
+                    le_msg = str(le)
+                    is_legacy_rate_limit = "429" in le_msg or "RESOURCE_EXHAUSTED" in le_msg or "quota" in le_msg.lower()
+                    if is_legacy_rate_limit and attempt < max_attempts - 1:
+                        print(f"[Unified Model] Legacy rate limit hit (429) on attempt {attempt+1}. Attempting key rotation...")
+                        if rotate_api_key():
+                            continue
+                    
+                    if attempt == max_attempts - 1:
+                        raise RuntimeError(f"Unified model call failed on both modern and legacy Gemini fallbacks: {e} | {le}")
 
     # 3. NVIDIA/OpenAI API Call
     import requests

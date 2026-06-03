@@ -116,7 +116,7 @@ def get_time_based_goals(core_engine=None) -> list[dict]:
     # ── Memory Cleanup (Every Sunday Night) ──────────────────────────────────
     if weekday == "Sunday" and hour == 23:
         goals.append({
-            "goal": "Archive old conversation logs and compress episodic memory",
+            "goal": "Run compact_memory to vacuum LanceDB and archive logs",
             "priority": 3,
             "reason": "Weekly memory maintenance"
         })
@@ -140,7 +140,7 @@ def idle_goals(idle_minutes: int) -> list[dict]:
 
     if idle_minutes >= 30:
         goals.append({
-            "goal": "Compact and summarize recent episodic memory entries",
+            "goal": "Run compact_memory to optimize search database during idle time",
             "priority": 4,
             "reason": f"User idle for {idle_minutes} minutes — memory maintenance"
         })

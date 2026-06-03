@@ -26,8 +26,8 @@ DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 def _get_gemini_client() -> genai.Client:
     """Loads API key and returns a Gemini Client."""
     try:
-        with open(API_KEYS_PATH, "r", encoding="utf-8") as f:
-            api_key = json.load(f)["gemini_api_key"]
+        from actions.prime_utils import get_api_key
+        api_key = get_api_key()
         return genai.Client(api_key=api_key)
     except Exception as e:
         print(f"[Semantic Store] Error getting API key: {e}")
@@ -92,19 +92,35 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> list:
     return chunks
 
 def get_embedding(client: genai.Client, text: str) -> list:
-    """Generates embedding for a given text using Gemini's embedding model."""
-    try:
-        response = client.models.embed_content(
-            model="models/gemini-embedding-001",
-            contents=text
-        )
-        return response.embeddings[0].values
-    except Exception as e:
-        err_msg = str(e)
-        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "quota" in err_msg.lower():
-            raise RateLimitError(f"Gemini API Rate Limit Exceeded (429): {err_msg}")
-        print(f"[Semantic Store] Gemini Embedding API error: {e}")
-        raise
+    """Generates embedding for a given text using Gemini's embedding model with automatic rotation."""
+    from actions.prime_utils import rotate_api_key, get_all_gemini_keys
+    
+    keys = get_all_gemini_keys()
+    max_attempts = max(1, len(keys))
+    
+    current_client = client
+    
+    for attempt in range(max_attempts):
+        try:
+            response = current_client.models.embed_content(
+                model="models/gemini-embedding-001",
+                contents=text
+            )
+            return response.embeddings[0].values
+        except Exception as e:
+            err_msg = str(e)
+            is_rate_limit = "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "quota" in err_msg.lower()
+            if is_rate_limit and attempt < max_attempts - 1:
+                print(f"[Semantic Store] Embed rate limit hit (429). Rotating key...")
+                if rotate_api_key():
+                    current_client = _get_gemini_client()
+                    continue
+            
+            if attempt == max_attempts - 1:
+                if is_rate_limit:
+                    raise RateLimitError(f"Gemini API Rate Limit Exceeded (429): {err_msg}")
+                print(f"[Semantic Store] Gemini Embedding API error: {e}")
+                raise
 
 def index_file(client: genai.Client, file_path: Path) -> bool:
     """Chunks a file, embeds chunks, and indexes it incrementally in LanceDB."""
@@ -400,4 +416,25 @@ def search_history_semantic(query: str, limit: int = 5) -> str:
         return f"No semantic matches found for '{query}' in conversation history, code reviews, or documents, sir."
         
     return "\n".join(output)
+
+
+def compact_memory() -> str:
+    """Compacts LanceDB database tables and cleans up old versions to save disk space."""
+    try:
+        db = init_db()
+        reports = []
+        for name in db.table_names():
+            try:
+                tbl = db.open_table(name)
+                tbl.compact_files()
+                tbl.cleanup_old_versions()
+                reports.append(f"✓ {name} compacted")
+            except Exception as tbl_err:
+                reports.append(f"✗ {name}: {tbl_err}")
+        status = "Memory Database Maintenance Report: " + ", ".join(reports)
+        print(f"[Semantic Store] {status}")
+        return status
+    except Exception as e:
+        return f"Failed database maintenance: {e}"
+
 

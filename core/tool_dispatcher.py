@@ -357,6 +357,11 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             ))
             result = r or "Done."
 
+        elif name == "compact_memory":
+            from actions.semantic_store import compact_memory
+            r = await loop.run_in_executor(None, lambda: compact_memory())
+            result = r or "Done."
+
         elif name == "media_control":
             from actions.media_controller import execute_media_control
             r = await loop.run_in_executor(None, lambda: execute_media_control(

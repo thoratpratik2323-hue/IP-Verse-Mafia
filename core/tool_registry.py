@@ -823,6 +823,15 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "compact_memory",
+        "description": "Compacts and vacuums local database memory tables (LanceDB) and cleans up old versions to optimize search performance and save disk space.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
         "name": "media_control",
         "description": "Natively controls Windows background media players (play, pause, next, prev, volume_up, volume_down) or fetches 'Now Playing' metadata.",
         "parameters": {
