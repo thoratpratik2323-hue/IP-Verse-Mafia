@@ -63,6 +63,7 @@ from actions.pentagi_engine import pentagi_engine
 from actions.antidrone_defense import antidrone_defense
 from actions.mythos_internet import mythos_internet
 from actions.dos_toolkit import dos_toolkit
+from actions.wifi_security import wifi_security
 
 
 # Also import play_sfx if needed inside threads
@@ -804,6 +805,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "dos_toolkit":
             r = await loop.run_in_executor(None, lambda: dos_toolkit(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "wifi_security":
+            r = await loop.run_in_executor(None, lambda: wifi_security(parameters=args, player=player))
             result = r or "Done."
 
         elif name == "local_llm":

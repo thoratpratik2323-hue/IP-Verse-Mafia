@@ -2454,6 +2454,30 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "wifi_security",
+        "description": (
+            "📡 WiFi SECURITY & DEFENSE AUDIT — Wireless security concepts and defensive auditing tool for IP Prime. "
+            "Covers WPA2/WPA3 4-way handshake theory, WEP/WPS historical weaknesses, router hardening checklists, "
+            "and allows running a local wireless connection profile audit on Windows. "
+            "Actions: "
+            "learn (get general theoretical guides on WiFi protocols & weaknesses), "
+            "handshake_theory (detailed technical explanation of 4-way handshake), "
+            "audit_local (query local active WiFi details like SSID, Auth type, Cipher, Signal quality & evaluate risk), "
+            "hardening_guide (checklist to secure home/enterprise router configurations). "
+            "Trigger phrases: 'wifi audit', 'wifi handshake kaise kaam karta hai', 'wifi secure kaise karein', 'router configuration checklist'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "Action: learn | handshake_theory | audit_local | hardening_guide"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 
