@@ -175,5 +175,11 @@ class TestNewFeatures(unittest.TestCase):
         active = get_api_key()
         self.assertIsInstance(active, str)
 
+    def test_phase9_claude_code(self):
+        # Test claude_code_helper import and basic routing status checks
+        from actions.claude_code_helper import claude_code_helper
+        res = claude_code_helper({"action": "status"}, player=self.player)
+        self.assertIn("cloned", res.lower())
+
 if __name__ == "__main__":
     unittest.main()

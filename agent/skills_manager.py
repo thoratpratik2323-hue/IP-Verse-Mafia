@@ -411,6 +411,16 @@ CORE_TOOLS = {
         "module": "actions.semantic_store",
         "func": "compact_memory",
         "pass_speak": False
+    },
+    "claude_code": {
+        "description": "Runs the autonomous Claude Code CLI developer agent for complex coding tasks without API cost using free local proxy.",
+        "parameters": {
+            "action": "\"run\" | \"start_proxy\" | \"stop_proxy\" | \"status\" (required)",
+            "instruction": "string (required if action=run) - Coding instruction for Claude Code"
+        },
+        "module": "actions.claude_code_helper",
+        "func": "claude_code_helper",
+        "pass_speak": True
     }
 }
 

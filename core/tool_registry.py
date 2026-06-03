@@ -832,6 +832,18 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "claude_code",
+        "description": "Runs the autonomous Claude Code CLI developer agent for complex multi-file coding and refactoring tasks without API cost using free local proxy.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Action: run | start_proxy | stop_proxy | status"},
+                "instruction": {"type": "STRING", "description": "The coding prompt/instruction for Claude Code (required for run)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
         "name": "media_control",
         "description": "Natively controls Windows background media players (play, pause, next, prev, volume_up, volume_down) or fetches 'Now Playing' metadata.",
         "parameters": {

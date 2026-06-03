@@ -362,6 +362,15 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: compact_memory())
             result = r or "Done."
 
+        elif name == "claude_code":
+            from actions.claude_code_helper import claude_code_helper
+            r = await loop.run_in_executor(None, lambda: claude_code_helper(
+                parameters=args,
+                player=player,
+                speak=speak
+            ))
+            result = r or "Done."
+
         elif name == "media_control":
             from actions.media_controller import execute_media_control
             r = await loop.run_in_executor(None, lambda: execute_media_control(
