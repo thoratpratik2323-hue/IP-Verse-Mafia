@@ -345,6 +345,65 @@ CORE_TOOLS = {
         "module": "actions.ask_antigravity",
         "func": "ask_antigravity",
         "pass_speak": False
+    },
+    "pentagi_engine": {
+        "description": "Real hacking engine for network discovery, port scanning, SSH auditing, DNS enum, and hash identification.",
+        "parameters": {
+            "action": "string (required) - 'scan' | 'ping' | 'dns' | 'ssh_audit' | 'discover' | 'hash_id'",
+            "target": "string (required) - target IP, domain, host, SSH server, or hash"
+        },
+        "module": "actions.pentagi_engine",
+        "func": "pentagi_engine",
+        "pass_speak": False
+    },
+    "antidrone_defense": {
+        "description": "WiFi drone scanning, signature matching (Parrot/DJI SSIDs/MACs), and geofence/monitoring systems.",
+        "parameters": {
+            "action": "string (required) - 'scan' | 'monitor' | 'geofence' | 'report'",
+            "duration": "int (optional) - monitoring duration in seconds",
+            "radius": "string (optional) - geofence zone radius in meters",
+            "location": "string (optional) - location address"
+        },
+        "module": "actions.antidrone_defense",
+        "func": "antidrone_defense",
+        "pass_speak": False
+    },
+    "mythos_internet": {
+        "description": "Live internet queries for CVEs, exploits, subdomains, breaches (HIBP), and Shodan scanning.",
+        "parameters": {
+            "action": "string (required) - 'cve_search' | 'exploit_search' | 'web_search' | 'read_url' | 'breach_check' | 'subdomains' | 'shodan'",
+            "query": "string (optional) - search terms for CVEs or exploits",
+            "target": "string (optional) - target domain, IP, email, CVE ID, URL, or username",
+            "url": "string (optional) - full URL for read_url action",
+            "domain": "string (optional) - domain name for subdomains action",
+            "limit": "int (optional) - max results to return"
+        },
+        "module": "actions.mythos_internet",
+        "func": "mythos_internet",
+        "pass_speak": False
+    },
+    "dos_toolkit": {
+        "description": "DoS/DDoS education and authorized stress testing module for learning flood attack concepts, defense rules, and local load tests.",
+        "parameters": {
+            "action": "string (required) - 'learn' | 'attack_detail' | 'poc_code' | 'stress_test' | 'defense' | 'tools_list'",
+            "target": "string (optional) - target attack type or URL/IP",
+            "url": "string (optional) - target URL for stress_test action",
+            "threads": "int (optional) - number of threads for stress_test",
+            "duration": "int (optional) - duration in seconds for stress_test",
+            "confirmed": "string (optional) - set to 'yes' to authorize stress testing on non-local target URLs"
+        },
+        "module": "actions.dos_toolkit",
+        "func": "dos_toolkit",
+        "pass_speak": False
+    },
+    "wifi_security": {
+        "description": "WiFi security analysis, 4-way handshake theory, router configuration checklists, and local wireless posture audit.",
+        "parameters": {
+            "action": "string (required) - 'learn' | 'handshake_theory' | 'audit_local' | 'hardening_guide'"
+        },
+        "module": "actions.wifi_security",
+        "func": "wifi_security",
+        "pass_speak": False
     }
 }
 
