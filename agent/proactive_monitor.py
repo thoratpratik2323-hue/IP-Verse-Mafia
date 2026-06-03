@@ -46,6 +46,9 @@ class ProactiveMonitor:
             
     def _monitor_loop(self):
         """The background loop executing all proactive agents periodically."""
+        # Wait 90 seconds after boot before injecting any proactive background goals.
+        # This keeps the startup completely clear and responsive for immediate user commands!
+        time.sleep(90)
         while self.running:
             try:
                 self._check_for_proactive_actions()

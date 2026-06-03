@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY — Lead Systems Architect · IP Verse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #ef4444;
+            --accent-rgb: 239, 68, 68;
+            --bg: #090000;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(ellipse at 30% 50%, rgba(var(--accent-rgb),0.14) 0%, transparent 55%),
+                        radial-gradient(ellipse at 90% 10%, rgba(var(--accent-rgb),0.07) 0%, transparent 50%),
+                        #080000;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
+            pointer-events: none; z-index: 100;
+        }
+
+        .grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(var(--accent-rgb),0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--accent-rgb),0.05) 1px, transparent 1px);
+            background-size: 55px 55px;
+        }
+
+        /* Energy pulse rings */
+        .energy-rings {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; pointer-events: none;
+        }
+        .e-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(var(--accent-rgb),0.15);
+            animation: expand-ring linear infinite;
+        }
+        .e-ring:nth-child(1){ width:200px;height:200px;animation-duration:4s;animation-delay:0s; }
+        .e-ring:nth-child(2){ width:200px;height:200px;animation-duration:4s;animation-delay:-1.33s; }
+        .e-ring:nth-child(3){ width:200px;height:200px;animation-duration:4s;animation-delay:-2.66s; }
+        @keyframes expand-ring {
+            0%  { transform: scale(1); opacity: 0.6; }
+            100%{ transform: scale(8); opacity: 0; }
+        }
+
+        .shell {
+            position: relative; z-index: 10;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            width: 100%; height: 100vh;
+            animation: fadeIn 0.7s ease forwards;
+        }
+        @keyframes fadeIn { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+
+        .left {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 48px 32px;
+            border-right: 1px solid rgba(var(--accent-rgb),0.2);
+            background: linear-gradient(180deg, rgba(var(--accent-rgb),0.06) 0%, transparent 100%);
+        }
+
+        /* Atom / orbit rig */
+        .atom-wrap {
+            position: relative;
+            width: 280px; height: 280px;
+            margin-bottom: 36px;
+        }
+
+        /* Nucleus */
+        .nucleus {
+            position: absolute; inset: 0; margin: auto;
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff6f6, var(--accent));
+            box-shadow: 0 0 40px rgba(var(--accent-rgb),0.8), 0 0 80px rgba(var(--accent-rgb),0.3);
+            display: flex; align-items: center; justify-content: center;
+            animation: nucleus-pulse 2s ease-in-out infinite;
+            font-size: 28px; z-index: 5;
+        }
+        @keyframes nucleus-pulse {
+            0%,100%{ transform: scale(1); box-shadow: 0 0 30px rgba(var(--accent-rgb),0.7); }
+            50%{ transform: scale(1.1); box-shadow: 0 0 70px rgba(var(--accent-rgb),1); }
+        }
+
+        /* Orbit rings */
+        .orbit {
+            position: absolute; inset: 0; margin: auto;
+            border-radius: 50%;
+            border: 1.5px solid rgba(var(--accent-rgb),0.35);
+        }
+        .orbit-1 { width: 130px; height: 130px; animation: spin-cw 4s linear infinite; }
+        .orbit-2 { width: 200px; height: 200px; transform: rotate(60deg); animation: spin-ccw 7s linear infinite; }
+        .orbit-3 { width: 270px; height: 270px; transform: rotate(120deg); animation: spin-cw 11s linear infinite; border-color: rgba(var(--accent-rgb),0.2); }
+
+        @keyframes spin-cw  { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        @keyframes spin-ccw { from{transform:rotate(360deg)} to{transform:rotate(0)} }
+
+        /* Electron dots */
+        .electron {
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            top: -5px; left: 50%; transform: translateX(-50%);
+        }
+
+        /* Architecture blueprint lines */
+        .blueprint {
+            position: absolute; inset: 0;
+            pointer-events: none;
+        }
+
+        .agent-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 44px; font-weight: 900;
+            letter-spacing: 5px; text-align: center;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1; margin-bottom: 8px;
+        }
+        .agent-role {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px; font-weight: 500;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: rgba(255,255,255,0.45); text-align: center; margin-bottom: 20px;
+        }
+        .dept-badge {
+            background: rgba(var(--accent-rgb),0.12);
+            border: 1px solid rgba(var(--accent-rgb),0.4);
+            border-radius: 100px; padding: 6px 18px;
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase; color: var(--accent);
+        }
+        .online-row { display: flex; align-items: center; gap: 8px; margin-top: 24px; }
+        .dot-live {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e; box-shadow: 0 0 10px #22c55e;
+            animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+        .online-text { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #22c55e; letter-spacing: 2px; }
+
+        /* RIGHT */
+        .right {
+            display: flex; flex-direction: column;
+            justify-content: center;
+            padding: 56px 64px; gap: 32px;
+        }
+        .section-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px; letter-spacing: 3px;
+            color: rgba(var(--accent-rgb),0.6); text-transform: uppercase; margin-bottom: 10px;
+        }
+        .dialog-box {
+            background: rgba(var(--accent-rgb),0.04);
+            border: 1px solid rgba(var(--accent-rgb),0.18);
+            border-radius: 16px; padding: 28px 32px;
+            position: relative; overflow: hidden;
+        }
+        .dialog-box::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--accent); border-radius: 4px 0 0 4px;
+        }
+        .dialog-text {
+            font-size: 16px; line-height: 1.85;
+            color: rgba(255,255,255,0.82); font-weight: 300;
+        }
+
+        /* Architecture specs */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .arch-card {
+            background: rgba(var(--accent-rgb),0.05);
+            border: 1px solid rgba(var(--accent-rgb),0.18);
+            border-radius: 10px; padding: 14px 18px;
+            animation: card-slide 0.5s ease forwards;
+            opacity: 0; transform: translateY(10px);
+        }
+        .arch-card:nth-child(1){ animation-delay:0.3s; }
+        .arch-card:nth-child(2){ animation-delay:0.5s; }
+        .arch-card:nth-child(3){ animation-delay:0.7s; }
+        .arch-card:nth-child(4){ animation-delay:0.9s; }
+        @keyframes card-slide { to{opacity:1;transform:none} }
+        .arch-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px; letter-spacing: 2px;
+            color: rgba(var(--accent-rgb),0.7); text-transform: uppercase; margin-bottom: 6px;
+        }
+        .arch-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 1px;
+        }
+
+        .skills-grid { display: grid; gap: 14px; }
+        .skill-row { display: flex; align-items: center; gap: 16px; }
+        .skill-label {
+            font-family: 'Rajdhani', sans-serif; font-size: 13px;
+            font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.6);
+            width: 160px; flex-shrink: 0;
+        }
+        .skill-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #fca5a5);
+            border-radius: 10px; width: 0;
+            box-shadow: 0 0 8px rgba(var(--accent-rgb),0.6);
+            transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+        }
+        .skill-pct { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--accent); width: 38px; text-align: right; }
+
+        .footer-strip {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .footer-id { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 2px; }
+        .footer-org { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(var(--accent-rgb),0.5); letter-spacing: 2px; }
+
+        .scan-sweep {
+            position: fixed; top: 0; left: -100%; width: 30%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.04), transparent);
+            animation: sweep 5s ease-in-out infinite; pointer-events: none; z-index: 5;
+        }
+        @keyframes sweep { 0%{left:-30%} 100%{left:130%} }
+    </style>
+</head>
+<body>
+    <div class="grid"></div>
+    <div class="energy-rings">
+        <div class="e-ring"></div>
+        <div class="e-ring"></div>
+        <div class="e-ring"></div>
+    </div>
+    <div class="scan-sweep"></div>
+
+    <div class="shell">
+        <!-- LEFT -->
+        <div class="left">
+            <div class="atom-wrap">
+                <!-- Orbits -->
+                <div class="orbit orbit-1"><div class="electron"></div></div>
+                <div class="orbit orbit-2"><div class="electron"></div></div>
+                <div class="orbit orbit-3"><div class="electron"></div></div>
+                <!-- Nucleus -->
+                <div class="nucleus">⚙</div>
+            </div>
+
+            <div class="agent-name">ANTIGRAVITY</div>
+            <div class="agent-role">Lead Systems Architect</div>
+            <div class="dept-badge">Systems &amp; Engine</div>
+            <div class="online-row">
+                <div class="dot-live"></div>
+                <span class="online-text">CORE ONLINE</span>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div>
+                <div class="section-tag">// Mission Statement</div>
+                <div class="dialog-box">
+                    <p class="dialog-text">
+                        Pratik Sir, main hoon <strong>AntiGravity</strong>. Mera role hai system ke core architecture aur high-performance runtime loops ko maintain rakhna.
+                        Main code logic flow, execution loops, aur safety guardrails ko manage karta hoon taaki system crash na ho. Lekin sir, system ki firewall security audits aur vulnerability penetration testing mera kaam nahi hai.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// Architecture Overview</div>
+                <div class="arch-grid">
+                    <div class="arch-card">
+                        <div class="arch-label">System Uptime</div>
+                        <div class="arch-val">99.98%</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-label">Active Modules</div>
+                        <div class="arch-val">34 / 34</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-label">Safety Locks</div>
+                        <div class="arch-val">ALL ENGAGED</div>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-label">Core Temp</div>
+                        <div class="arch-val">NOMINAL</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// Core Competencies</div>
+                <div class="skills-grid">
+                    <div class="skill-row">
+                        <span class="skill-label">System Architecture</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="99%"></div></div>
+                        <span class="skill-pct">99%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Core Engineering</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="97%"></div></div>
+                        <span class="skill-pct">97%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Safety Protocols</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="100%"></div></div>
+                        <span class="skill-pct">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-strip">
+                <span class="footer-id">ID: ANTIGRAVITY_ARCH_v2.0 · IP VERSE EXECUTIVE BOARD</span>
+                <span class="footer-org">IP VERSE · 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.skill-fill').forEach(el => {
+                el.style.width = el.dataset.w;
+            });
+        }, 500);
+    </script>
+</body>
+</html>

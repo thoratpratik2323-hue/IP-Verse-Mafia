@@ -83,7 +83,8 @@ def _load_theme():
                     {"BG": "#1a0505", "PANEL": "rgba(40, 10, 10, 0.65)", "PRI": "#EF4444", "PRI_DIM": "#B91C1C", "PRI_GHO": "rgba(239, 68, 68, 0.12)", "BORDER": "rgba(239, 68, 68, 0.15)", "ACC": "#F43F5E", "ACC2": "#FB7185", "CYAN": "#FCA5A5", "GREEN": "#10B981"},
                     {"BG": "#020a05", "PANEL": "rgba(5, 30, 15, 0.65)", "PRI": "#10B981", "PRI_DIM": "#047857", "PRI_GHO": "rgba(16, 185, 129, 0.12)", "BORDER": "rgba(16, 185, 129, 0.15)", "ACC": "#34D399", "ACC2": "#6EE7B7", "CYAN": "#A7F3D0", "GREEN": "#3B82F6"},
                     {"BG": "#0a0014", "PANEL": "rgba(25, 10, 45, 0.65)", "PRI": "#D946EF", "PRI_DIM": "#C026D3", "PRI_GHO": "rgba(217, 70, 239, 0.12)", "BORDER": "rgba(217, 70, 239, 0.15)", "ACC": "#06B6D4", "ACC2": "#22D3EE", "CYAN": "#F472B6", "GREEN": "#10B981"},
-                    {"BG": "#02020a", "PANEL": "rgba(10, 10, 30, 0.65)", "PRI": "#00f0ff", "PRI_DIM": "#008bb0", "PRI_GHO": "rgba(0, 240, 255, 0.12)", "BORDER": "rgba(0, 240, 255, 0.2)", "ACC": "#bd00ff", "ACC2": "#d666ff", "CYAN": "#00ffff", "GREEN": "#39ff14"}
+                    {"BG": "#02020a", "PANEL": "rgba(10, 10, 30, 0.65)", "PRI": "#00f0ff", "PRI_DIM": "#008bb0", "PRI_GHO": "rgba(0, 240, 255, 0.12)", "BORDER": "rgba(0, 240, 255, 0.2)", "ACC": "#bd00ff", "ACC2": "#d666ff", "CYAN": "#00ffff", "GREEN": "#39ff14"},
+                    {"BG": "#130900", "PANEL": "rgba(25, 14, 0, 0.75)", "PRI": "#FF9933", "PRI_DIM": "#D97706", "PRI_GHO": "rgba(255, 153, 51, 0.12)", "BORDER": "rgba(255, 153, 51, 0.2)", "ACC": "#F59E0B", "ACC2": "#FBBF24", "CYAN": "#FDE68A", "GREEN": "#10B981"}
                 ]
                 if 0 <= idx < len(themes):
                     for k, v in themes[idx].items():
@@ -1634,6 +1635,68 @@ class SpaceCentralWidget(QWidget):
                     p.drawEllipse(QPointF(p1[0], p1[1]), p1[2] * 1.5, p1[2] * 1.5)
 
 
+class VoiceResponseBubble(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("VoiceResponseBubble")
+        self.setFixedHeight(110)
+        self.setStyleSheet(f"""
+            #VoiceResponseBubble {{
+                background: rgba(4, 7, 14, 0.78);
+                border: 1.5px solid rgba(6, 182, 212, 0.25);
+                border-radius: 12px;
+            }}
+        """)
+        
+        self._shadow = QGraphicsDropShadowEffect(self)
+        self._shadow.setBlurRadius(15)
+        self._shadow.setColor(QColor(C.PRI))
+        self._shadow.setOffset(0, 0)
+        self.setGraphicsEffect(self._shadow)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 10, 14, 10)
+        
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroll.setStyleSheet("background: transparent; border: none;")
+        
+        self.label = QLabel("IP PRIME online. How can I help you today, Pratik Sir?")
+        self.label.setWordWrap(True)
+        self.label.setFont(QFont("Segoe UI", 9))
+        self.label.setStyleSheet(f"color: {C.TEXT}; background: transparent; border: none;")
+        self.scroll.setWidget(self.label)
+        layout.addWidget(self.scroll)
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._step)
+        
+        self.full_text = ""
+        self.display_text = ""
+        self.pos = 0
+
+    def show_text(self, text: str, highlight_color: str = C.PRI):
+        self._shadow.setColor(QColor(highlight_color))
+        self.full_text = text
+        self.display_text = ""
+        self.pos = 0
+        self.label.setText("")
+        self.timer.stop()
+        self.timer.start(8)
+
+    def _step(self):
+        if self.pos < len(self.full_text):
+            self.display_text += self.full_text[self.pos]
+            self.label.setText(self.display_text)
+            self.pos += 1
+            bar = self.scroll.verticalScrollBar()
+            bar.setValue(bar.maximum())
+        else:
+            self.timer.stop()
+
+
 class MainWindow(QMainWindow):
     _log_sig        = pyqtSignal(str)
     _state_sig      = pyqtSignal(str)
@@ -1654,6 +1717,11 @@ class MainWindow(QMainWindow):
     _study_sig         = pyqtSignal()
     _spotify_sig        = pyqtSignal()
     _translation_sig    = pyqtSignal()
+    _team_intro_web_sig = pyqtSignal()
+    _agent_intro_done_sig = pyqtSignal()
+
+
+
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -1689,6 +1757,9 @@ class MainWindow(QMainWindow):
         self._study_sig.connect(self._toggle_study)
         self._spotify_sig.connect(self._toggle_spotify)
         self._translation_sig.connect(self._toggle_translation)
+        self._team_intro_web_sig.connect(self._run_web_team_introduction)
+
+
 
         self._central_widget = SpaceCentralWidget()
         self._central_widget.setObjectName("CentralWidget")
@@ -1721,7 +1792,7 @@ class MainWindow(QMainWindow):
 
         self._left_panel = self._build_left_panel()
         body.addWidget(self._left_panel, stretch=0, alignment=Qt.AlignmentFlag.AlignVCenter)
-        self._left_panel.show()  # Display the new terminal status log panel by default!
+        self._left_panel.show()  # Shown — status monitor panel
 
         self.hud = HudCanvas(face_path)
         self.hud.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -1732,18 +1803,21 @@ class MainWindow(QMainWindow):
             f"background: transparent; border: none; border-radius: 12px;"
         )
         hud_lay = QVBoxLayout(self._hud_container)
-        hud_lay.setContentsMargins(2, 2, 2, 2)
-        hud_lay.setSpacing(0)
-        hud_lay.addWidget(self.hud)
+        hud_lay.setContentsMargins(10, 10, 10, 10)
+        hud_lay.setSpacing(12)
+        hud_lay.addWidget(self.hud, stretch=3)
+
+        self._response_bubble = VoiceResponseBubble()
+        hud_lay.addWidget(self._response_bubble)
+        self._response_bubble.hide()
 
         # ── NLA Thought Stream Panel ──────────────────────────────────────────
         self._thought_panel = QWidget()
         self._thought_panel.setFixedHeight(44)
         self._thought_panel.setStyleSheet(
             "background: rgba(5, 10, 20, 0.88);"
-            "border-top: 1px solid rgba(6, 182, 212, 0.25);"
-            "border-bottom-left-radius: 11px;"
-            "border-bottom-right-radius: 11px;"
+            "border: 1px solid rgba(6, 182, 212, 0.25);"
+            "border-radius: 11px;"
         )
         _tp_lay = QHBoxLayout(self._thought_panel)
         _tp_lay.setContentsMargins(12, 0, 12, 0)
@@ -1781,10 +1855,17 @@ class MainWindow(QMainWindow):
 
         hud_lay.addWidget(self._thought_panel)
         self._thought_panel.hide()
+
+        # Center glowing bottom input row
+        self._bottom_input_row_widget = self._build_bottom_input_row()
+        hud_lay.addWidget(self._bottom_input_row_widget)
+        self._bottom_input_row_widget.hide()
+
         body.addWidget(self._hud_container, stretch=5)
 
         self._right_widgets_container = self._build_right_widgets_container()
         body.addWidget(self._right_widgets_container, stretch=0, alignment=Qt.AlignmentFlag.AlignVCenter)
+        self._right_widgets_container.show()  # Shown — chrono & climate widgets panel
 
         self._right_panel = self._build_right_panel()
         self._right_panel.setMaximumWidth(0)
@@ -1829,6 +1910,7 @@ class MainWindow(QMainWindow):
         t.start()
 
         self._log_sig.connect(self._log.append_log)
+        self._log_sig.connect(self._on_log_received)
         self._state_sig.connect(self._apply_state)
         self._fullscreen_sig.connect(self._set_fullscreen_slot)
         self._thought_sig.connect(self._apply_thought)
@@ -1906,11 +1988,8 @@ class MainWindow(QMainWindow):
                     "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
                 )
 
-        # 2. API Status (Green if Gemini Live session is active, Red if disconnected)
-        api_on = False
-        if hasattr(self, "ip_ray") and self.ip_ray is not None:
-            if hasattr(self.ip_ray, "session") and self.ip_ray.session is not None:
-                api_on = True
+        # 2. API Status (Green if API key is loaded/ready, Red if offline)
+        api_on = getattr(self, "_ready", False)
                 
         if hasattr(self, "_status_api_val"):
             if api_on:
@@ -1926,23 +2005,17 @@ class MainWindow(QMainWindow):
                     "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
                 )
 
-        # 3. VOICE Status (Green if online and ready, pulsing cyan SPEAKING if synthesizing audio)
+        # 3. VOICE Status (Green if active speaking, Red if idle/offline)
         if hasattr(self, "_status_voice_val"):
-            if api_on:
-                if hasattr(self, "hud") and getattr(self.hud, "speaking", False):
-                    self._status_voice_val.setText("TRANSMIT")
-                    self._status_voice_val.setStyleSheet(
-                        "color: #06b6d4; font-weight: bold; background: rgba(6, 182, 212, 0.12); "
-                        "border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 2px 6px;"
-                    )
-                else:
-                    self._status_voice_val.setText("STANDBY")
-                    self._status_voice_val.setStyleSheet(
-                        "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
-                        "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
-                    )
+            is_speaking = hasattr(self, "hud") and getattr(self.hud, "speaking", False)
+            if is_speaking:
+                self._status_voice_val.setText("ACTIVE")
+                self._status_voice_val.setStyleSheet(
+                    "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+                    "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+                )
             else:
-                self._status_voice_val.setText("OFFLINE")
+                self._status_voice_val.setText("IDLE")
                 self._status_voice_val.setStyleSheet(
                     "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
                     "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
@@ -2916,6 +2989,80 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._pv_memory_lbl)
         self._pv_refresh_prime_verse()
 
+        # ── NEXT-GEN MATRIX ──────────────────────────────────────────────────
+        matrix_hdr = QLabel("◈ AI CORE MATRIX")
+        matrix_hdr.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        matrix_hdr.setStyleSheet(f"color: {C.CYAN}; background: transparent; letter-spacing: 1px; margin-top: 12px;")
+        lay.addWidget(matrix_hdr)
+
+        def make_matrix_btn(text, callback, bg_color, text_color, border_color):
+            btn = QPushButton(text)
+            btn.setFixedHeight(30)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: {bg_color}; color: {text_color};
+                    border: 1px solid {border_color}; border-radius: 8px;
+                    font-size: 10px; font-weight: bold; letter-spacing: 0.5px;
+                }}
+                QPushButton:hover {{
+                    background: rgba(255, 255, 255, 0.08); border: 1.2px solid {text_color};
+                }}
+            """)
+            btn.clicked.connect(callback)
+            lay.addWidget(btn)
+            return btn
+
+        # 1. Goal Orchestrator (Orange)
+        self._pv_goal_btn = make_matrix_btn(
+            "🤖  GOAL ORCHESTRATOR", self._pv_goal_orchestrator,
+            "rgba(245, 158, 11, 0.12)", "#F59E0B", "rgba(245, 158, 11, 0.35)"
+        )
+        self._pv_goal_btn.setToolTip("Plan and chain multiple tools autonomously for a high-level goal")
+
+        # 2. Predictive Workspace (Purple)
+        self._pv_predictive_btn = make_matrix_btn(
+            "💻  PREDICTIVE WORKSPACE", self._pv_predictive_workspace,
+            "rgba(139, 92, 246, 0.12)", "#8B5CF6", "rgba(139, 92, 246, 0.35)"
+        )
+        self._pv_predictive_btn.setToolTip("Analyze schedule and projects to proactively stage files and tools")
+
+        # 3. Seamless AR Integration (Cyan)
+        self._pv_ar_btn = make_matrix_btn(
+            "🕶  SEAMLESS AR OVERLAYS", self._pv_ar_integration,
+            "rgba(6, 182, 212, 0.12)", "#06B6D4", "rgba(6, 182, 212, 0.35)"
+        )
+        self._pv_ar_btn.setToolTip("Render real-time AR HUD overlay and translation cards on screen")
+
+        # 4. Autonomous Autopilot (Red)
+        self._pv_autopilot_btn = make_matrix_btn(
+            "⚙  AUTOPILOT CONTROLLER", self._pv_autopilot,
+            "rgba(239, 68, 68, 0.12)", "#EF4444", "rgba(239, 68, 68, 0.35)"
+        )
+        self._pv_autopilot_btn.setToolTip("Run GUI automation or self-healing software refactoring loops")
+
+        # 5. Infinite Memory (Green)
+        self._pv_inf_mem_btn = make_matrix_btn(
+            "🧠  INFINITE MEMORY RAG", self._pv_infinite_memory,
+            "rgba(16, 185, 129, 0.12)", "#10B981", "rgba(16, 185, 129, 0.35)"
+        )
+        self._pv_inf_mem_btn.setToolTip("Query long-term vector store and SQLite episodic knowledge layers")
+
+        # 6. Orchestrated Coder (Pink/Fuschia)
+        self._pv_coder_btn = make_matrix_btn(
+            "🐙  ORCHESTRATED CODER", self._pv_orchestrated_coder,
+            "rgba(236, 72, 153, 0.12)", "#EC4899", "rgba(236, 72, 153, 0.35)"
+        )
+        self._pv_coder_btn.setToolTip("Spawn sandboxed parallel coding agents in isolated Git Worktrees")
+
+        # 7. Multimodal Perception (Blue)
+        self._pv_percept_btn = make_matrix_btn(
+            "👁  MULTIMODAL PERCEPTION", self._pv_multimodal_perception,
+            "rgba(59, 130, 246, 0.12)", "#3B82F6", "rgba(59, 130, 246, 0.35)"
+        )
+        self._pv_percept_btn.setToolTip("Explain active window context, OCR screens, and analyze webcam presence")
+
+
         lay.addStretch()
 
         # ── Mount inner content into scroll area, scroll area into outer card ──
@@ -3398,6 +3545,18 @@ class MainWindow(QMainWindow):
             if hasattr(self, "write_log"):
                 self.write_log(f"SYS: Translation error: {e}")
 
+
+    def _run_web_team_introduction(self):
+        try:
+            print("[IP PRIME] SYS: Spawning TeamIntroWebCoordinator on GUI thread...")
+            from actions.team_intro_web import TeamIntroWebCoordinator
+            self._team_web_coordinator = TeamIntroWebCoordinator(self)
+            self._team_web_coordinator.start()
+        except Exception as e:
+            print("[IP PRIME] SYS: Team introduction error: " + str(e))
+            if hasattr(self, "write_log"):
+                self.write_log("SYS: Team introduction error: " + str(e))
+
     def _on_router_badge_updated(self, model: str):
         if not hasattr(self, "_router_badge"):
             return
@@ -3689,18 +3848,6 @@ class MainWindow(QMainWindow):
         self._file_hint.setWordWrap(True)
         lay.addWidget(self._file_hint)
 
-        sep2 = QFrame(); sep2.setFrameShape(QFrame.Shape.HLine)
-        sep2.setStyleSheet(f"color: {C.BORDER}; margin: 2px 0;")
-        lay.addWidget(sep2)
-        self._right_seps.append(sep2)
-
-        lay.addWidget(_sec("COMMAND INPUT"))
-        lay.addLayout(self._build_input_row())
-
-
-
-
-
         return self._right_panel
 
     def _build_input_row(self) -> QHBoxLayout:
@@ -3805,7 +3952,7 @@ class MainWindow(QMainWindow):
         self._log.append_log(f"SYS: Theme dynamically cycled to Preset {idx + 1}. Interface reloaded.")
 
     def _set_theme_by_name(self, theme_name: str):
-        mapping = {"blue": 0, "red": 1, "green": 2, "purple": 3, "cyber": 4}
+        mapping = {"blue": 0, "red": 1, "green": 2, "purple": 3, "cyber": 4, "orange": 5}
         if theme_name in mapping:
             idx = mapping[theme_name]
             theme_file = CONFIG_DIR / "theme.json"
@@ -3847,11 +3994,19 @@ class MainWindow(QMainWindow):
                 letter-spacing: 4px;
             }}
         """)
-        self._title_lbl.setText(f"<span style='color: {C.PRI}; font-weight: 800;'>IP</span> <span style='color: {C.CYAN}; font-weight: 800;'>PRIME</span>")
+        if hasattr(self, "_custom_title") and self._custom_title:
+            self._title_lbl.setText(self._custom_title)
+        else:
+            self._title_lbl.setText(f"<span style='color: {C.PRI}; font-weight: 800;'>IP</span> <span style='color: {C.CYAN}; font-weight: 800;'>PRIME</span>")
+
 
         # 3. Left Panel
         self._left_panel.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
-        self._left_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; border-bottom: 1px solid {C.BORDER}; padding-bottom: 4px;")
+        if hasattr(self, "_status_hdr"):
+            self._status_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; border-bottom: 1px solid {C.BORDER}; padding-bottom: 4px;")
+        elif hasattr(self, "_left_hdr"):
+            self._left_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; border-bottom: 1px solid {C.BORDER}; padding-bottom: 4px;")
+
         
         # 19. Metric Graphs update
         if hasattr(self, "_graph_cpu"):
@@ -4025,29 +4180,63 @@ class MainWindow(QMainWindow):
         # 13. Command Input
         self._input.setStyleSheet(f"""
             QLineEdit {{
-                background: {C.BG}; color: {C.WHITE};
-                border: 1px solid {C.BORDER}; border-radius: 17px; padding: 4px 14px;
+                background: transparent;
+                color: {C.WHITE};
+                border: none;
+                padding: 2px 8px;
             }}
-            QLineEdit:focus {{ border: 1px solid {C.PRI}; }}
         """)
 
         # 14. Send Button
         self._send_btn.setStyleSheet(f"""
             QPushButton {{
-                background: {C.PANEL}; color: {C.PRI};
-                border: 1px solid {C.PRI_DIM}; border-radius: 17px;
+                background: rgba(39, 200, 245, 0.12);
+                color: {C.PRI};
+                border: 1px solid rgba(39, 200, 245, 0.25);
+                border-radius: 16px;
             }}
-            QPushButton:hover {{ background: {C.PRI_GHO}; border: 1px solid {C.PRI}; }}
+            QPushButton:hover {{
+                background: rgba(39, 200, 245, 0.25);
+                border: 1px solid {C.PRI};
+            }}
         """)
+
+        self._update_mic_btn_style()
+
+        if hasattr(self, "_response_bubble"):
+            self._response_bubble.setStyleSheet(f"""
+                #VoiceResponseBubble {{
+                    background: rgba(4, 7, 14, 0.78);
+                    border: 1.5px solid rgba(6, 182, 212, 0.25);
+                    border-radius: 12px;
+                }}
+            """)
+            self._response_bubble._shadow.setColor(QColor(C.PRI))
+            self._response_bubble.label.setStyleSheet(f"color: {C.TEXT}; background: transparent; border: none;")
+
+        if hasattr(self, "_bottom_input_row_widget"):
+            self._bottom_input_row_widget.setStyleSheet(f"""
+                QWidget#BottomInputContainer {{
+                    background: rgba(4, 7, 14, 0.75);
+                    border: 1px solid rgba(6, 182, 212, 0.2);
+                    border-radius: 20px;
+                }}
+            """)
+            self._input_shadow.setColor(QColor(C.PRI))
 
         pass
 
         # 17. Footer Widget & Labels
-        self._footer_widget.setStyleSheet(f"background: {C.DARK}; border-top: 1px solid {C.BORDER};")
-        self._theme_btn.setStyleSheet(f"color: {C.PRI}; background: transparent; border: none;")
-        self._uptime_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
-        for l in self._footer_labels:
-            l.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+        if hasattr(self, "_footer_widget"):
+            self._footer_widget.setStyleSheet(f"background: {C.DARK}; border-top: 1px solid {C.BORDER};")
+        if hasattr(self, "_theme_btn"):
+            self._theme_btn.setStyleSheet(f"color: {C.PRI}; background: transparent; border: none;")
+        if hasattr(self, "_uptime_lbl"):
+            self._uptime_lbl.setStyleSheet(f"color: {C.PRI_DIM}; background: transparent;")
+        if hasattr(self, "_footer_labels"):
+            for l in self._footer_labels:
+                l.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
+
 
         # 18. HUD paint invalidation
         if hasattr(self, "hud"):
@@ -4082,6 +4271,121 @@ class MainWindow(QMainWindow):
         
         self._right_panel.setMinimumWidth(0)
         self._panel_anim.start()
+
+    def _on_log_received(self, text: str):
+        clean_text = text.strip()
+        tl = clean_text.lower()
+        if tl.startswith("you:"):
+            self._response_bubble.show_text("Thinking...", highlight_color=C.CYAN)
+        elif tl.startswith("ip prime:") or tl.startswith("ipprime:"):
+            content = clean_text[clean_text.find(":") + 1:].strip()
+            self._response_bubble.show_text(content, highlight_color=C.PRI)
+        elif tl.startswith("ip prime (brain):"):
+            content = clean_text[clean_text.find("):") + 2:].strip()
+            self._response_bubble.show_text(content, highlight_color=C.GREEN)
+        elif tl.startswith("ip prime (nvidia):"):
+            content = clean_text[clean_text.find("):") + 2:].strip()
+            self._response_bubble.show_text(content, highlight_color="#76B900")
+        elif tl.startswith("err:"):
+            content = clean_text[4:].strip()
+            self._response_bubble.show_text(f"⚠️ Error: {content}", highlight_color=C.RED)
+
+    def _update_mic_btn_style(self):
+        if not hasattr(self, "_mic_btn"):
+            return
+        if getattr(self, "_muted", False):
+            self._mic_btn.setText("🔇")
+            self._mic_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: rgba(239, 68, 68, 0.12);
+                    color: {C.RED};
+                    border: 1px solid rgba(239, 68, 68, 0.25);
+                    border-radius: 16px;
+                }}
+                QPushButton:hover {{
+                    background: rgba(239, 68, 68, 0.25);
+                    border: 1px solid {C.RED};
+                }}
+            """)
+        else:
+            self._mic_btn.setText("🎙")
+            self._mic_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: rgba(16, 185, 129, 0.12);
+                    color: {C.GREEN};
+                    border: 1px solid rgba(16, 185, 129, 0.25);
+                    border-radius: 16px;
+                }}
+                QPushButton:hover {{
+                    background: rgba(16, 185, 129, 0.25);
+                    border: 1px solid {C.GREEN};
+                }}
+            """)
+
+    def _build_bottom_input_row(self) -> QWidget:
+        widget = QWidget()
+        widget.setObjectName("BottomInputContainer")
+        widget.setStyleSheet(f"""
+            QWidget#BottomInputContainer {{
+                background: rgba(4, 7, 14, 0.75);
+                border: 1px solid rgba(6, 182, 212, 0.2);
+                border-radius: 20px;
+            }}
+        """)
+        self._input_shadow = QGraphicsDropShadowEffect(self)
+        self._input_shadow.setBlurRadius(12)
+        self._input_shadow.setColor(QColor(C.PRI))
+        self._input_shadow.setOffset(0, 0)
+        widget.setGraphicsEffect(self._input_shadow)
+        
+        lay = QHBoxLayout(widget)
+        lay.setContentsMargins(6, 4, 6, 4)
+        lay.setSpacing(6)
+        
+        self._mic_btn = QPushButton("🎙")
+        self._mic_btn.setFixedSize(32, 32)
+        self._mic_btn.setFont(QFont("Segoe UI", 12))
+        self._mic_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._mic_btn.setToolTip("Mute/Unmute Wake Word Detection")
+        self._update_mic_btn_style()
+        self._mic_btn.clicked.connect(self._toggle_mute)
+        lay.addWidget(self._mic_btn)
+        
+        self._input = QLineEdit()
+        self._input.setPlaceholderText("Ask IP Prime anything or type a system command…")
+        self._input.setFont(QFont("Segoe UI", 10))
+        self._input.setFixedHeight(32)
+        self._input.setStyleSheet(f"""
+            QLineEdit {{
+                background: transparent;
+                color: {C.WHITE};
+                border: none;
+                padding: 2px 8px;
+            }}
+        """)
+        self._input.returnPressed.connect(self._send)
+        lay.addWidget(self._input, stretch=1)
+        
+        self._send_btn = QPushButton("➤")
+        self._send_btn.setFixedSize(32, 32)
+        self._send_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        self._send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._send_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: rgba(39, 200, 245, 0.12);
+                color: {C.PRI};
+                border: 1px solid rgba(39, 200, 245, 0.25);
+                border-radius: 16px;
+            }}
+            QPushButton:hover {{
+                background: rgba(39, 200, 245, 0.25);
+                border: 1px solid {C.PRI};
+            }}
+        """)
+        self._send_btn.clicked.connect(self._send)
+        lay.addWidget(self._send_btn)
+        
+        return widget
 
     def _send(self):
         txt = self._input.text().strip()
@@ -4167,11 +4471,158 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.write_log(f"SYS: Gesture error: {e}")
 
+    def _pv_goal_orchestrator(self):
+        from PyQt6.QtWidgets import QInputDialog
+        goal, ok = QInputDialog.getText(self, "Autonomous Goal Orchestrator", "Enter your high-level goal to plan and chain tools autonomously:")
+        if ok and goal.strip():
+            self.write_log(f"SYS: Goal Orchestrator initiated for: {goal}")
+            def run_bg():
+                try:
+                    from actions.hermes_agent import hermes_agent
+                    class _PlayerShim:
+                        def __init__(self, win):
+                            self._win = win
+                        def write_log(self, text):
+                            self._win._log_sig.emit(text)
+                        def write_thought(self, text):
+                            self._win._thought_sig.emit(text)
+                    res = hermes_agent({"action": "plan_execute", "goal": goal}, player=_PlayerShim(self))
+                    self._log_sig.emit(res)
+                except Exception as e:
+                    self._log_sig.emit(f"SYS ERROR: Goal Orchestrator failed: {e}")
+            import threading
+            threading.Thread(target=run_bg, daemon=True).start()
+
+    def _pv_predictive_workspace(self):
+        self.write_log("SYS: Analyzing schedule and projects to stage workspace...")
+        def run_bg():
+            try:
+                from actions.predictive_workspace import predictive_workspace
+                class _PlayerShim:
+                    def __init__(self, win):
+                        self._win = win
+                    def write_log(self, text):
+                        self._win._log_sig.emit(text)
+                res = predictive_workspace({}, player=_PlayerShim(self))
+                self._log_sig.emit(res)
+            except Exception as e:
+                self._log_sig.emit(f"SYS ERROR: Predictive Workspace failed: {e}")
+        import threading
+        threading.Thread(target=run_bg, daemon=True).start()
+
+    def _pv_ar_integration(self):
+        self.write_log("SYS: Activating in-place AR screen overlay and translations...")
+        try:
+            from actions.screen_overlay import run_ocr_translation_in_background
+            def run_translation():
+                run_ocr_translation_in_background(
+                    target_lang="English",
+                    callback_signal=self._ocr_translate_sig
+                )
+            import threading
+            threading.Thread(target=run_translation, daemon=True).start()
+        except Exception as e:
+            self.write_log(f"SYS ERROR: AR Integration overlay trigger failed: {e}")
+
+    def _pv_autopilot(self):
+        from PyQt6.QtWidgets import QInputDialog
+        instr, ok = QInputDialog.getText(self, "Autonomous Autopilot", "Enter natural language instructions (e.g. 'minimize all windows and open chrome'):")
+        if ok and instr.strip():
+            self.write_log(f"SYS: Autonomous Autopilot command: {instr}")
+            def run_bg():
+                try:
+                    from actions.autonomous_autopilot import autonomous_autopilot
+                    class _PlayerShim:
+                        def __init__(self, win):
+                            self._win = win
+                        def write_log(self, text):
+                            self._win._log_sig.emit(text)
+                        def write_thought(self, text):
+                            self._win._thought_sig.emit(text)
+                    res = autonomous_autopilot({"action": "gui_automation", "instruction": instr}, player=_PlayerShim(self))
+                    self._log_sig.emit(res)
+                except Exception as e:
+                    self._log_sig.emit(f"SYS ERROR: Autopilot failed: {e}")
+            import threading
+            threading.Thread(target=run_bg, daemon=True).start()
+
+    def _pv_infinite_memory(self):
+        from PyQt6.QtWidgets import QInputDialog
+        query, ok = QInputDialog.getText(self, "Infinite Memory Search", "Enter search query to recall past conversations and facts:")
+        if ok and query.strip():
+            self.write_log(f"SYS: Advanced Brain Search query: {query}")
+            def run_bg():
+                try:
+                    from memory.brain import brain_search
+                    res = brain_search(query=query, limit=10)
+                    self._log_sig.emit(res)
+                except Exception as e:
+                    self._log_sig.emit(f"SYS ERROR: Memory Search failed: {e}")
+            import threading
+            threading.Thread(target=run_bg, daemon=True).start()
+
+    def _pv_orchestrated_coder(self):
+        from PyQt6.QtWidgets import QInputDialog
+        instr, ok = QInputDialog.getText(self, "Orchestrated Coder", "Enter task instructions (e.g. 'add test suite to project'):")
+        if ok and instr.strip():
+            self.write_log(f"SYS: Orchestrated Coder task: {instr}")
+            def run_bg():
+                try:
+                    from actions.agent_orchestrator import run_orchestrated_coder
+                    class _PlayerShim:
+                        def __init__(self, win):
+                            self._win = win
+                        def write_log(self, text):
+                            self._win._log_sig.emit(text)
+                        def write_thought(self, text):
+                            self._win._thought_sig.emit(text)
+                    res = run_orchestrated_coder(project_path_str="", instruction=instr, player=_PlayerShim(self))
+                    self._log_sig.emit(res)
+                except Exception as e:
+                    self._log_sig.emit(f"SYS ERROR: Orchestrated Coder failed: {e}")
+            import threading
+            threading.Thread(target=run_bg, daemon=True).start()
+
+    def _pv_multimodal_perception(self):
+        self.write_log("SYS: Capturing screen for Multimodal active perception...")
+        def run_bg():
+            try:
+                from actions.multimodal_perception import active_screen_perception
+                class _PlayerShim:
+                    def __init__(self, win):
+                        self._win = win
+                    def write_log(self, text):
+                        self._win._log_sig.emit(text)
+                    def write_thought(self, text):
+                        self._win._thought_sig.emit(text)
+                res = active_screen_perception(player=_PlayerShim(self))
+                self._log_sig.emit(res)
+            except Exception as e:
+                self._log_sig.emit(f"SYS ERROR: Multimodal active perception failed: {e}")
+        import threading
+        threading.Thread(target=run_bg, daemon=True).start()
+
     def _apply_state(self, state: str):
+
         self.hud.state    = state
         self.hud.speaking = (state == "SPEAKING")
         if hasattr(self, "_log"):
             self._log.show_typing(state in ("THINKING", "PROCESSING"))
+        
+        glow_color = C.PRI
+        if state == "MUTED":
+            glow_color = C.RED
+        elif state == "SPEAKING":
+            glow_color = C.ACC if hasattr(C, 'ACC') else C.PRI
+        elif state in ("THINKING", "PROCESSING"):
+            glow_color = C.CYAN
+        elif state == "LISTENING":
+            glow_color = C.GREEN
+            
+        if hasattr(self, "_input_shadow"):
+            self._input_shadow.setColor(QColor(glow_color))
+        if hasattr(self, "_response_bubble"):
+            self._response_bubble._shadow.setColor(QColor(glow_color))
 
     def _apply_thought(self, text: str):
         """Updates the NLA Live HUD Thought Stream Panel with new real-time reasoning text."""

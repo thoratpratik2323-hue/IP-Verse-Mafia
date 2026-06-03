@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HERMES — Director of Agentic Operations · IP Verse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #22c55e;
+            --accent-rgb: 34, 197, 94;
+            --bg: #000a02;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(ellipse at 60% 40%, rgba(var(--accent-rgb),0.12) 0%, transparent 55%),
+                        radial-gradient(ellipse at 10% 90%, rgba(var(--accent-rgb),0.07) 0%, transparent 50%),
+                        #000902;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px);
+            pointer-events: none; z-index: 100;
+        }
+
+        /* Matrix rain canvas */
+        canvas { position: fixed; inset: 0; z-index: 1; opacity: 0.15; pointer-events: none; }
+
+        .grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(var(--accent-rgb),0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--accent-rgb),0.04) 1px, transparent 1px);
+            background-size: 55px 55px;
+        }
+
+        .shell {
+            position: relative; z-index: 10;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 0;
+            width: 100%; height: 100vh;
+            animation: fadeIn 0.7s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+        /* LEFT */
+        .left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 32px;
+            border-right: 1px solid rgba(var(--accent-rgb), 0.2);
+            background: linear-gradient(180deg, rgba(var(--accent-rgb),0.05) 0%, transparent 100%);
+        }
+
+        /* Hexagonal network */
+        .hex-wrap {
+            position: relative;
+            width: 280px; height: 280px;
+            margin-bottom: 36px;
+        }
+
+        .hex-svg { width: 100%; height: 100%; }
+
+        .hex-core {
+            position: absolute;
+            inset: 0; margin: auto;
+            width: 90px; height: 90px;
+            clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+            background: radial-gradient(circle, rgba(var(--accent-rgb),0.95), rgba(var(--accent-rgb),0.3));
+            box-shadow: 0 0 40px rgba(var(--accent-rgb),0.7);
+            display: flex; align-items: center; justify-content: center;
+            animation: pulse-hex 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse-hex {
+            0%,100% { filter: brightness(1); transform: scale(1); }
+            50% { filter: brightness(1.3); transform: scale(1.07); }
+        }
+        .hex-icon { font-size: 34px; }
+
+        .agent-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 52px; font-weight: 900;
+            letter-spacing: 6px; text-align: center;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1; margin-bottom: 8px;
+        }
+        .agent-role {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px; font-weight: 500;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: rgba(255,255,255,0.45); text-align: center; margin-bottom: 20px;
+        }
+        .dept-badge {
+            background: rgba(var(--accent-rgb), 0.12);
+            border: 1px solid rgba(var(--accent-rgb), 0.4);
+            border-radius: 100px; padding: 6px 18px;
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase;
+            color: var(--accent);
+        }
+        .online-row { display: flex; align-items: center; gap: 8px; margin-top: 24px; }
+        .dot-live {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 10px var(--accent);
+            animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .online-text { font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--accent); letter-spacing: 2px; }
+
+        /* RIGHT */
+        .right {
+            display: flex; flex-direction: column;
+            justify-content: center;
+            padding: 56px 64px; gap: 32px;
+        }
+        .section-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px; letter-spacing: 3px;
+            color: rgba(var(--accent-rgb),0.6); text-transform: uppercase; margin-bottom: 10px;
+        }
+        .dialog-box {
+            background: rgba(var(--accent-rgb), 0.04);
+            border: 1px solid rgba(var(--accent-rgb), 0.18);
+            border-radius: 16px; padding: 28px 32px;
+            position: relative; overflow: hidden;
+        }
+        .dialog-box::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--accent); border-radius: 4px 0 0 4px;
+        }
+        .dialog-text {
+            font-size: 16px; line-height: 1.85;
+            color: rgba(255,255,255,0.82); font-weight: 300;
+        }
+
+        /* Terminal-style stats */
+        .terminal-block {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(var(--accent-rgb), 0.2);
+            border-radius: 12px; padding: 20px 24px;
+            font-family: 'Orbitron', monospace;
+        }
+        .term-line {
+            font-size: 11px; color: rgba(var(--accent-rgb),0.7);
+            letter-spacing: 1px; margin-bottom: 6px;
+            animation: type-in 0.3s ease forwards;
+            opacity: 0;
+        }
+        .term-line:nth-child(1){ animation-delay: 0.4s; }
+        .term-line:nth-child(2){ animation-delay: 0.7s; }
+        .term-line:nth-child(3){ animation-delay: 1.0s; }
+        .term-line:nth-child(4){ animation-delay: 1.3s; }
+        .term-line:nth-child(5){ animation-delay: 1.6s; }
+        .term-line .bright { color: #fff; }
+        @keyframes type-in { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+
+        .skills-grid { display: grid; gap: 14px; }
+        .skill-row { display: flex; align-items: center; gap: 16px; }
+        .skill-label {
+            font-family: 'Rajdhani', sans-serif; font-size: 13px;
+            font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.6);
+            width: 160px; flex-shrink: 0;
+        }
+        .skill-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #86efac);
+            border-radius: 10px; width: 0;
+            box-shadow: 0 0 8px rgba(var(--accent-rgb),0.6);
+            transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+        }
+        .skill-pct { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--accent); width: 38px; text-align: right; }
+
+        .footer-strip {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .footer-id { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 2px; }
+        .footer-org { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(var(--accent-rgb),0.5); letter-spacing: 2px; }
+
+        .scan-sweep {
+            position: fixed; top: 0; left: -100%; width: 30%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.04), transparent);
+            animation: sweep 5s ease-in-out infinite; pointer-events: none; z-index: 5;
+        }
+        @keyframes sweep { 0%{left:-30%} 100%{left:130%} }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="grid"></div>
+    <div class="scan-sweep"></div>
+
+    <div class="shell">
+        <div class="left">
+            <div class="hex-wrap">
+                <svg class="hex-svg" viewBox="0 0 280 280">
+                    <!-- Outer hex -->
+                    <polygon points="140,4 264,72 264,208 140,276 16,208 16,72" fill="none" stroke="rgba(34,197,94,0.25)" stroke-width="1.5">
+                        <animateTransform attributeName="transform" type="rotate" from="0 140 140" to="360 140 140" dur="20s" repeatCount="indefinite"/>
+                    </polygon>
+                    <!-- Mid hex -->
+                    <polygon points="140,30 242,88 242,192 140,250 38,192 38,88" fill="none" stroke="rgba(34,197,94,0.4)" stroke-width="1.5">
+                        <animateTransform attributeName="transform" type="rotate" from="360 140 140" to="0 140 140" dur="13s" repeatCount="indefinite"/>
+                    </polygon>
+                    <!-- Inner hex -->
+                    <polygon points="140,60 218,105 218,175 140,220 62,175 62,105" fill="none" stroke="rgba(34,197,94,0.6)" stroke-width="1.5">
+                        <animateTransform attributeName="transform" type="rotate" from="0 140 140" to="360 140 140" dur="8s" repeatCount="indefinite"/>
+                    </polygon>
+                    <!-- Network nodes -->
+                    <circle cx="140" cy="4" r="4" fill="#22c55e" opacity="0.8"/>
+                    <circle cx="264" cy="72" r="4" fill="#22c55e" opacity="0.8"/>
+                    <circle cx="264" cy="208" r="4" fill="#22c55e" opacity="0.8"/>
+                    <circle cx="140" cy="276" r="4" fill="#22c55e" opacity="0.8"/>
+                    <circle cx="16" cy="208" r="4" fill="#22c55e" opacity="0.8"/>
+                    <circle cx="16" cy="72" r="4" fill="#22c55e" opacity="0.8"/>
+                    <!-- Connecting lines (inner) -->
+                    <line x1="140" y1="4" x2="264" y2="72" stroke="rgba(34,197,94,0.12)" stroke-width="1"/>
+                    <line x1="264" y1="72" x2="264" y2="208" stroke="rgba(34,197,94,0.12)" stroke-width="1"/>
+                </svg>
+                <div class="hex-core"><span class="hex-icon">⬡</span></div>
+            </div>
+
+            <div class="agent-name">HERMES</div>
+            <div class="agent-role">Director of Agentic Operations</div>
+            <div class="dept-badge">Automation &amp; Pipelines</div>
+            <div class="online-row">
+                <div class="dot-live"></div>
+                <span class="online-text">CORE ONLINE</span>
+            </div>
+        </div>
+
+        <div class="right">
+            <div>
+                <div class="section-tag">// Mission Statement</div>
+                <div class="dialog-box">
+                    <p class="dialog-text">
+                        Yo Pratik Sir! Main hoon <strong>Hermes</strong>. Mera kaam hai workflow automation aur core pipelines ko manage karna.
+                        System me scripts ko run karna, automations schedule karna, aur different modules ko back-to-back connect karna mera domain hai. Lekin main deep research ya UI/UX layouts design nahi karta—wo Claude aur baki agents ka kaam hai, mera nahi.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// System Diagnostics</div>
+                <div class="terminal-block">
+                    <div class="term-line">&gt; AGENT_STATUS: <span class="bright">HERMES_v3.2 · FULLY OPERATIONAL</span></div>
+                    <div class="term-line">&gt; PIPELINES_ACTIVE: <span class="bright">47 · RUNNING</span></div>
+                    <div class="term-line">&gt; WORKFLOW_QUEUE: <span class="bright">ALL CLEAR · 0 ERRORS</span></div>
+                    <div class="term-line">&gt; AUTOMATION_RATE: <span class="bright">99.7% UPTIME</span></div>
+                    <div class="term-line">&gt; MISSION_LOCK: <span class="bright">IP PRIME OPERATIONS · ENGAGED</span></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// Core Competencies</div>
+                <div class="skills-grid">
+                    <div class="skill-row">
+                        <span class="skill-label">Workflow Design</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="97%"></div></div>
+                        <span class="skill-pct">97%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Pipeline Mgmt</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="99%"></div></div>
+                        <span class="skill-pct">99%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">AI Orchestration</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="95%"></div></div>
+                        <span class="skill-pct">95%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-strip">
+                <span class="footer-id">ID: HERMES_OPS_v3.2 · IP VERSE EXECUTIVE BOARD</span>
+                <span class="footer-org">IP VERSE · 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix rain
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cols = Math.floor(canvas.width / 20);
+        const drops = Array(cols).fill(1);
+        const chars = 'アイウエオカキクケコ0123456789ABCDEF∑∏∆∇'.split('');
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0,9,2,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#22c55e';
+            ctx.font = '14px monospace';
+            drops.forEach((y, i) => {
+                const ch = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(ch, i * 20, y * 20);
+                if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawMatrix, 55);
+
+        setTimeout(() => {
+            document.querySelectorAll('.skill-fill').forEach(el => {
+                el.style.width = el.dataset.w;
+            });
+        }, 500);
+    </script>
+</body>
+</html>

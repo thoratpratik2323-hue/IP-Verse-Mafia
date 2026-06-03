@@ -95,37 +95,91 @@ from core.session import _get_api_key, _load_system_prompt, _clean_transcript
 from core.tool_registry import TOOL_DECLARATIONS
 from multiprocessing import Process, Queue
 
-def _offline_tts_worker(queue_obj):
+def _offline_tts_worker(queue_obj, feedback_queue=None):
     """
     Standalone offline TTS process worker to completely bypass GIL thread blocking.
     Runs entirely in a separate OS process on Windows.
     """
     import pyttsx3
     import time
+    import pythoncom
+    import sys
     
     try:
+        pythoncom.CoInitialize()
         engine = pyttsx3.init()
         engine.setProperty('rate', 165)
         engine.setProperty('volume', 0.9)
     except Exception as e:
         print(f"[Offline TTS Process] Failed to initialize pyttsx3: {e}")
+        sys.stdout.flush()
         engine = None
 
     while True:
         try:
-            text = queue_obj.get()
-            if text is None:
+
+            payload = queue_obj.get()
+            if payload is None:
                 break
             
+            # Support both dictionary payloads (with voice/rate settings) and plain strings
+            voice_id = None
+            rate = None
+            if isinstance(payload, dict):
+                text = payload.get("text", "")
+                voice_id = payload.get("voice_id")
+                rate = payload.get("rate")
+            else:
+                text = payload
+            
+            if not text.strip():
+                continue
+                
             if engine:
                 try:
+                    if voice_id:
+                        try:
+                            engine.setProperty('voice', voice_id)
+                        except Exception:
+                            pass
+                    else:
+                        try:
+                            engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0')
+                        except Exception:
+                            pass
+                            
+                    if rate:
+                        try:
+                            engine.setProperty('rate', rate)
+                        except Exception:
+                            pass
+                    else:
+                        try:
+                            engine.setProperty('rate', 165)
+                        except Exception:
+                            pass
+                            
                     engine.say(text)
                     engine.runAndWait()
+                    
+                    # Notify parent thread that speech finished
+                    if feedback_queue:
+                        try:
+                            feedback_queue.put({"status": "done"})
+                        except Exception:
+                            pass
                 except Exception as e:
                     print(f"[Offline TTS Process] Speech error: {e}")
                     print(f"[TTS OFFLINE FALLBACK] {text}")
+                    if feedback_queue:
+                        try: feedback_queue.put({"status": "done"})
+                        except Exception: pass
             else:
                 print(f"[TTS OFFLINE FALLBACK] {text}")
+                if feedback_queue:
+                    try: feedback_queue.put({"status": "done"})
+                    except Exception: pass
+
         except KeyboardInterrupt:
             break
         except Exception as e:
@@ -312,11 +366,16 @@ class IPRayLive:
         # Set up TTS streaming queue
         self.tts_queue = queue.Queue()
         self.offline_tts_queue = Queue()
-        self.offline_tts_process = Process(target=_offline_tts_worker, args=(self.offline_tts_queue,), daemon=True)
+        self.offline_tts_feedback_queue = Queue()
+        self.offline_tts_process = Process(target=_offline_tts_worker, args=(self.offline_tts_queue, self.offline_tts_feedback_queue), daemon=True)
         self.offline_tts_process.start()
         
         self._tts_thread = threading.Thread(target=self._tts_worker, daemon=True)
         self._tts_thread.start()
+        
+        self._feedback_thread = threading.Thread(target=self._feedback_listener, daemon=True, name="TTSFeedbackThread")
+        self._feedback_thread.start()
+
 
         # Initialize MCP Client Manager (deferred slightly to reduce startup lag)
         def _init_mcp():
@@ -428,6 +487,10 @@ class IPRayLive:
             print(f"[IP PRIME] Error starting wake word spotter thread: {e}")
 
     def _on_wake_word_spotted(self):
+        if getattr(self, "_intro_in_progress", False):
+            print("[IP PRIME] ⚠️ Intro in progress — ignoring wake word spotted")
+            return
+
         # Play elegant wake word chime
         play_sfx("startup")
         
@@ -547,9 +610,6 @@ class IPRayLive:
         return False
 
     def _on_text_command(self, text: str):
-        if not self._loop:
-            return
-
         if self._tool_active:
             self.ui.write_log("SYS: Pratik Sir, ek activity currently running hai. Please wait karein, sir.")
             return
@@ -639,30 +699,58 @@ class IPRayLive:
                 pass
             return
 
-        # ─── Voice command: Team Introduction ──────────────────────────────────
-        is_intro = "intro" in txt_l or \
-                   ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "who", "is", "about", "conglom"])) or \
-                   "board" in txt_l or \
-                   "member" in txt_l or \
-                   "antigravity" in txt_l or \
-                   "claude" in txt_l or \
-                   "hermes" in txt_l or \
-                   "obsidian" in txt_l
-                   
+        # ─── Voice command: Team Introduction / Protocol (Web / Firefox) ────────
+        clean_txt = txt_l.replace(" ", "")
+        _intro_keywords = [
+            "protocol", "protocal", "protocall", "protocoll",
+            "प्रोटोकॉल", "प्रोटोकोल",
+            "introduce our team", "introduce the team", "introduce team",
+            "team introduction", "team intro",
+            "apni team batao", "team batao", "team dikhao",
+            "board members", "board dikhao",
+            # ── IP Army triggers ──
+            "ip army", "ipaarmy", "ip armi", "ip army show",
+            "ip army introduction", "ip army intro", "ip army batao",
+            "ip army dikhao", "ip army present", "ip army ko show",
+            "ip army ko batao", "show ip army", "present ip army",
+            "meri army", "meri army dikhao", "meri army batao",
+            "army introduction", "army intro", "army show karo",
+        ]
+        _intro_clean_kw = [
+            "teamprotect", "teamprotoc", "teamprotok", "teamproto",
+            "temproto", "termproto", "teamintro", "teamintr",
+            # IP Army compressed
+            "iparmy", "ipaarmy", "iparmi", "iparmyshow",
+            "armyintro", "armyshow", "armybatao",
+        ]
+        is_intro = (
+            any(k in txt_l for k in _intro_keywords) or
+            any(k in clean_txt for k in _intro_clean_kw) or
+            ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "present", "who", "is"])) or
+            ("army" in txt_l and any(k in txt_l for k in ["ip", "show", "intro", "batao", "dikhao", "meri", "present"])) or
+            ("pro" in txt_l and any(k in txt_l for k in ["col", "cal", "tect", "tocal"])) or
+            "इंट्रो" in txt_l or "टीम" in txt_l or "प्रोटो" in txt_l or "आर्मी" in txt_l
+        )
+
         if is_intro:
-            self.ui.write_log("SYS: Team introduction triggered.")
+            if getattr(self, "_intro_in_progress", False):
+                print("[IP PRIME] ⚠️ Team intro already in progress — ignoring duplicate")
+                return
+
+            self.ui.write_log("SYS: Team intro triggered via voice.")
+            self._intro_in_progress = True
+            self._trigger_immediate_interruption()
+
             try:
-                from actions.introduce_team import TeamIntroCoordinator
-                from PyQt6.QtCore import QTimer
-                def run_intro():
-                    coordinator = TeamIntroCoordinator(self.ui, self.speak)
-                    coordinator.start()
-                QTimer.singleShot(100, run_intro)
+                self.ui._win._team_intro_web_sig.emit()
             except Exception as e:
-                self.speak(f"Bhai team introduction fail ho gaya: {e}")
+                self._intro_in_progress = False
+                self.speak(f"Team intro fail: {e}")
             return
 
+
         # ─── Voice command: GitHub Streak ───────────────────────────────────────
+
         streak_triggers = ["mera streak", "github status", "commit streak"]
         if any(t in txt_l for t in streak_triggers):
             self.ui.write_log("SYS: GitHub Streak triggered via voice.")
@@ -870,35 +958,168 @@ class IPRayLive:
             self._loop
         )
 
+    def speak_with_voice(self, text: str, agent_name: str):
+        if self._quiet_mode:
+            return
+
+        # ─── Hindi-capable voice (Hemant = male, supports Hindi/Hinglish) ───
+        # Registry check: Hemant → Kalpana → David (English fallback, no Hindi pack)
+        hemant_token  = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_HI-IN_HEMANT_11.0"
+        kalpana_token = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_HI-IN_KALPANA_11.0"
+        david_token   = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
+
+        # Use cached voice selection after first call — avoids repeated registry scans
+        if not hasattr(self, "_cached_hindi_voice"):
+            try:
+                import winreg
+                try:
+                    winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                   r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_HEMANT_11.0")
+                    self._cached_hindi_voice = hemant_token
+                    print("[IP PRIME] Hindi voice selected: Microsoft Hemant")
+                except FileNotFoundError:
+                    try:
+                        winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                       r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_KALPANA_11.0")
+                        self._cached_hindi_voice = kalpana_token
+                        print("[IP PRIME] Hindi voice selected: Microsoft Kalpana")
+                    except FileNotFoundError:
+                        self._cached_hindi_voice = david_token
+                        print("[IP PRIME] No Hindi TTS pack found — falling back to Microsoft David")
+            except Exception:
+                self._cached_hindi_voice = david_token
+
+        _hindi_voice = self._cached_hindi_voice
+
+        voice_map = {
+            "ANTIGRAVITY": {"voice_id": _hindi_voice, "rate": 138},
+            "CLAUDE":      {"voice_id": _hindi_voice, "rate": 138},
+            "HERMES":      {"voice_id": _hindi_voice, "rate": 138},
+            "OBSIDIAN":    {"voice_id": _hindi_voice, "rate": 138},
+            "IP PRIME":    {"voice_id": _hindi_voice, "rate": 138},
+            "IP VERSE":    {"voice_id": _hindi_voice, "rate": 138},
+        }
+
+        # Terminate the active child voice process to stop speech instantly!
+        try:
+            if hasattr(self, "offline_tts_process") and self.offline_tts_process and self.offline_tts_process.is_alive():
+                print("[IP PRIME] Interrupted active voice. Respawning worker for agent: " + agent_name)
+                self.offline_tts_process.terminate()
+                self.offline_tts_process.join(timeout=0.1)
+        except Exception as e:
+            print(f"[IP PRIME] Error terminating voice process: {e}")
+
+        # ✅ CRITICAL FIX: Drain & reuse the SAME feedback queue object so the
+        # parent _feedback_listener thread (bound at __init__) still sees the signal.
+        # Never overwrite self.offline_tts_feedback_queue — that orphans the listener!
+        try:
+            while not self.offline_tts_feedback_queue.empty():
+                try: self.offline_tts_feedback_queue.get_nowait()
+                except Exception: break
+        except Exception:
+            pass
+
+        # Spawn a fresh worker that writes to the same queue the listener watches.
+        try:
+            self.offline_tts_queue = Queue()
+            self.offline_tts_process = Process(
+                target=_offline_tts_worker,
+                args=(self.offline_tts_queue, self.offline_tts_feedback_queue),
+                daemon=True
+            )
+            self.offline_tts_process.start()
+        except Exception as e:
+            print(f"[IP PRIME] Error respawning voice process: {e}")
+
+        cfg = voice_map.get(agent_name.upper().strip(), {"voice_id": david_token, "rate": 165})
+
+        # Send full text as ONE payload so we get exactly ONE 'done' signal per card.
+        payload = {
+            "text": text.strip(),
+            "voice_id": cfg["voice_id"],
+            "rate": cfg["rate"]
+        }
+        self.offline_tts_queue.put(payload)
+
+    def _feedback_listener(self):
+        """Permanent listener thread. Reads from the FIXED queue object created at __init__.
+        Never recreate self.offline_tts_feedback_queue — this thread holds a ref to it."""
+        import time
+        while True:
+            try:
+                msg = self.offline_tts_feedback_queue.get(timeout=2.0)
+                if msg is None:
+                    break
+                if msg.get("status") == "done":
+                    print("[IP PRIME] TTS done signal received. Advancing intro card.")
+                    # Emit PyQt signal to trigger next card immediately!
+                    if hasattr(self.ui, "_win") and self.ui._win:
+                        self.ui._win._agent_intro_done_sig.emit()
+            except Exception:
+                # queue.Empty on timeout is normal — just loop
+                time.sleep(0.05)
+
+
     def route_user_message(self, user_message: str, is_voice: bool = False):
         """
         Smart intent router that routes coding tasks to NVIDIA NIM API and general tasks to Gemini.
         """
+        # Block inputs during team introduction sequence
+        if getattr(self, "_intro_in_progress", False):
+            print(f"[IP PRIME] ⚠️ Intro in progress — ignoring user message: {user_message}")
+            return
+
         txt_l = user_message.lower().strip()
-        is_intro = "intro" in txt_l or \
-                   ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "who", "is", "about", "conglom"])) or \
-                   "board" in txt_l or \
-                   "member" in txt_l or \
-                   "antigravity" in txt_l or \
-                   "claude" in txt_l or \
-                   "hermes" in txt_l or \
-                   "obsidian" in txt_l
-                   
-        if is_intro:
-            self.ui.write_log("SYS: Team introduction triggered via router.")
+        clean_txt = txt_l.replace(" ", "")
+
+
+        # -- Team intro: voice path (same keywords, same guard) ──────────────────
+        _intro_kw = [
+            "protocol", "protocal", "protocall", "protocoll",
+            "प्रोटोकॉल", "प्रोटोकोल",
+            "introduce our team", "introduce the team", "introduce team",
+            "team introduction", "team intro",
+            "apni team batao", "team batao", "team dikhao",
+            "board members", "board dikhao",
+            # ── IP Army triggers ──
+            "ip army", "ipaarmy", "ip armi", "ip army show",
+            "ip army introduction", "ip army intro", "ip army batao",
+            "ip army dikhao", "ip army present", "ip army ko show",
+            "ip army ko batao", "show ip army", "present ip army",
+            "meri army", "meri army dikhao", "meri army batao",
+            "army introduction", "army intro", "army show karo",
+        ]
+        _intro_ck = [
+            "teamprotect", "teamprotoc", "teamprotok", "teamproto",
+            "temproto", "termproto", "teamintro", "teamintr",
+            # IP Army compressed
+            "iparmy", "ipaarmy", "iparmi", "iparmyshow",
+            "armyintro", "armyshow", "armybatao",
+        ]
+        _is_intro_voice = (
+            any(k in txt_l for k in _intro_kw) or
+            any(k in clean_txt for k in _intro_ck) or
+            ("team" in txt_l and any(k in txt_l for k in ["our", "the", "my", "meet", "show", "present", "who", "is"])) or
+            ("army" in txt_l and any(k in txt_l for k in ["ip", "show", "intro", "batao", "dikhao", "meri", "present"])) or
+            "इंट्रो" in txt_l or "टीम" in txt_l or "प्रोटो" in txt_l or "आर्मी" in txt_l
+        )
+        if _is_intro_voice:
+            if getattr(self, "_intro_in_progress", False):
+                print("[IP PRIME] ⚠️ voice router: intro already running — skip")
+                return
+            self.ui.write_log("SYS: Team intro (voice) triggered.")
+            self._intro_in_progress = True
+            self._trigger_immediate_interruption()
             try:
-                from actions.introduce_team import TeamIntroCoordinator
-                from PyQt6.QtCore import QTimer
-                def run_intro():
-                    coordinator = TeamIntroCoordinator(self.ui, self.speak)
-                    coordinator.start()
-                QTimer.singleShot(100, run_intro)
+                self.ui._win._team_intro_web_sig.emit()
             except Exception as e:
-                self.speak(f"Bhai team introduction fail ho gaya: {e}")
+                self._intro_in_progress = False
+                self.speak(f"Team intro fail: {e}")
             return
 
         try:
             from core.intent_router import is_coding_task
+
             from core.nvidia_client import ask_nvidia
             from actions.model_switcher import load_model_preference
             
@@ -1260,6 +1481,8 @@ class IPRayLive:
             await self.session.send_realtime_input(media=msg)
 
     def _trigger_immediate_interruption(self):
+        if getattr(self, "_intro_in_progress", False):
+            return
         if hasattr(self, "audio_playback_queue") and self.audio_playback_queue:
             while not self.audio_playback_queue.empty():
                 try:
@@ -1341,6 +1564,10 @@ class IPRayLive:
         try:
             while True:
                 async for response in self.session.receive():
+                    if getattr(self, "_intro_in_progress", False):
+                        # Completely ignore any server responses (audio, transcription, events) during team introduction
+                        continue
+
 
                     if response.data:
                         if not self._quiet_mode and not getattr(self, "_buffering_interruption", False):
@@ -1829,12 +2056,24 @@ def start_ipc_watcher(ui):
                         data["status"] = "processing"
                         ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
                         
-                        if brain is None:
-                            from brain.core_intelligence import IPBrain
-                            brain = IPBrain()
-                        
                         try:
-                            response = brain.process_input(command)
+                            is_local = False
+                            txt_l = command.lower().strip()
+                            clean_cmd = txt_l.replace(" ", "")
+                            if any(k in txt_l for k in ["protocol", "protocal", "protocall", "protocoll", "प्रोटोकॉल", "प्रोटोकोल", "intro", "board", "member", "antigravity", "claude", "hermes", "obsidian", "टीम", "इंट्रो", "प्रोटो"]) or \
+                               "teamprotect" in clean_cmd or "teamprotoc" in clean_cmd or "teamprotok" in clean_cmd or "teamproto" in clean_cmd or "temproto" in clean_cmd or "termproto" in clean_cmd or \
+                               ("pro" in txt_l and ("col" in txt_l or "cal" in txt_l or "te c t" in txt_l or "tect" in txt_l or "to col" in txt_l or "to cal" in txt_l)):
+                                is_local = True
+                            
+                            if is_local and hasattr(ui, "ip_ray") and ui.ip_ray:
+                                ui.ip_ray._on_text_command(command)
+                                response = "Local team protocol command executed successfully."
+                            else:
+                                if brain is None:
+                                    from brain.core_intelligence import IPBrain
+                                    brain = IPBrain()
+                                response = brain.process_input(command)
+
                             
                             try:
                                 data = json.loads(ipc_file.read_text(encoding="utf-8"))

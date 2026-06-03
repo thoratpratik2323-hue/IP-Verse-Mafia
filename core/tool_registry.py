@@ -1772,6 +1772,18 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "aislop_helper",
+        "description": "🛡️ AI-SLOP QUALITY GATE — scans and auto-fixes AI-generated code. Detects dead code, unused imports, unfinished placeholders (# TODO, stubs). Runs standard and aggressive code auto-fixes. Use when Pratik Sir says: check code quality, clean stubs, scan for AI slop, fix placeholders.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "scan (default) | fix"},
+                "target": {"type": "STRING", "description": "Absolute or relative path to file or directory to scan/fix (defaults to workspace root)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
         "name": "discord_helper",
         "description": "Discord channel reader, servers manager, and userbot dispatcher.",
         "parameters": {
@@ -2145,5 +2157,14 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["instruction"]
         }
+    },
+    {
+        "name": "predictive_workspace",
+        "description": "Proactively stages files, tools, apps, and window layout layouts by analyzing the user's upcoming schedule calendar events and active projects inside the CODING PROJECTS workspace.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
     }
 ]
+

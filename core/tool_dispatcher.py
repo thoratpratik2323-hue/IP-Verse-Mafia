@@ -56,6 +56,8 @@ from actions.multimodal_perception import multimodal_perception
 from actions.autonomous_autopilot import autonomous_autopilot
 from actions.advanced_communicator import advanced_communicator
 from actions.token_juice import token_juice
+from actions.predictive_workspace import predictive_workspace
+
 
 # Also import play_sfx if needed inside threads
 
@@ -728,6 +730,11 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
         elif name == "token_juice":
             r = await loop.run_in_executor(None, lambda: token_juice(parameters=args, player=player))
             result = r or "Done."
+
+        elif name == "predictive_workspace":
+            r = await loop.run_in_executor(None, lambda: predictive_workspace(parameters=args, player=player))
+            result = r or "Done."
+
 
         elif name == "local_llm":
             from actions.local_llm import local_llm

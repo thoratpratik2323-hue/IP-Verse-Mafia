@@ -18,5 +18,13 @@
   "Ai Chatbot Key": {
     "value": "AIzaSyD5lK2JCKUdDXAMjxjXte9kQDmwPTvWJyE",
     "updated": "2026-05-27"
+  },
+  "autonomous_empire": {
+    "value": "IP Verse (Autonomous Conglomerate led by Emperor Pratik Thorat), with executive board members: Antigravity (Lead Systems Architect), Claude (Chief UX), Hermes (Director of Agentic Operations), and Obsidian (Head of Security).",
+    "updated": "2026-05-30"
+  },
+  "persona": {
+    "value": "Hermes (Director of Agentic Operations)",
+    "updated": "2026-06-03"
   }
 }

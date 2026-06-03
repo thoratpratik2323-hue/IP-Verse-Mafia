@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBSIDIAN — Head of Security · IP Verse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #a855f7;
+            --accent-rgb: 168, 85, 247;
+            --bg: #04000a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(ellipse at 50% 30%, rgba(var(--accent-rgb),0.15) 0%, transparent 55%),
+                        radial-gradient(ellipse at 10% 80%, rgba(var(--accent-rgb),0.08) 0%, transparent 50%),
+                        #040009;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
+            pointer-events: none; z-index: 100;
+        }
+
+        /* Binary rain canvas */
+        canvas { position: fixed; inset: 0; z-index: 1; opacity: 0.1; pointer-events: none; }
+
+        .grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(var(--accent-rgb),0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--accent-rgb),0.04) 1px, transparent 1px);
+            background-size: 55px 55px;
+        }
+
+        .shell {
+            position: relative; z-index: 10;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            width: 100%; height: 100vh;
+            animation: fadeIn 0.7s ease forwards;
+        }
+        @keyframes fadeIn { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+
+        .left {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 48px 32px;
+            border-right: 1px solid rgba(var(--accent-rgb),0.2);
+            background: linear-gradient(180deg, rgba(var(--accent-rgb),0.06) 0%, transparent 100%);
+        }
+
+        /* Shield icon with rotating crypto rings */
+        .shield-wrap {
+            position: relative;
+            width: 280px; height: 280px;
+            margin-bottom: 36px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .shield-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(var(--accent-rgb),0.3);
+        }
+        .sr-1 { width: 280px; height: 280px; animation: spin-cw 16s linear infinite; border-color: rgba(var(--accent-rgb),0.15); }
+        .sr-2 { width: 210px; height: 210px; animation: spin-ccw 10s linear infinite; }
+        .sr-3 { width: 145px; height: 145px; animation: spin-cw 6s linear infinite; border-color: rgba(var(--accent-rgb),0.5); }
+
+        @keyframes spin-cw  { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        @keyframes spin-ccw { from{transform:rotate(360deg)} to{transform:rotate(0)} }
+
+        .ring-node {
+            position: absolute; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 10px var(--accent);
+            top: -4px; left: 50%; transform: translateX(-50%);
+        }
+
+        /* Central shield */
+        .shield-core {
+            position: relative; z-index: 5;
+            width: 100px; height: 110px;
+            display: flex; align-items: center; justify-content: center;
+            animation: shield-pulse 3s ease-in-out infinite;
+        }
+
+        .shield-svg { filter: drop-shadow(0 0 20px rgba(var(--accent-rgb),0.8)); }
+
+        @keyframes shield-pulse {
+            0%,100%{ filter: drop-shadow(0 0 10px rgba(var(--accent-rgb),0.5)); transform: scale(1); }
+            50%{ filter: drop-shadow(0 0 30px rgba(var(--accent-rgb),0.9)); transform: scale(1.08); }
+        }
+
+        /* Crypto hex pattern overlay on shield */
+        .hex-overlay {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; z-index: 6;
+        }
+
+        .agent-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 46px; font-weight: 900;
+            letter-spacing: 5px; text-align: center;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1; margin-bottom: 8px;
+        }
+        .agent-role {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px; font-weight: 500;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: rgba(255,255,255,0.45); text-align: center; margin-bottom: 20px;
+        }
+        .dept-badge {
+            background: rgba(var(--accent-rgb),0.12);
+            border: 1px solid rgba(var(--accent-rgb),0.4);
+            border-radius: 100px; padding: 6px 18px;
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase; color: var(--accent);
+        }
+        .online-row { display: flex; align-items: center; gap: 8px; margin-top: 24px; }
+        .dot-live {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e; box-shadow: 0 0 10px #22c55e;
+            animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+        .online-text { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #22c55e; letter-spacing: 2px; }
+
+        /* RIGHT */
+        .right {
+            display: flex; flex-direction: column;
+            justify-content: center;
+            padding: 56px 64px; gap: 32px;
+        }
+        .section-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px; letter-spacing: 3px;
+            color: rgba(var(--accent-rgb),0.6); text-transform: uppercase; margin-bottom: 10px;
+        }
+        .dialog-box {
+            background: rgba(var(--accent-rgb),0.04);
+            border: 1px solid rgba(var(--accent-rgb),0.18);
+            border-radius: 16px; padding: 28px 32px;
+            position: relative; overflow: hidden;
+        }
+        .dialog-box::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--accent); border-radius: 4px 0 0 4px;
+        }
+        .dialog-text { font-size: 16px; line-height: 1.85; color: rgba(255,255,255,0.82); font-weight: 300; }
+
+        /* Security status grid */
+        .sec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .sec-tile {
+            background: rgba(var(--accent-rgb),0.06);
+            border: 1px solid rgba(var(--accent-rgb),0.22);
+            border-radius: 10px;
+            padding: 14px 16px;
+            text-align: center;
+            animation: tile-in 0.4s ease forwards;
+            opacity: 0;
+        }
+        .sec-tile:nth-child(1){animation-delay:0.3s}
+        .sec-tile:nth-child(2){animation-delay:0.45s}
+        .sec-tile:nth-child(3){animation-delay:0.6s}
+        .sec-tile:nth-child(4){animation-delay:0.75s}
+        .sec-tile:nth-child(5){animation-delay:0.9s}
+        .sec-tile:nth-child(6){animation-delay:1.05s}
+        @keyframes tile-in{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+        .sec-icon { font-size: 22px; margin-bottom: 6px; }
+        .sec-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px; letter-spacing: 1.5px;
+            color: rgba(var(--accent-rgb),0.7); text-transform: uppercase; margin-bottom: 4px;
+        }
+        .sec-status {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px; font-weight: 700; color: #4ade80;
+        }
+
+        .skills-grid { display: grid; gap: 14px; }
+        .skill-row { display: flex; align-items: center; gap: 16px; }
+        .skill-label {
+            font-family: 'Rajdhani', sans-serif; font-size: 13px;
+            font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.6);
+            width: 160px; flex-shrink: 0;
+        }
+        .skill-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #d8b4fe);
+            border-radius: 10px; width: 0;
+            box-shadow: 0 0 8px rgba(var(--accent-rgb),0.6);
+            transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+        }
+        .skill-pct { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--accent); width: 38px; text-align: right; }
+
+        .footer-strip {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .footer-id { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 2px; }
+        .footer-org { font-family: 'Orbitron', sans-serif; font-size: 10px; color: rgba(var(--accent-rgb),0.5); letter-spacing: 2px; }
+
+        .scan-sweep {
+            position: fixed; top: 0; left: -100%; width: 30%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.04), transparent);
+            animation: sweep 5s ease-in-out infinite; pointer-events: none; z-index: 5;
+        }
+        @keyframes sweep { 0%{left:-30%} 100%{left:130%} }
+    </style>
+</head>
+<body>
+    <canvas id="binaryCanvas"></canvas>
+    <div class="grid"></div>
+    <div class="scan-sweep"></div>
+
+    <div class="shell">
+        <!-- LEFT -->
+        <div class="left">
+            <div class="shield-wrap">
+                <div class="shield-ring sr-1"><div class="ring-node"></div></div>
+                <div class="shield-ring sr-2"><div class="ring-node"></div></div>
+                <div class="shield-ring sr-3"><div class="ring-node"></div></div>
+
+                <div class="shield-core">
+                    <svg class="shield-svg" width="90" height="105" viewBox="0 0 90 105">
+                        <defs>
+                            <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#c084fc;stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:#7e22ce;stop-opacity:1"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M45 4 L84 20 L84 55 C84 75 65 92 45 100 C25 92 6 75 6 55 L6 20 Z"
+                              fill="url(#sg)" opacity="0.85" stroke="rgba(168,85,247,0.6)" stroke-width="2"/>
+                        <path d="M45 18 L73 30 L73 52 C73 67 61 79 45 86 C29 79 17 67 17 52 L17 30 Z"
+                              fill="none" stroke="rgba(216,180,254,0.4)" stroke-width="1.5"/>
+                    </svg>
+                    <div class="hex-overlay">🔐</div>
+                </div>
+            </div>
+
+            <div class="agent-name">OBSIDIAN</div>
+            <div class="agent-role">Head of Security</div>
+            <div class="dept-badge">Security &amp; Compliance</div>
+            <div class="online-row">
+                <div class="dot-live"></div>
+                <span class="online-text">CORE ONLINE</span>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div>
+                <div class="section-tag">// Mission Statement</div>
+                <div class="dialog-box">
+                    <p class="dialog-text">
+                        Pratik Sir, main hoon <strong>Obsidian</strong>. Mera target hai system security, access logs auditing, data encryption, aur code safety checks run karna.
+                        Main IP Verse ecosystem ko vulnerabilities aur external threats se completely protect karta hoon. Lekin sir, main application logic likhne ya tasks run karne ka kaam nahi karta.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// Security Status</div>
+                <div class="sec-grid">
+                    <div class="sec-tile">
+                        <div class="sec-icon">🛡️</div>
+                        <div class="sec-name">Firewall</div>
+                        <div class="sec-status">ACTIVE</div>
+                    </div>
+                    <div class="sec-tile">
+                        <div class="sec-icon">🔒</div>
+                        <div class="sec-name">Encryption</div>
+                        <div class="sec-status">AES-256</div>
+                    </div>
+                    <div class="sec-tile">
+                        <div class="sec-icon">👁</div>
+                        <div class="sec-name">Monitoring</div>
+                        <div class="sec-status">24/7 ON</div>
+                    </div>
+                    <div class="sec-tile">
+                        <div class="sec-icon">🛡️</div>
+                        <div class="sec-name">Audit Logs</div>
+                        <div class="sec-status">NOMINAL</div>
+                    </div>
+                    <div class="sec-tile">
+                        <div class="sec-icon">⚡</div>
+                        <div class="sec-name">Threat Lvl</div>
+                        <div class="sec-status">ZERO</div>
+                    </div>
+                    <div class="sec-tile">
+                        <div class="sec-icon">✅</div>
+                        <div class="sec-name">Integrity</div>
+                        <div class="sec-status">VERIFIED</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-tag">// Core Competencies</div>
+                <div class="skills-grid">
+                    <div class="skill-row">
+                        <span class="skill-label">Security Auditing</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="98%"></div></div>
+                        <span class="skill-pct">98%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Vulnerability Mitigation</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="97%"></div></div>
+                        <span class="skill-pct">97%</span>
+                    </div>
+                    <div class="skill-row">
+                        <span class="skill-label">Privacy Protocols</span>
+                        <div class="skill-bar"><div class="skill-fill" data-w="100%"></div></div>
+                        <span class="skill-pct">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-strip">
+                <span class="footer-id">ID: OBSIDIAN_SEC_v1.5 · IP VERSE EXECUTIVE BOARD</span>
+                <span class="footer-org">IP VERSE · 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Binary rain
+        const canvas = document.getElementById('binaryCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cols = Math.floor(canvas.width / 18);
+        const drops = Array(cols).fill(1);
+        const chars = '01010101ΣΠΔ∇αβγδ∞∫'.split('');
+        function drawBinary() {
+            ctx.fillStyle = 'rgba(4,0,9,0.06)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#a855f7';
+            ctx.font = '12px monospace';
+            drops.forEach((y, i) => {
+                const ch = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(ch, i * 18, y * 18);
+                if (y * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawBinary, 60);
+
+        setTimeout(() => {
+            document.querySelectorAll('.skill-fill').forEach(el => {
+                el.style.width = el.dataset.w;
+            });
+        }, 500);
+    </script>
+</body>
+</html>
