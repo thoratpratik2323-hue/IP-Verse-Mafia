@@ -40,4 +40,5 @@ cryptography
 stegano
 shodan
 python-whois
+gtts
 

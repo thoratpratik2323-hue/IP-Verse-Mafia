@@ -99,6 +99,8 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
     """
     Standalone offline TTS process worker to completely bypass GIL thread blocking.
     Runs entirely in a separate OS process on Windows.
+    First tries to use online Google TTS (gTTS) for natural Hindi/Hinglish speech.
+    Falls back to pyttsx3 (local SAPI5) if offline or if it fails.
     """
     import pyttsx3
     import time
@@ -125,16 +127,65 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
             # Support both dictionary payloads (with voice/rate settings) and plain strings
             voice_id = None
             rate = None
+            text_devanagari = ""
+            text_latin = ""
             if isinstance(payload, dict):
-                text = payload.get("text", "")
+                text_devanagari = payload.get("text", "")
+                text_latin = payload.get("latin_text", text_devanagari)
                 voice_id = payload.get("voice_id")
                 rate = payload.get("rate")
             else:
-                text = payload
+                text_devanagari = payload
+                text_latin = payload
             
-            if not text.strip():
+            if not text_devanagari.strip():
                 continue
                 
+            gtts_success = False
+            # 1. Try to synthesize using gTTS for Hinglish/Hindi
+            if text_devanagari.strip():
+                try:
+                    from gtts import gTTS
+                    import tempfile
+                    import os
+                    import ctypes
+                    
+                    temp_dir = tempfile.gettempdir()
+                    temp_audio_path = os.path.join(temp_dir, f"ip_prime_tts_{int(time.time())}_{os.getpid()}.mp3")
+                    
+                    # gTTS with lang='hi' speaks Hindi/Hinglish extremely naturally
+                    tts = gTTS(text=text_devanagari, lang='hi')
+                    tts.save(temp_audio_path)
+                    
+                    if os.path.exists(temp_audio_path):
+                        buf = ctypes.create_unicode_buffer(300)
+                        ctypes.windll.kernel32.GetShortPathNameW(temp_audio_path, buf, 300)
+                        short_path = buf.value if buf.value else temp_audio_path
+                        
+                        ctypes.windll.winmm.mciSendStringW(f'open "{short_path}" alias tts_audio', None, 0, 0)
+                        ctypes.windll.winmm.mciSendStringW('play tts_audio wait', None, 0, 0)
+                        ctypes.windll.winmm.mciSendStringW('close tts_audio', None, 0, 0)
+                        
+                        try:
+                            os.remove(temp_audio_path)
+                        except Exception:
+                            pass
+                        
+                        gtts_success = True
+                except Exception as e:
+                    print(f"[Offline TTS Process] gTTS failed or offline: {e}. Falling back to pyttsx3.")
+                    sys.stdout.flush()
+
+            # 2. Notify and skip if gTTS succeeded
+            if gtts_success:
+                if feedback_queue:
+                    try:
+                        feedback_queue.put({"status": "done"})
+                    except Exception:
+                        pass
+                continue
+
+            # 3. Fallback to pyttsx3 with Latin phonetic text
             if engine:
                 try:
                     if voice_id:
@@ -159,7 +210,7 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
                         except Exception:
                             pass
                             
-                    engine.say(text)
+                    engine.say(text_latin)
                     engine.runAndWait()
                     
                     # Notify parent thread that speech finished
@@ -170,12 +221,12 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
                             pass
                 except Exception as e:
                     print(f"[Offline TTS Process] Speech error: {e}")
-                    print(f"[TTS OFFLINE FALLBACK] {text}")
+                    print(f"[TTS OFFLINE FALLBACK] {text_latin}")
                     if feedback_queue:
                         try: feedback_queue.put({"status": "done"})
                         except Exception: pass
             else:
-                print(f"[TTS OFFLINE FALLBACK] {text}")
+                print(f"[TTS OFFLINE FALLBACK] {text_latin}")
                 if feedback_queue:
                     try: feedback_queue.put({"status": "done"})
                     except Exception: pass
@@ -1034,11 +1085,20 @@ class IPRayLive:
         cfg = voice_map.get(agent_name.upper().strip(), {"voice_id": david_token, "rate": 165})
 
         # Send full text as ONE payload so we get exactly ONE 'done' signal per card.
-        payload = {
-            "text": text.strip(),
-            "voice_id": cfg["voice_id"],
-            "rate": cfg["rate"]
-        }
+        if isinstance(text, dict):
+            payload = {
+                "text": text.get("devanagari", "").strip(),
+                "latin_text": text.get("latin", "").strip(),
+                "voice_id": cfg["voice_id"],
+                "rate": cfg["rate"]
+            }
+        else:
+            payload = {
+                "text": text.strip(),
+                "latin_text": text.strip(),
+                "voice_id": cfg["voice_id"],
+                "rate": cfg["rate"]
+            }
         self.offline_tts_queue.put(payload)
 
     def _feedback_listener(self):
