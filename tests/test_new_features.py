@@ -7,7 +7,7 @@ Verifies imports, dispatch routers, and default fallback outputs for all new mod
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 # Action imports
 from actions.local_llm import local_llm
@@ -180,6 +180,74 @@ class TestNewFeatures(unittest.TestCase):
         from actions.claude_code_helper import claude_code_helper
         res = claude_code_helper({"action": "status"}, player=self.player)
         self.assertIn("cloned", res.lower())
+
+    @patch("actions.screen_time.get_active_window_app")
+    def test_option_b_screen_crash_auditor(self, mock_get_app):
+        from agent.vision_loop import VisionLoop
+        import time
+
+        core = MagicMock()
+        loop = VisionLoop(core)
+        
+        # Test developer app interval (3 minutes)
+        mock_get_app.return_value = "code"
+        loop.last_vision_run = time.time() - 100
+        res = loop.proactive_screen_watch()
+        self.assertIn("rate-limited", res)
+        self.assertIn("3 minutes", res)
+
+        # Test non-developer app interval (60 minutes)
+        mock_get_app.return_value = "chrome"
+        loop.last_vision_run = time.time() - 600
+        res = loop.proactive_screen_watch()
+        self.assertIn("rate-limited", res)
+        self.assertIn("60 minutes", res)
+
+    @patch("actions.obsidian_helper.get_obsidian_vault_path")
+    @patch("actions.prime_utils.UnifiedModelClient")
+    def test_option_c_obsidian_organizer(self, mock_client_cls, mock_get_vault_path):
+        import tempfile
+        import shutil
+        import time
+        from pathlib import Path
+        from actions.obsidian_helper import auto_organize_notes, generate_vault_digest
+
+        # Setup temp vault
+        temp_dir = tempfile.mkdtemp()
+        mock_get_vault_path.return_value = temp_dir
+        
+        try:
+            # Create a dummy note
+            note_path = Path(temp_dir) / "TestNote.md"
+            note_path.write_text("This is a note about artificial intelligence and machine learning.", encoding="utf-8")
+
+            # Mock client response for auto_organize_notes
+            mock_client = MagicMock()
+            mock_client_cls.return_value = mock_client
+            mock_response = MagicMock()
+            mock_response.text = '{"topics": ["artificial intelligence", "machine learning"], "needs_update": true, "new_links_markdown": "\\n\\n### Related Topics\\n- [[artificial intelligence]]\\n- [[machine learning]]"}'
+            mock_client.models.generate_content.return_value = mock_response
+
+            # Run organizer
+            res = auto_organize_notes()
+            self.assertIn("Successfully auto-organized", res)
+            self.assertIn("updated 1 notes", res)
+
+            # Assert content updated
+            updated_content = note_path.read_text(encoding="utf-8")
+            self.assertIn("[[artificial intelligence]]", updated_content)
+
+            # Mock digest response
+            mock_response.text = "This is a premium productivity digest compiled for Pratik Sir."
+            res_digest = generate_vault_digest(digest_type="daily")
+            self.assertIn("Saved to Obsidian Vault", res_digest)
+            
+            digest_file = Path(temp_dir) / "Daily Digests" / f"Digest-{time.strftime('%Y-%m-%d')}.md"
+            self.assertTrue(digest_file.exists())
+            self.assertIn("premium productivity digest", digest_file.read_text(encoding="utf-8"))
+
+        finally:
+            shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
     unittest.main()

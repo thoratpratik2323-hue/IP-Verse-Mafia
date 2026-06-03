@@ -844,6 +844,29 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "auto_organize_notes",
+        "description": "Scans the Obsidian Vault for new or modified notes, extracts topics using Gemini, and appends semantic double-bracket [[Topic]] links to notes.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "generate_vault_digest",
+        "description": "Generates a comprehensive daily/weekly markdown productivity digest containing completed/pending tasks and screen time info, saving it directly to Daily Digests/ in the Obsidian Vault.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "digest_type": {
+                     "type": "STRING",
+                     "description": "Type of digest to compile: 'daily' (default) or 'weekly'"
+                }
+            },
+            "required": []
+        }
+    },
+    {
         "name": "media_control",
         "description": "Natively controls Windows background media players (play, pause, next, prev, volume_up, volume_down) or fetches 'Now Playing' metadata.",
         "parameters": {

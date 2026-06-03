@@ -371,6 +371,19 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             ))
             result = r or "Done."
 
+        elif name == "auto_organize_notes":
+            from actions.obsidian_helper import auto_organize_notes
+            r = await loop.run_in_executor(None, lambda: auto_organize_notes(player=player))
+            result = r or "Done."
+
+        elif name == "generate_vault_digest":
+            from actions.obsidian_helper import generate_vault_digest
+            r = await loop.run_in_executor(None, lambda: generate_vault_digest(
+                digest_type=args.get("digest_type", "daily"),
+                player=player
+            ))
+            result = r or "Done."
+
         elif name == "media_control":
             from actions.media_controller import execute_media_control
             r = await loop.run_in_executor(None, lambda: execute_media_control(

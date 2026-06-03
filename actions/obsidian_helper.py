@@ -163,3 +163,228 @@ Use standard clean markdown. Keep it high-value and concise (150-300 words)."""
             f"*(RAG generation failed: {e})*\n\n"
             f"{matches_text}"
         )
+
+
+def auto_organize_notes(player=None) -> str:
+    """
+    Scans the Obsidian Vault for new or modified notes, extracts topics using Gemini,
+    and appends semantic double-bracket [[Topic]] links to them.
+    """
+    import re
+    import time
+    
+    vault_path_str = get_obsidian_vault_path()
+    if not vault_path_str:
+        return "Error: Obsidian vault path is not configured, sir. Please set 'obsidian_vault_path' in settings."
+        
+    vault_path = Path(vault_path_str).resolve()
+    if not vault_path.exists() or not vault_path.is_dir():
+        return f"Error: Obsidian vault directory '{vault_path_str}' does not exist or is not a folder."
+        
+    # Ensure cache folder & file
+    cache_dir = BASE_DIR / "data"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / "obsidian_organizer_cache.json"
+    
+    cache = {}
+    if cache_file.exists():
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+        except Exception:
+            cache = {}
+            
+    try:
+        from actions.prime_utils import UnifiedModelClient
+        client = UnifiedModelClient(category="coding")
+    except Exception as e:
+        return f"Authentication Error: {e}"
+        
+    scanned_count = 0
+    updated_count = 0
+    ignored_folders = {".obsidian", ".trash", ".git", "node_modules", "Daily Digests"}
+    
+    for root, dirs, files in os.walk(vault_path):
+        dirs[:] = [d for d in dirs if d not in ignored_folders]
+        for file in files:
+            if not file.endswith(".md"):
+                continue
+                
+            file_path = Path(root) / file
+            scanned_count += 1
+            
+            mtime = os.path.getmtime(file_path)
+            cached_mtime = cache.get(str(file_path), 0.0)
+            
+            if mtime > cached_mtime:
+                try:
+                    content = file_path.read_text(encoding="utf-8", errors="ignore")
+                    if not content.strip():
+                        continue
+                        
+                    prompt = f"""You are the Advanced Second Brain Note Auto-Organizer.
+Analyze the following markdown note.
+1. Extract 3 to 5 core topics or key phrases from the content.
+2. For each topic, check if it is already present in the note as a double-bracket link, i.e., `[[Topic]]` (case-insensitive).
+3. Generate a related links list for the topics that are NOT already linked in the file.
+Return a strict JSON response:
+{{
+  "topics": ["Topic1", "Topic2"],
+  "needs_update": true/false,
+  "new_links_markdown": "\\n\\n### Related Topics\\n- [[Topic1]]\\n- [[Topic2]]"
+}}
+Return only the raw JSON. No markdown code fences, no comments."""
+
+                    response = client.models.generate_content(
+                        model=None,
+                        contents=prompt + f"\n\nNote Content:\n\"\"\"\n{content}\n\"\"\""
+                    )
+                    
+                    res_text = response.text.strip()
+                    res_text = re.sub(r"```json\s*", "", res_text)
+                    res_text = re.sub(r"```\s*", "", res_text)
+                    res_text = res_text.strip()
+                    
+                    json_match = re.search(r'\{.*?\}', res_text, re.DOTALL)
+                    if json_match:
+                        res_text = json_match.group(0)
+                        
+                    data = json.loads(res_text)
+                    if data.get("needs_update") and data.get("new_links_markdown"):
+                        links_block = data["new_links_markdown"]
+                        # Append to note
+                        updated_content = content.rstrip() + "\n" + links_block.strip() + "\n"
+                        file_path.write_text(updated_content, encoding="utf-8")
+                        updated_count += 1
+                        
+                    # Update cache with post-write mtime to avoid infinite loops
+                    cache[str(file_path)] = os.path.getmtime(file_path)
+                except Exception as e:
+                    print(f"[ObsidianOrganizer] Error processing {file}: {e}")
+                    
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=4)
+        
+    return f"Successfully auto-organized Obsidian notes! Scanned {scanned_count} notes, semantically updated {updated_count} notes with new bracket links, sir."
+
+
+def generate_vault_digest(digest_type: str = "daily", player=None) -> str:
+    """
+    Generates a daily or weekly markdown productivity and task digest, saving it
+    directly into the 'Daily Digests/' directory in the Obsidian Vault.
+    """
+    from datetime import datetime
+    
+    vault_path_str = get_obsidian_vault_path()
+    if not vault_path_str:
+        return "Error: Obsidian vault path is not configured, sir. Please set 'obsidian_vault_path' in settings."
+        
+    vault_path = Path(vault_path_str).resolve()
+    if not vault_path.exists() or not vault_path.is_dir():
+        return f"Error: Obsidian vault directory '{vault_path_str}' does not exist or is not a folder."
+        
+    # Ensure Digests directory exists
+    digests_dir = vault_path / "Daily Digests"
+    digests_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Read tasks data
+    tasks_file = Path.home() / ".ipprime" / "tasks.json"
+    tasks_list = []
+    if tasks_file.exists():
+        try:
+            with open(tasks_file, "r", encoding="utf-8") as f:
+                tasks_data = json.load(f)
+                tasks_list = tasks_data.get("tasks", [])
+        except Exception:
+            pass
+            
+    completed_tasks = [t for t in tasks_list if t.get("status") == "done"]
+    pending_tasks = [t for t in tasks_list if t.get("status") == "pending"]
+    
+    # Read screen time data
+    screen_time_file = BASE_DIR / "data" / "screen_time.json"
+    screen_time_data = {}
+    if screen_time_file.exists():
+        try:
+            with open(screen_time_file, "r", encoding="utf-8") as f:
+                screen_time_data = json.load(f)
+        except Exception:
+            pass
+            
+    # Format screen time summary
+    apps_usage = screen_time_data.get("apps", {})
+    screen_report = []
+    for app, seconds in apps_usage.items():
+        screen_report.append(f"- {app.upper()}: {seconds // 60} minutes")
+    screen_report_str = "\n".join(screen_report) if screen_report else "No screen time logged today, sir."
+    
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    
+    # Create compilation details
+    completed_str = "\n".join([f"- [x] {t.get('title')} ({t.get('priority', 'medium')})" for t in completed_tasks]) or "No completed tasks, sir."
+    pending_str = "\n".join([f"- [ ] {t.get('title')} (Priority: {t.get('priority', 'medium')}, Deadline: {t.get('deadline', 'none')})" for t in pending_tasks]) or "No pending tasks, sir."
+    
+    # Ask Gemini to compile a premium digest
+    try:
+        from actions.prime_utils import UnifiedModelClient
+        client = UnifiedModelClient(category="coding")
+        
+        prompt = f"""You are the Premium Second Brain Digest Compiler for IP Prime.
+Compile a highly polished, professional {digest_type} productivity and activity digest for Pratik Sir.
+Use a direct, helpful, and premium Hinglish tone where appropriate.
+
+Use the following input details:
+Date: {today_str}
+Digest Type: {digest_type.capitalize()}
+
+Completed Tasks:
+{completed_str}
+
+Pending Tasks:
+{pending_str}
+
+Screen Time App Durations:
+{screen_report_str}
+
+The digest must be formatted as beautiful markdown. Include:
+1. An executive summary/performance rating.
+2. Sabash message for completed milestones.
+3. Priority reminders for pending work.
+4. App screen usage breakdown and advice.
+Use clean markdown headers, bolding, and custom lists."""
+
+        response = client.models.generate_content(
+            model=None,
+            contents=prompt
+        )
+        digest_content = response.text.strip()
+    except Exception as e:
+        digest_content = f"""# {digest_type.capitalize()} Productivity Digest - {today_str}
+
+Generated with fallback due to API error: {e}
+
+## Completed Tasks
+{completed_str}
+
+## Pending Tasks
+{pending_str}
+
+## Screen Time Info
+{screen_report_str}
+"""
+    
+    # Save the file to Daily Digests/ folder in Obsidian Vault
+    filename = f"Digest-{today_str}.md" if digest_type == "daily" else f"Weekly-Digest-{today_str}.md"
+    target_file = digests_dir / filename
+    
+    try:
+        target_file.write_text(digest_content, encoding="utf-8")
+        file_url = str(target_file).replace('\\', '/')
+        return (
+            f"### 📋 [{digest_type.upper()} DIGEST] Saved to Obsidian Vault\n"
+            f"Productivity report compiled successfully, sir!\n"
+            f"Saved to: [{filename}](file:///{file_url})\n\n"
+            f"Preview:\n{digest_content[:400]}..."
+        )
+    except Exception as e:
+        return f"Error writing digest file: {e}"

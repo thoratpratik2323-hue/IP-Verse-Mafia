@@ -421,6 +421,22 @@ CORE_TOOLS = {
         "module": "actions.claude_code_helper",
         "func": "claude_code_helper",
         "pass_speak": True
+    },
+    "auto_organize_notes": {
+        "description": "Scans the Obsidian Vault for new/modified notes, extracts topics using AI, and adds semantic double-bracket links back to them.",
+        "parameters": {},
+        "module": "actions.obsidian_helper",
+        "func": "auto_organize_notes",
+        "pass_speak": True
+    },
+    "generate_vault_digest": {
+        "description": "Generates a daily or weekly markdown productivity and task digest directly in the user's Obsidian Vault.",
+        "parameters": {
+            "digest_type": "string (optional) - 'daily' or 'weekly' (default: daily)"
+        },
+        "module": "actions.obsidian_helper",
+        "func": "generate_vault_digest",
+        "pass_speak": True
     }
 }
 
