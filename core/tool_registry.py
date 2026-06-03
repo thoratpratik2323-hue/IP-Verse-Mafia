@@ -2408,6 +2408,52 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "dos_toolkit",
+        "description": (
+            "⚡ DoS TOOLKIT — DoS/DDoS education and authorized stress testing module for IP Prime. "
+            "Provides guides, details, and educational PoC code for SYN flood, UDP flood, HTTP flood, Slowloris, ICMP flood, and amplification. "
+            "Also includes an authorized HTTP stress tester for local testing. "
+            "Actions: "
+            "learn (get full DoS/DDoS theory and types), "
+            "attack_detail (deep dive into specific attack e.g. syn_flood, udp_flood, slowloris), "
+            "poc_code (get Python proof-of-concept code), "
+            "stress_test (run HTTP load test — needs target url, threads, duration. confirmed='yes' if public url), "
+            "defense (get network indicators, iptables rules, SIEM Splunk queries), "
+            "tools_list (list of Kali & Python tools for DoS). "
+            "Trigger phrases: 'DoS detail', 'DDoS attack seekho', 'stress test local', 'Slowloris defense', 'SYN flood PoC'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "Action: learn | attack_detail | poc_code | stress_test | defense | tools_list"
+                },
+                "target": {
+                    "type": "STRING",
+                    "description": "Target attack type (e.g. syn_flood, udp_flood, http_flood, slowloris) or URL/IP"
+                },
+                "url": {
+                    "type": "STRING",
+                    "description": "Target URL for stress_test action"
+                },
+                "threads": {
+                    "type": "INTEGER",
+                    "description": "Number of threads for stress_test (default 10)"
+                },
+                "duration": {
+                    "type": "INTEGER",
+                    "description": "Duration in seconds for stress_test (default 10)"
+                },
+                "confirmed": {
+                    "type": "STRING",
+                    "description": "Set to 'yes' to authorize stress testing on non-local target URLs"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 

@@ -62,6 +62,7 @@ from actions.mythos_sentinel import mythos_sentinel
 from actions.pentagi_engine import pentagi_engine
 from actions.antidrone_defense import antidrone_defense
 from actions.mythos_internet import mythos_internet
+from actions.dos_toolkit import dos_toolkit
 
 
 # Also import play_sfx if needed inside threads
@@ -801,6 +802,9 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             _t.Thread(target=run_inet_bg, daemon=True).start()
             result = "Sir, I am searching the live internet for you. Results will appear in a moment."
 
+        elif name == "dos_toolkit":
+            r = await loop.run_in_executor(None, lambda: dos_toolkit(parameters=args, player=player))
+            result = r or "Done."
 
         elif name == "local_llm":
             from actions.local_llm import local_llm
