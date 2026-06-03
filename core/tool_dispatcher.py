@@ -60,6 +60,7 @@ from actions.predictive_workspace import predictive_workspace
 from actions.llama_factory_helper import llama_factory
 from actions.mythos_sentinel import mythos_sentinel
 from actions.pentagi_engine import pentagi_engine
+from actions.antidrone_defense import antidrone_defense
 
 
 # Also import play_sfx if needed inside threads
@@ -761,6 +762,25 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             _t.Thread(target=run_pentagi_bg, daemon=True).start()
             result = "Sir, PentAGI real hacking engine is running in the background. Results will appear shortly."
 
+
+        elif name == "antidrone_defense":
+            act = args.get("action", "scan").lower()
+            if act == "monitor":
+                def run_drone_monitor():
+                    try:
+                        player.write_log("[AntiDrone] Continuous monitoring started.")
+                        res = antidrone_defense(parameters=args, player=player)
+                        player.write_log(f"[AntiDrone] {res[:80]}")
+                        speak("Sir, anti-drone monitoring is now active. I will alert you if any drone is detected.")
+                    except Exception as e:
+                        player.write_log(f"[AntiDrone] Error: {e}")
+                        speak(f"Sir, anti-drone monitor error: {e}")
+                import threading as _t
+                _t.Thread(target=run_drone_monitor, daemon=True).start()
+                result = "Sir, anti-drone monitoring system is now active in background. You will receive an alert if any drone WiFi is detected."
+            else:
+                r = await loop.run_in_executor(None, lambda: antidrone_defense(parameters=args, player=player))
+                result = r or "Done."
 
 
         elif name == "local_llm":

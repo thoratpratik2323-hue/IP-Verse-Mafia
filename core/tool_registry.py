@@ -2316,6 +2316,50 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "antidrone_defense",
+        "description": (
+            "🛡️ ANTI-DRONE DEFENSE SYSTEM — Detects and alerts about unauthorized drones flying nearby. "
+            "Uses real WiFi scanning to find drone SSIDs (DJI, Parrot, Autel, Skydio, FPV drones). "
+            "Use when user says: 'drone detect karo', 'anti-drone lagao', 'check karo koi drone toh nahi', "
+            "'drone uda raha hai', 'scan karo drone ke liye', 'monitor karo drone', 'antidrone on karo'. "
+            "Actions: "
+            "scan (single WiFi scan — instantly checks if any drone in range), "
+            "monitor (continuous background monitoring every 10s — alerts with sound + popup when drone found), "
+            "stop (stop continuous monitor), "
+            "frequencies (show drone RF frequencies — 2.4GHz/5.8GHz/433MHz info), "
+            "countermeasures (legal anti-drone options in India — DGCA reporting, police, Digital Sky), "
+            "geofence (setup protected zone with authority contact info), "
+            "log (view detection history log). "
+            "IMPORTANT: This system detects drones legally via WiFi. RF jamming is illegal."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "Action: scan | monitor | stop | frequencies | countermeasures | geofence | log"
+                },
+                "interval": {
+                    "type": "INTEGER",
+                    "description": "For monitor: scan interval in seconds (default 10)"
+                },
+                "duration": {
+                    "type": "INTEGER",
+                    "description": "For monitor: total monitoring duration in seconds (default 300 = 5 min)"
+                },
+                "radius": {
+                    "type": "STRING",
+                    "description": "For geofence: protected zone radius in meters (default 500)"
+                },
+                "location": {
+                    "type": "STRING",
+                    "description": "For geofence: location name or address"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 
