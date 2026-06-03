@@ -2278,6 +2278,44 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "pentagi_engine",
+        "description": (
+            "⚡ PENTAGI ENGINE — Real hacking tools. Uses ACTUAL network connections, real TCP port scanning, "
+            "real DNS queries, real HTTP requests. Inspired by github.com/vxcontrol/pentagi. "
+            "NO simulation — real results. "
+            "Actions: "
+            "port_scan (real TCP port scanner on any host/IP — finds open ports + banners + vuln hints), "
+            "dns_enum (real DNS enumeration + subdomain bruteforce — finds A/MX/NS/TXT records + hidden subdomains), "
+            "web_check (real HTTP security check — grabs actual headers, checks for missing security headers, finds sensitive paths), "
+            "ssh_audit (real SSH connection — grabs banner + version + checks known CVEs + algorithm weaknesses), "
+            "net_discover (real ARP table + ping sweep — finds live hosts on local network with MAC vendor info), "
+            "hash_id (real hash type identification — detects MD5/SHA/bcrypt/NTLM + gives exact hashcat modes + john commands). "
+            "Use this when user wants REAL scanning/hacking, not AI simulation."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "Action: port_scan | dns_enum | web_check | ssh_audit | net_discover | hash_id"
+                },
+                "target": {
+                    "type": "STRING",
+                    "description": "Target: hostname, IP address, URL, or hash value depending on action"
+                },
+                "port_range": {
+                    "type": "STRING",
+                    "description": "For port_scan: 'common' (default), 'top100', '1-1000', or '80,443,8080'"
+                },
+                "port": {
+                    "type": "INTEGER",
+                    "description": "For ssh_audit: SSH port (default 22)"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 

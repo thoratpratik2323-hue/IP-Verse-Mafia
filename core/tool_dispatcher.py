@@ -59,6 +59,7 @@ from actions.token_juice import token_juice
 from actions.predictive_workspace import predictive_workspace
 from actions.llama_factory_helper import llama_factory
 from actions.mythos_sentinel import mythos_sentinel
+from actions.pentagi_engine import pentagi_engine
 
 
 # Also import play_sfx if needed inside threads
@@ -744,6 +745,22 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
         elif name == "mythos_sentinel":
             r = await loop.run_in_executor(None, lambda: mythos_sentinel(parameters=args, player=player))
             result = r or "Done."
+
+        elif name == "pentagi_engine":
+            def run_pentagi_bg():
+                try:
+                    player.write_log("[PentAGI] Real hacking engine activated.")
+                    res = pentagi_engine(parameters=args, player=player)
+                    player.write_log("[PentAGI] Scan complete.")
+                    speak("Sir, the PentAGI scan is complete. Results are in the terminal.")
+                    return res
+                except Exception as e:
+                    player.write_log(f"[PentAGI] Error: {e}")
+                    return f"PentAGI error: {e}"
+            import threading as _t
+            _t.Thread(target=run_pentagi_bg, daemon=True).start()
+            result = "Sir, PentAGI real hacking engine is running in the background. Results will appear shortly."
+
 
 
         elif name == "local_llm":
