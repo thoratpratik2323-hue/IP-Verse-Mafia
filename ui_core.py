@@ -3076,6 +3076,13 @@ class MainWindow(QMainWindow):
         )
         self._pv_llama_btn.setToolTip("Launch local fine-tuning jobs and LLaMA Board UI")
 
+        # 10. Mythos Sentinel (Deep Purple/Violet)
+        self._pv_mythos_btn = make_matrix_btn(
+            "🛡️  MYTHOS SENTINEL", self._pv_mythos_sentinel,
+            "rgba(139, 92, 246, 0.12)", "#A78BFA", "rgba(139, 92, 246, 0.35)"
+        )
+        self._pv_mythos_btn.setToolTip("Cybersecurity Sentinel: audit code, scan ports, and test knowledge with Mythos")
+
 
         lay.addStretch()
 
@@ -4630,6 +4637,13 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.write_log(f"SYS ERROR: LLaMA Factory Tuning Center failed to launch: {e}")
 
+    def _pv_mythos_sentinel(self):
+        try:
+            dialog = MythosSentinelDialog(self)
+            dialog.exec()
+        except Exception as e:
+            self.write_log(f"SYS ERROR: Mythos Sentinel failed to launch: {e}")
+
     def _apply_state(self, state: str):
 
         self.hud.state    = state
@@ -5709,3 +5723,613 @@ class LlamaFactoryDialog(QDialog):
         if event.buttons() == Qt.MouseButton.LeftButton:
             self.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
+
+
+class MythosSentinelDialog(QDialog):
+    audit_completed_sig = pyqtSignal(str)
+    network_completed_sig = pyqtSignal(str)
+    tutor_completed_sig = pyqtSignal(str)
+    decode_completed_sig = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from PyQt6.QtWidgets import (
+            QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
+            QComboBox, QTextEdit, QLineEdit, QStackedWidget, QWidget, QFileDialog
+        )
+        from PyQt6.QtCore import Qt, QTimer
+        from PyQt6.QtGui import QFont, QColor
+        import time
+
+        self.setWindowTitle("🛡️ MYTHOS SENTINEL")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFixedSize(820, 620)
+
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+
+        # Glassmorphic purple frame container
+        container = QFrame(self)
+        container.setObjectName("containerFrame")
+        container.setStyleSheet("""
+            #containerFrame {
+                background-color: rgba(10, 8, 16, 0.98);
+                border: 2px solid #8B5CF6;
+                border-radius: 16px;
+            }
+            QLabel {
+                color: #f8fafc;
+                background: transparent;
+                font-family: 'Segoe UI';
+            }
+            QLineEdit, QComboBox {
+                background-color: rgba(25, 20, 35, 0.6);
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                border-radius: 6px;
+                color: #f8fafc;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                padding: 6px;
+            }
+            QTextEdit {
+                background-color: rgba(12, 10, 18, 0.9);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 8px;
+                color: #c084fc;
+                font-family: 'Consolas', monospace;
+                font-size: 11px;
+                padding: 10px;
+            }
+        """)
+
+        container_lay = QVBoxLayout(container)
+        container_lay.setContentsMargins(24, 24, 24, 24)
+        container_lay.setSpacing(16)
+
+        # Header Row
+        header_lay = QHBoxLayout()
+        header = QLabel("🛡️ MYTHOS SENTINEL SECURITY CENTER")
+        header.setFont(QFont("Orbitron", 13, QFont.Weight.Bold))
+        header.setStyleSheet("color: #A78BFA; letter-spacing: 1px;")
+
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(30, 30)
+        close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #94a3b8;
+                border: none;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                color: #ef4444;
+            }
+        """)
+        close_btn.clicked.connect(self.close)
+
+        header_lay.addWidget(header)
+        header_lay.addStretch()
+        header_lay.addWidget(close_btn)
+        container_lay.addLayout(header_lay)
+
+        # Tab Navigation Row
+        self.nav_lay = QHBoxLayout()
+        self.nav_lay.setSpacing(10)
+
+        self.tab_btn_audit = QPushButton("🛡️ CODE AUDIT")
+        self.tab_btn_network = QPushButton("🌐 LOCAL PORTS")
+        self.tab_btn_ctf = QPushButton("⚡ CTF DECODER")
+        self.tab_btn_tutor = QPushButton("📚 CYBER TUTOR")
+
+        for btn in [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_ctf, self.tab_btn_tutor]:
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedHeight(32)
+            self.nav_lay.addWidget(btn)
+
+        container_lay.addLayout(self.nav_lay)
+
+        # Main QStackedWidget
+        self.stack = QStackedWidget()
+        container_lay.addWidget(self.stack)
+
+        # Initialize the tabs
+        self._init_audit_tab()
+        self._init_network_tab()
+        self._init_ctf_tab()
+        self._init_tutor_tab()
+
+        # Connections for tabs
+        self.tab_btn_audit.clicked.connect(lambda: self._switch_tab(0, self.tab_btn_audit))
+        self.tab_btn_network.clicked.connect(lambda: self._switch_tab(1, self.tab_btn_network))
+        self.tab_btn_ctf.clicked.connect(lambda: self._switch_tab(2, self.tab_btn_ctf))
+        self.tab_btn_tutor.clicked.connect(lambda: self._switch_tab(3, self.tab_btn_tutor))
+
+        self._switch_tab(0, self.tab_btn_audit)
+
+        # Monospace logs terminal console at the bottom
+        console_lbl = QLabel("◈ ENGINE CONSOLE OUTPUT")
+        console_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        console_lbl.setStyleSheet("color: #8B5CF6; letter-spacing: 0.5px; margin-top: 5px;")
+        container_lay.addWidget(console_lbl)
+
+        self.console = QTextEdit()
+        self.console.setReadOnly(True)
+        self.console.setFixedHeight(180)
+        self.console.setPlaceholderText("Mythos sentinel outputs will stream here...")
+        container_lay.addWidget(self.console)
+
+        main_lay.addWidget(container)
+
+        # Thread signals connections
+        self.audit_completed_sig.connect(self._on_audit_completed)
+        self.network_completed_sig.connect(self._on_network_completed)
+        self.tutor_completed_sig.connect(self._on_tutor_completed)
+        self.decode_completed_sig.connect(self._on_decode_completed)
+
+        self.drag_position = None
+
+    def _switch_tab(self, index, active_btn):
+        self.stack.setCurrentIndex(index)
+        # Style reset and active highlight
+        btns = [self.tab_btn_audit, self.tab_btn_network, self.tab_btn_ctf, self.tab_btn_tutor]
+        for btn in btns:
+            if btn == active_btn:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: rgba(139, 92, 246, 0.22);
+                        color: #A78BFA;
+                        border: 1.5px solid #8B5CF6;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        padding: 6px 12px;
+                    }
+                """)
+            else:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: rgba(255, 255, 255, 0.04);
+                        color: #94a3b8;
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        border-radius: 6px;
+                        padding: 6px 12px;
+                    }
+                    QPushButton:hover {
+                        background-color: rgba(255, 255, 255, 0.1);
+                        color: #f8fafc;
+                    }
+                """)
+
+    def _init_audit_tab(self):
+        from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QLabel
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 8, 0, 8)
+        lay.setSpacing(12)
+
+        lbl = QLabel("Perform a static vulnerability security audit on a file or project folder.\nUses Claude Mythos persona to scan for buffer overflows, memory leaks, and logic flaws.")
+        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        lbl.setWordWrap(True)
+        lay.addWidget(lbl)
+
+        target_lay = QHBoxLayout()
+        self.audit_path_input = QLineEdit()
+        self.audit_path_input.setPlaceholderText("Select file or folder path...")
+        
+        btn_file = QPushButton("Browse File")
+        btn_file.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_file.setStyleSheet(self._accent_btn_style())
+        btn_file.clicked.connect(self._browse_audit_file)
+
+        btn_dir = QPushButton("Browse Dir")
+        btn_dir.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_dir.setStyleSheet(self._accent_btn_style())
+        btn_dir.clicked.connect(self._browse_audit_dir)
+
+        target_lay.addWidget(self.audit_path_input)
+        target_lay.addWidget(btn_file)
+        target_lay.addWidget(btn_dir)
+        lay.addLayout(target_lay)
+
+        self.btn_run_audit = QPushButton("🛡️  RUN DEFENSIVE AUDIT SCAN")
+        self.btn_run_audit.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_run_audit.setFixedHeight(35)
+        self.btn_run_audit.setStyleSheet(self._fill_btn_style())
+        self.btn_run_audit.clicked.connect(self._run_audit)
+
+        lay.addWidget(self.btn_run_audit)
+        lay.addStretch()
+        self.stack.addWidget(page)
+
+    def _init_network_tab(self):
+        from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 8, 0, 8)
+        lay.setSpacing(12)
+
+        lbl = QLabel("Scan local Windows network interfaces for active listening ports.\nMaps PID codes to process executables and checks for potential default port risks.")
+        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        lay.addWidget(lbl)
+
+        self.btn_run_network = QPushButton("🔍  SCAN ACTIVE SYSTEM PORTS")
+        self.btn_run_network.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_run_network.setFixedHeight(35)
+        self.btn_run_network.setStyleSheet(self._fill_btn_style())
+        self.btn_run_network.clicked.connect(self._run_network_scan)
+
+        lay.addWidget(self.btn_run_network)
+        lay.addStretch()
+        self.stack.addWidget(page)
+
+    def _init_ctf_tab(self):
+        from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QLabel, QComboBox
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 8, 0, 8)
+        lay.setSpacing(12)
+
+        lbl = QLabel("Capture The Flag (CTF) Educational decoder toolbox. Select decoding type and input your payload.")
+        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        lay.addWidget(lbl)
+
+        controls_lay = QHBoxLayout()
+        self.ctf_combo = QComboBox()
+        self.ctf_combo.addItem("Base64 Decode", "decode_base64")
+        self.ctf_combo.addItem("Hex Decode", "decode_hex")
+        self.ctf_combo.addItem("ROT13 Decode", "decode_rot13")
+        self.ctf_combo.addItem("Morse Decode", "decode_morse")
+        self.ctf_combo.addItem("Caesar Cipher Brute", "crack_caesar")
+        self.ctf_combo.addItem("Detect Encoding", "detect_encoding")
+        self.ctf_combo.addItem("Hash Identifier", "hash_identifier")
+        self.ctf_combo.addItem("Extract Strings from File", "extract_strings")
+        self.ctf_combo.addItem("EXIF Steganography Check", "stego_check")
+
+        self.ctf_payload = QLineEdit()
+        self.ctf_payload.setPlaceholderText("Enter ciphertext or target file path...")
+
+        self.btn_ctf_browse = QPushButton("Browse File")
+        self.btn_ctf_browse.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_ctf_browse.setStyleSheet(self._accent_btn_style())
+        self.btn_ctf_browse.clicked.connect(self._browse_ctf_file)
+
+        controls_lay.addWidget(self.ctf_combo, 3)
+        controls_lay.addWidget(self.ctf_payload, 5)
+        controls_lay.addWidget(self.btn_ctf_browse, 2)
+        lay.addLayout(controls_lay)
+
+        self.btn_run_ctf = QPushButton("⚡  DECODE / ANALYZE PAYLOAD")
+        self.btn_run_ctf.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_run_ctf.setFixedHeight(35)
+        self.btn_run_ctf.setStyleSheet(self._fill_btn_style())
+        self.btn_run_ctf.clicked.connect(self._run_ctf_decode)
+
+        lay.addWidget(self.btn_run_ctf)
+        lay.addStretch()
+        self.stack.addWidget(page)
+
+    def _init_tutor_tab(self):
+        from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QComboBox
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 8, 0, 8)
+        lay.setSpacing(10)
+
+        lbl = QLabel("Cybersecurity Tutor. Learn about Networking, Web vulnerabilities, and take interactive quizzes.")
+        lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        lay.addWidget(lbl)
+
+        # Topic Selector Row
+        topic_lay = QHBoxLayout()
+        topic_lbl = QLabel("Select Topic:")
+        topic_lbl.setStyleSheet("color: #c084fc; font-weight: bold;")
+        
+        self.topic_combo = QComboBox()
+        self.topic_combo.addItem("Networking Basics", "networking")
+        self.topic_combo.addItem("Linux Fundamentals", "linux")
+        self.topic_combo.addItem("Web Security & OWASP", "web_security")
+        self.topic_combo.addItem("Cryptography Foundations", "cryptography")
+        self.topic_combo.addItem("Defensive Security Operations", "defensive_security")
+        self.topic_combo.addItem("Bug Bounty Concepts", "bug_bounty")
+
+        btn_teach = QPushButton("Teach Me")
+        btn_teach.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_teach.setStyleSheet(self._accent_btn_style())
+        btn_teach.clicked.connect(self._tutor_teach)
+
+        topic_lay.addWidget(topic_lbl)
+        topic_lay.addWidget(self.topic_combo, 6)
+        topic_lay.addWidget(btn_teach, 3)
+        lay.addLayout(topic_lay)
+
+        # Interactive Quiz Row
+        quiz_lay = QHBoxLayout()
+        self.btn_load_quiz = QPushButton("❓  LOAD QUESTION CHALLENGE")
+        self.btn_load_quiz.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_load_quiz.setStyleSheet(self._accent_btn_style())
+        self.btn_load_quiz.clicked.connect(self._tutor_load_quiz)
+
+        quiz_lay.addWidget(self.btn_load_quiz)
+        lay.addLayout(quiz_lay)
+
+        # Question and Answer layout
+        self.quiz_frame = QFrame()
+        self.quiz_frame.setStyleSheet("background-color: rgba(255, 255, 255, 0.02); border-radius: 8px;")
+        self.quiz_frame_lay = QVBoxLayout(self.quiz_frame)
+        self.quiz_frame_lay.setContentsMargins(10, 10, 10, 10)
+
+        self.quiz_question_lbl = QLabel("Select 'Load Question Challenge' to test your knowledge, sir.")
+        self.quiz_question_lbl.setWordWrap(True)
+        self.quiz_question_lbl.setStyleSheet("color: #e2e8f0; font-size: 11px;")
+        self.quiz_frame_lay.addWidget(self.quiz_question_lbl)
+
+        self.quiz_options_combo = QComboBox()
+        self.quiz_options_combo.setEnabled(False)
+        self.quiz_frame_lay.addWidget(self.quiz_options_combo)
+
+        self.btn_submit_quiz = QPushButton("SUBMIT RESPONSE")
+        self.btn_submit_quiz.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_submit_quiz.setEnabled(False)
+        self.btn_submit_quiz.setStyleSheet(self._fill_btn_style())
+        self.btn_submit_quiz.clicked.connect(self._tutor_submit_quiz)
+        self.quiz_frame_lay.addWidget(self.btn_submit_quiz)
+
+        lay.addWidget(self.quiz_frame)
+        lay.addStretch()
+        self.stack.addWidget(page)
+
+        # Track active loaded quiz state
+        self.current_quiz_id = None
+
+    def _accent_btn_style(self):
+        return """
+            QPushButton {
+                background-color: rgba(139, 92, 246, 0.08);
+                color: #A78BFA;
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 6px;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background-color: rgba(139, 92, 246, 0.2);
+                border: 1px solid #8B5CF6;
+            }
+        """
+
+    def _fill_btn_style(self):
+        return """
+            QPushButton {
+                background-color: rgba(139, 92, 246, 0.15);
+                color: #A78BFA;
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                border-radius: 6px;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: rgba(139, 92, 246, 0.25);
+                border: 1.2px solid #8B5CF6;
+            }
+        """
+
+    def _browse_audit_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Code File for Security Audit")
+        if file_path:
+            self.audit_path_input.setText(file_path)
+
+    def _browse_audit_dir(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Project Folder for Security Audit")
+        if dir_path:
+            self.audit_path_input.setText(dir_path)
+
+    def _browse_ctf_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Target Stego/Strings File")
+        if file_path:
+            self.ctf_payload.setText(file_path)
+
+    def _run_audit(self):
+        target = self.audit_path_input.text().strip()
+        if not target:
+            self.console.append("SYS ERROR: Please select an audit target file or folder, sir.")
+            return
+
+        self.btn_run_audit.setEnabled(False)
+        self.console.clear()
+        self.console.append(f"SYS: Spawning Claude Mythos static security scanner for '{target}'...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import run_mythos_audit
+                res = run_mythos_audit(target, player=self.parent())
+                self.audit_completed_sig.emit(res)
+            except Exception as e:
+                self.audit_completed_sig.emit(f"SYS ERROR: Static Audit scan aborted: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_audit_completed(self, result: str):
+        self.btn_run_audit.setEnabled(True)
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
+    def _run_network_scan(self):
+        self.btn_run_network.setEnabled(False)
+        self.console.clear()
+        self.console.append("SYS: Initialising local interfaces open ports survey...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import run_system_vuln_check
+                res = run_system_vuln_check(player=self.parent())
+                self.network_completed_sig.emit(res)
+            except Exception as e:
+                self.network_completed_sig.emit(f"SYS ERROR: Network scanner failure: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_network_completed(self, result: str):
+        self.btn_run_network.setEnabled(True)
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
+    def _run_ctf_decode(self):
+        sub_action = self.ctf_combo.currentData()
+        payload = self.ctf_payload.text().strip()
+
+        if not payload:
+            self.console.append("SYS ERROR: Payload text or file path input cannot be blank.")
+            return
+
+        self.btn_run_ctf.setEnabled(False)
+        self.console.clear()
+        self.console.append(f"SYS: Running CTF decoder utility action: {sub_action}...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import mythos_sentinel
+                params = {
+                    "action": "decode",
+                    "sub_action": sub_action
+                }
+                if sub_action in ["extract_strings", "stego_check"]:
+                    params["file_path"] = payload
+                else:
+                    params["text"] = payload
+                
+                res = mythos_sentinel(params, player=self.parent())
+                self.decode_completed_sig.emit(res)
+            except Exception as e:
+                self.decode_completed_sig.emit(f"SYS ERROR: Decoder failed: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_decode_completed(self, result: str):
+        self.btn_run_ctf.setEnabled(True)
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
+    def _tutor_teach(self):
+        topic_id = self.topic_combo.currentData()
+        self.console.clear()
+        self.console.append(f"SYS: Loading education data for '{topic_id}'...")
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import mythos_sentinel
+                params = {
+                    "action": "tutor",
+                    "sub_action": "teach",
+                    "topic_id": topic_id
+                }
+                res = mythos_sentinel(params, player=self.parent())
+                self.tutor_completed_sig.emit(res)
+            except Exception as e:
+                self.tutor_completed_sig.emit(f"SYS ERROR: Tutor loading error: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _tutor_load_quiz(self):
+        self.console.clear()
+        self.console.append("SYS: Retrieving random topic quiz challenge from database...")
+        self.quiz_question_lbl.setText("Loading question details...")
+        self.quiz_options_combo.clear()
+        self.quiz_options_combo.setEnabled(False)
+        self.btn_submit_quiz.setEnabled(False)
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import mythos_sentinel
+                # We request a quiz question
+                params = {
+                    "action": "tutor",
+                    "sub_action": "quiz"
+                }
+                res = mythos_sentinel(params, player=self.parent())
+                self.tutor_completed_sig.emit(res)
+            except Exception as e:
+                self.tutor_completed_sig.emit(f"SYS ERROR: Quiz load failed: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _on_tutor_completed(self, result: str):
+        self.console.clear()
+        self.console.append(result)
+        self.console.ensureCursorVisible()
+
+        # Parse question if it matches quiz output syntax to load options in dropdown
+        # Syntax: ❓ **QUIZ QUESTION** (ID: `q1`)
+        if "QUIZ QUESTION" in result:
+            id_match = re.search(r"ID: `([^`]+)`", result)
+            if id_match:
+                self.current_quiz_id = id_match.group(1)
+                
+                # Extract options from text block: Options:\n  - A\n  - B
+                options = []
+                opt_lines = result.splitlines()
+                start_parsing = False
+                for line in opt_lines:
+                    if "Options:" in line:
+                        start_parsing = True
+                        continue
+                    if start_parsing:
+                        if line.strip().startswith("- "):
+                            options.append(line.replace("- ", "").strip())
+                        elif line.strip() == "" or "Answer using:" in line:
+                            break
+
+                self.quiz_options_combo.clear()
+                self.quiz_options_combo.addItems(options)
+                self.quiz_options_combo.setEnabled(True)
+                self.btn_submit_quiz.setEnabled(True)
+                self.quiz_question_lbl.setText(f"Active quiz loaded: ID: {self.current_quiz_id}")
+
+    def _tutor_submit_quiz(self):
+        if not self.current_quiz_id:
+            return
+        
+        user_ans = self.quiz_options_combo.currentText()
+        self.console.clear()
+        self.console.append(f"SYS: Submitting answer validation request for {self.current_quiz_id}...")
+        self.btn_submit_quiz.setEnabled(False)
+
+        def thread_task():
+            try:
+                from actions.mythos_sentinel import mythos_sentinel
+                params = {
+                    "action": "tutor",
+                    "sub_action": "quiz",
+                    "quiz_id": self.current_quiz_id,
+                    "user_answer": user_ans
+                }
+                res = mythos_sentinel(params, player=self.parent())
+                self.tutor_completed_sig.emit(res)
+            except Exception as e:
+                self.tutor_completed_sig.emit(f"SYS ERROR: Answer check failure: {e}")
+
+        import threading
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    # Drag window capability
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.MouseButton.LeftButton and self.drag_position is not None:
+            self.move(event.globalPosition().toPoint() - self.drag_position)
+            event.accept()
+

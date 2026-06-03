@@ -58,6 +58,7 @@ from actions.advanced_communicator import advanced_communicator
 from actions.token_juice import token_juice
 from actions.predictive_workspace import predictive_workspace
 from actions.llama_factory_helper import llama_factory
+from actions.mythos_sentinel import mythos_sentinel
 
 
 # Also import play_sfx if needed inside threads
@@ -738,6 +739,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "llama_factory":
             r = await loop.run_in_executor(None, lambda: llama_factory(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "mythos_sentinel":
+            r = await loop.run_in_executor(None, lambda: mythos_sentinel(parameters=args, player=player))
             result = r or "Done."
 
 

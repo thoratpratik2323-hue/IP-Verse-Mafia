@@ -2195,6 +2195,44 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "mythos_sentinel",
+        "description": "Claude Mythos Cybersecurity Sentinel. Performs deep security audits, scans local ports for vulnerability exposure, provides cybersecurity tutor challenges, and assists in CTF decoding tasks.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "audit (audits file or folder for security vulns), network_audit (audits open ports), tutor (educational topics/quizzes), decode (CTF helper decoders)"
+                },
+                "target": {
+                    "type": "STRING",
+                    "description": "Absolute file or folder path (required for audit action)"
+                },
+                "topic_id": {
+                    "type": "STRING",
+                    "description": "Topic ID for tutoring teach action"
+                },
+                "quiz_id": {
+                    "type": "STRING",
+                    "description": "Quiz ID to check or request"
+                },
+                "user_answer": {
+                    "type": "STRING",
+                    "description": "User's answer to the quiz check"
+                },
+                "text": {
+                    "type": "STRING",
+                    "description": "Input text payload for CTF decode actions (e.g. Hex/Base64/ROT13 ciphertexts)"
+                },
+                "file_path": {
+                    "type": "STRING",
+                    "description": "File path for CTF extract_strings or stego_check actions"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 
