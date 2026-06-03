@@ -29,6 +29,19 @@ class ProactiveMonitor:
         from agent.vision_loop import VisionLoop
         self.predictive_engine = PredictiveEngine(self.core)
         self.vision_loop = VisionLoop(self.core)
+
+        # Phase 5 — Autonomous Goal Generator
+        try:
+            from agent.goal_generator import get_goal_generator
+            self.goal_generator = get_goal_generator(self.core)
+            self.goal_generator.start()
+        except Exception as e:
+            print(f"[ProactiveMonitor] GoalGenerator init error: {e}")
+            self.goal_generator = None
+
+        # Idle detection
+        self.last_user_activity = time.time()
+        self.last_idle_goal_sent = 0
         
     def start(self):
         """Starts the proactive monitoring in a background thread."""
@@ -93,12 +106,23 @@ class ProactiveMonitor:
             self.predictive_engine.check_and_predict()
         except Exception as e:
             print(f"[ProactiveMonitor] Predictive Agent error: {e}")
-            
+
         # 8. Computer Vision Loop Agent (Phase 4)
         try:
             self.vision_loop.proactive_screen_watch()
         except Exception as e:
             print(f"[ProactiveMonitor] Vision Agent error: {e}")
+
+        # 9. Autonomous Goal Generator — Idle Goals
+        try:
+            if self.goal_generator:
+                idle_sec = current_time - self.last_user_activity
+                idle_min = int(idle_sec / 60)
+                if idle_min >= 30 and (current_time - self.last_idle_goal_sent) > 1800:
+                    self.goal_generator.submit_idle_goals(idle_min)
+                    self.last_idle_goal_sent = current_time
+        except Exception as e:
+            print(f"[ProactiveMonitor] Idle Goal error: {e}")
 
     def _watch_system_health(self, current_time: float):
         """Agent 1: Monitors RAM/CPU and proactively clears memory if high."""

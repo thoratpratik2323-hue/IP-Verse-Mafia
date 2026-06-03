@@ -3,15 +3,103 @@ email_ai.py — Advanced Gmail and Outlook AI communication integration for IP P
 
 Integrates with Gmail (via Google APIs) and Outlook (via Microsoft Graph) to read, search,
 draft, and summarize inboxes with smart Hinglish responses.
+
+Also provides autonomous alert functions using Gmail App Password (SMTP).
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import json
+import smtplib
+import threading
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from pathlib import Path
+from datetime import datetime
 from typing import Any, Optional
 
 logger = logging.getLogger("ip_prime.email_ai")
+
+BASE_DIR        = Path(__file__).resolve().parent.parent
+API_KEYS_PATH   = BASE_DIR / "config" / "api_keys.json"
+
+# ── SMTP Helpers ──────────────────────────────────────────────────────────────
+
+def _load_email_config() -> dict:
+    """Load Gmail SMTP config from api_keys.json."""
+    try:
+        with open(API_KEYS_PATH, "r", encoding="utf-8") as f:
+            keys = json.load(f)
+        return {
+            "sender":   keys.get("gmail_sender", ""),
+            "password": keys.get("gmail_app_password", ""),
+            "receiver": keys.get("gmail_receiver", keys.get("gmail_sender", ""))
+        }
+    except Exception as e:
+        logger.warning("Could not load email config: %s", e)
+        return {}
+
+
+def send_email_alert(subject: str, body: str) -> bool:
+    """
+    Autonomous email sender using Gmail App Password.
+    Used by watchdog for crash alerts and daily reports.
+    Returns True on success.
+    """
+    cfg = _load_email_config()
+    if not cfg.get("sender") or not cfg.get("password"):
+        logger.warning("Gmail SMTP not configured. Add gmail_sender + gmail_app_password to config/api_keys.json")
+        return False
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"[IP Prime] {subject}"
+        msg["From"]    = cfg["sender"]
+        msg["To"]      = cfg["receiver"]
+
+        html_body = f"""
+        <html><body style="font-family:Arial,sans-serif;background:#0f0f1a;color:#e2e8f0;padding:24px;">
+          <div style="max-width:600px;margin:auto;border:1px solid #6366f1;border-radius:12px;padding:24px;">
+            <h2 style="color:#818cf8;">🤖 IP Prime — Autonomous Notification</h2>
+            <p style="color:#94a3b8;">{body.replace(chr(10), '<br>')}</p>
+            <hr style="border-color:#334155;margin:16px 0;">
+            <p style="color:#475569;font-size:12px;">
+              Sent automatically by IP Prime Watchdog<br>
+              {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+            </p>
+          </div>
+        </body></html>"""
+
+        msg.attach(MIMEText(body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+            server.login(cfg["sender"], cfg["password"])
+            server.sendmail(cfg["sender"], cfg["receiver"], msg.as_string())
+
+        logger.info("✅ Email sent: %s", subject)
+        return True
+    except Exception as e:
+        logger.error("❌ Email send failed: %s", e)
+        return False
+
+
+def send_daily_digest_email(memory_summary: str = "") -> bool:
+    """Sends autonomous daily digest at 9 AM."""
+    subject = f"📊 IP Prime Daily Report — {datetime.now().strftime('%d %b %Y')}"
+    body = (
+        f"Namaskar Pratik Sir! 🙏\n\n"
+        f"Aaj ka IP Prime Daily Report:\n\n"
+        f"{memory_summary if memory_summary else 'IP Prime aaj bhi fully operational raha!'}\n\n"
+        f"System Status: ✅ Online\n"
+        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        "— IP Prime (Autonomous Mode)"
+    )
+    return send_email_alert(subject, body)
+
+
 
 # Fallback simulation database for testing/uncredentialed configurations
 MOCK_EMAILS = [

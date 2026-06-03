@@ -791,12 +791,72 @@
       "tool": "browser_control",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:05:25",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:06:33",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:08:11",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:08:22",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:08:34",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:08:42",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:08:47",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:10:20",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:13:09",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-03T15:13:16",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 132,
-    "est_tokens": 105600,
-    "est_usd": 0.01584
+    "tool_calls": 142,
+    "est_tokens": 113600,
+    "est_usd": 0.01704
   },
   "by_day": {
     "2026-05-29": {
@@ -820,9 +880,9 @@
       "est_usd": 0.006
     },
     "2026-06-03": {
-      "tool_calls": 56,
-      "est_tokens": 44800,
-      "est_usd": 0.00672
+      "tool_calls": 66,
+      "est_tokens": 52800,
+      "est_usd": 0.00792
     }
   }
 }

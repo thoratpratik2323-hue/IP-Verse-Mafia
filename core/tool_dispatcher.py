@@ -60,6 +60,7 @@ from actions.antidrone_defense import antidrone_defense
 from actions.mythos_internet import mythos_internet
 from actions.dos_toolkit import dos_toolkit
 from actions.wifi_security import wifi_security
+from actions.auto_updater import auto_update
 
 
 # Also import play_sfx if needed inside threads
@@ -993,6 +994,17 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                 time.sleep(1)
                 os._exit(0)
             threading.Thread(target=_shutdown, daemon=True).start()
+
+        elif name == "auto_update":
+            force = args.get("force", False)
+            r = await loop.run_in_executor(None, lambda: auto_update(force=force))
+            result = r or "Update check complete."
+
+        elif name == "send_daily_report":
+            from actions.email_ai import send_daily_digest_email
+            summary = args.get("summary", "")
+            ok = await loop.run_in_executor(None, lambda: send_daily_digest_email(summary))
+            result = "✅ Daily report email sent to your Gmail!" if ok else "❌ Email send failed. Check gmail_app_password in config/api_keys.json"
 
         else:
             result = f"Unknown tool: {name}"
