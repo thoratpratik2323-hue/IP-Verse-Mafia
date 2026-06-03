@@ -2198,37 +2198,82 @@ TOOL_DECLARATIONS: list[dict] = [
     },
     {
         "name": "mythos_sentinel",
-        "description": "Claude Mythos Cybersecurity Sentinel. Performs deep security audits, scans local ports for vulnerability exposure, provides cybersecurity tutor challenges, and assists in CTF decoding tasks.",
+        "description": (
+            "🧙 THE SAGE — IP Prime's elite cybersecurity oracle and hacker AI. "
+            "Powered by The Sage persona: ancient wisdom meets cutting-edge hacking. "
+            "LEGACY: audit (code security scan), network_audit (local port scan), threat_model (STRIDE), patch_code (secure auto-patcher), tutor, decode. "
+            "ELITE HACKER ARSENAL: "
+            "recon (OSINT on domain/IP — WHOIS, subdomains, geolocation, attack surface), "
+            "payload_forge (generate XSS/SQLi/CSRF/LFI/RFI/SSRF payloads for CTF/pentesting), "
+            "hash_crack (identify hash type MD5/SHA/bcrypt + cracking commands), "
+            "web_scan (OWASP Top 10 security headers + vuln scan for a URL), "
+            "exploit_suggest (map software+version to CVEs and exploit strategies), "
+            "osint_dossier (full OSINT intelligence report on domain/email/username), "
+            "blue_team (generate SIEM rules + firewall rules + IDS signatures + YARA rules), "
+            "crypto_break (analyze and break ciphers + ciphertext), "
+            "network_map (ARP sweep and map local network devices), "
+            "shell_craft (generate reverse/bind shell one-liners for pentesting). "
+            "SAGE MODE: sage_oracle (ask The Sage any cybersecurity concept for deep wisdom)."
+        ),
         "parameters": {
             "type": "OBJECT",
             "properties": {
                 "action": {
                     "type": "STRING",
-                    "description": "audit (audits file or folder for security vulns), network_audit (audits open ports), tutor (educational topics/quizzes), decode (CTF helper decoders)"
+                    "description": (
+                        "LEGACY: audit | network_audit | threat_model | patch_code | tutor | decode. "
+                        "ELITE: recon | payload_forge | hash_crack | web_scan | exploit_suggest | "
+                        "osint_dossier | blue_team | crypto_break | network_map | shell_craft. "
+                        "SAGE: sage_oracle"
+                    )
                 },
                 "target": {
                     "type": "STRING",
-                    "description": "Absolute file or folder path (required for audit action)"
-                },
-                "topic_id": {
-                    "type": "STRING",
-                    "description": "Topic ID for tutoring teach action"
-                },
-                "quiz_id": {
-                    "type": "STRING",
-                    "description": "Quiz ID to check or request"
-                },
-                "user_answer": {
-                    "type": "STRING",
-                    "description": "User's answer to the quiz check"
+                    "description": "Main target: file/folder path for audit, domain/IP for recon/osint_dossier, URL for web_scan, software name for exploit_suggest, attack type for payload_forge, hash for hash_crack, ciphertext for crypto_break, shell type for shell_craft, architecture for threat_model, code language for patch_code"
                 },
                 "text": {
                     "type": "STRING",
-                    "description": "Input text payload for CTF decode actions (e.g. Hex/Base64/ROT13 ciphertexts)"
+                    "description": "Text input: vulnerable code for patch_code, ciphertext for crypto_break, question for sage_oracle, threat scenario for blue_team, context for payload_forge"
+                },
+                "version": {
+                    "type": "STRING",
+                    "description": "Software version for exploit_suggest"
+                },
+                "lhost": {
+                    "type": "STRING",
+                    "description": "Attacker IP for shell_craft (default: 10.10.10.1)"
+                },
+                "lport": {
+                    "type": "STRING",
+                    "description": "Listener port for shell_craft (default: 4444)"
+                },
+                "target_type": {
+                    "type": "STRING",
+                    "description": "Target type for osint_dossier: domain | email | username | organization"
+                },
+                "hints": {
+                    "type": "STRING",
+                    "description": "Optional hints for crypto_break (cipher type hints)"
+                },
+                "sub_action": {
+                    "type": "STRING",
+                    "description": "Sub-action for decode: asm_auditor | dependency_auditor | hex | base64 | rot13 | morse | caesar"
+                },
+                "topic_id": {
+                    "type": "STRING",
+                    "description": "Topic ID for cybersecurity tutor"
+                },
+                "quiz_id": {
+                    "type": "STRING",
+                    "description": "Quiz ID for tutor quiz"
+                },
+                "user_answer": {
+                    "type": "STRING",
+                    "description": "User answer for tutor quiz check"
                 },
                 "file_path": {
                     "type": "STRING",
-                    "description": "File path for CTF extract_strings or stego_check actions"
+                    "description": "File path for dependency_auditor or stego_check"
                 }
             },
             "required": ["action"]
