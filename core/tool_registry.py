@@ -2360,6 +2360,54 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "mythos_internet",
+        "description": (
+            "🌐 MYTHOS INTERNET — Live internet access for IP Prime. Like Claude's internet knowledge but REAL-TIME. "
+            "Searches live databases, CVEs, exploits, breaches, subdomains. No simulation — actual internet queries. "
+            "Use when user wants LIVE/CURRENT information from the internet. "
+            "Actions: "
+            "cve_search (live CVE lookup from NVD NIST — 'CVE-2021-44228' ya 'log4j' — real current data), "
+            "exploit_search (live ExploitDB search — find real public exploits for any software), "
+            "web_search (DuckDuckGo live search — any query, security-focused results), "
+            "read_url (read any URL/webpage and summarize with AI — articles, docs, writeups), "
+            "breach_check (check if email/username in data breaches — HIBP database), "
+            "subdomains (live subdomain discovery via crt.sh SSL certificates — real subdomains), "
+            "shodan (Shodan IP intelligence — exposed services, banners, vulns — needs API key). "
+            "Trigger phrases: 'live search', 'internet pe dhundho', 'CVE dhundho', 'exploit search', "
+            "'yeh URL padho', 'breach check karo', 'subdomains dhundho', 'Shodan pe check karo'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "Action: cve_search | exploit_search | web_search | read_url | breach_check | subdomains | shodan"
+                },
+                "query": {
+                    "type": "STRING",
+                    "description": "Search query for cve_search, exploit_search, web_search"
+                },
+                "target": {
+                    "type": "STRING",
+                    "description": "Target: CVE ID, software name, domain, IP, email, username, URL"
+                },
+                "url": {
+                    "type": "STRING",
+                    "description": "Full URL to read for read_url action"
+                },
+                "domain": {
+                    "type": "STRING",
+                    "description": "Domain name for subdomains action"
+                },
+                "limit": {
+                    "type": "INTEGER",
+                    "description": "Max results to return (default 10)"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 

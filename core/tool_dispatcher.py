@@ -61,6 +61,7 @@ from actions.llama_factory_helper import llama_factory
 from actions.mythos_sentinel import mythos_sentinel
 from actions.pentagi_engine import pentagi_engine
 from actions.antidrone_defense import antidrone_defense
+from actions.mythos_internet import mythos_internet
 
 
 # Also import play_sfx if needed inside threads
@@ -781,6 +782,24 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             else:
                 r = await loop.run_in_executor(None, lambda: antidrone_defense(parameters=args, player=player))
                 result = r or "Done."
+
+        elif name == "mythos_internet":
+            def run_inet_bg():
+                try:
+                    player.write_log("[MythosInternet] Live internet query started.")
+                    res = mythos_internet(parameters=args, player=player)
+                    player.write_log("[MythosInternet] Query complete.")
+                    if player:
+                        player.write_thought(res)
+                    speak("Sir, internet query complete. Results are ready.")
+                    return res
+                except Exception as e:
+                    player.write_log(f"[MythosInternet] Error: {e}")
+                    speak(f"Sir, internet query failed: {e}")
+                    return f"Error: {e}"
+            import threading as _t
+            _t.Thread(target=run_inet_bg, daemon=True).start()
+            result = "Sir, I am searching the live internet for you. Results will appear in a moment."
 
 
         elif name == "local_llm":
