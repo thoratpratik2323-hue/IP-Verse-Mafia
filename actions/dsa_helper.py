@@ -1,5 +1,3 @@
-import threading
-from typing import Optional, Any
 from google import genai
 
 def get_dsa_hints(problem_text: str, callback=None) -> str:

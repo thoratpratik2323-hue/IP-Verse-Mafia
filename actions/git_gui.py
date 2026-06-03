@@ -4,11 +4,10 @@ actions/git_gui.py — Custom interactive PyQt6 widget for the Git Autopilot Com
 This is a premium action module for the IP Prime personal assistant suite.
 """
 
-import time
 import threading
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
-    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
+    QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
     QTextEdit, QScrollArea
 )
 from PyQt6.QtGui import QFont

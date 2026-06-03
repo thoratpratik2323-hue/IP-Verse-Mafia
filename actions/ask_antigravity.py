@@ -41,7 +41,7 @@ def ask_antigravity(parameters: dict = None, player = None) -> str:
         if result.returncode == 0:
             msg = f"Successfully delegated task to Antigravity: '{instruction}'."
             if player:
-                player.write_log(f"IPC: Antigravity successfully notified.")
+                player.write_log("IPC: Antigravity successfully notified.")
             return msg
         else:
             err = result.stderr.strip() or result.stdout.strip()

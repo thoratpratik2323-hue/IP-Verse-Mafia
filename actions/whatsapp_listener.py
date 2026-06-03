@@ -516,7 +516,8 @@ Return JSON format:
             from actions.dev_agent import git_assistant
             return git_assistant(params.get("action_type", "commit"), params.get("project_path", ""), player=player)
         elif action == "system_info":
-            import platform, psutil
+            import platform
+            import psutil
             return f"IP PRIME System Info:\nOS: {platform.system()} {platform.release()}\nCPU: {psutil.cpu_percent()}%\nRAM: {psutil.virtual_memory().percent}%"
         elif action == "semantic_search":
             from actions.semantic_store import semantic_search

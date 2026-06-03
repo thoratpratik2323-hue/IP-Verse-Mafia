@@ -1,7 +1,5 @@
 import json
-import time
-import re
-from typing import Dict, Any, Tuple
+from typing import Tuple
 from PyQt6.QtCore import QObject, pyqtSignal, QEventLoop
 
 class SafetyGuardSignals(QObject):
@@ -85,7 +83,6 @@ class SafetyGuard:
     @classmethod
     def _prompt_ui_approval(cls, tool_name: str, reason: str) -> bool:
         """Pops up a premium PyQt6 cyberpunk modal overlay to request approval."""
-        from PyQt6.QtCore import QMetaObject, Qt
         
         # Thread-safe event loop wait
         loop = QEventLoop()

@@ -1,8 +1,7 @@
 import time
-import os
 import json
 from pathlib import Path
-from actions.prime_utils import get_api_key, UnifiedModelClient
+from actions.prime_utils import UnifiedModelClient
 
 try:
     import pyautogui

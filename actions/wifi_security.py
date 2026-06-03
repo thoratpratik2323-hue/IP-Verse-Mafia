@@ -17,7 +17,6 @@ import os
 import sys
 import json
 import subprocess
-from datetime import datetime
 
 # Configure stdout to handle UTF-8 symbols on Windows
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):

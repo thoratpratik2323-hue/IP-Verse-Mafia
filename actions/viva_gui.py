@@ -6,12 +6,12 @@ This is a premium action module for the IP Prime personal assistant suite.
 
 import time
 import threading
-from PyQt6.QtCore import Qt, pyqtSignal, QRectF
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QWidget, QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
-    QComboBox, QTextEdit, QScrollArea, QSizePolicy
+    QComboBox, QTextEdit, QScrollArea
 )
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QBrush
+from PyQt6.QtGui import QFont
 from actions.viva_prep import VivaExaminer
 
 PANEL_DARK = "rgba(4, 7, 14, 0.95)"
@@ -286,10 +286,10 @@ class VivaPanel(QFrame):
 
     def on_scorecard_done(self, scorecard: str):
         final_score = int(self.examiner.score / self.examiner.total_questions) if self.examiner.total_questions else 0
-        summary = f"Congratulations Pratik Sir!\n\nYour exam details:\n"
+        summary = "Congratulations Pratik Sir!\n\nYour exam details:\n"
         for i, turn in enumerate(self.examiner.history, 1):
             summary += f"• Q{i}: {turn['q'][:50]}... ({turn['grade']}/100)\n"
-        summary += f"\nFull AI report and CS study roadmap saved to c:/Users/thora/Documents/SecondBrain/viva_scorecard.md"
+        summary += "\nFull AI report and CS study roadmap saved to c:/Users/thora/Documents/SecondBrain/viva_scorecard.md"
         self.report_content.setText(summary)
 
     def finish_viva(self):

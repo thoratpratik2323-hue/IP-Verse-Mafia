@@ -10,7 +10,6 @@ import sys
 import json
 import subprocess
 import threading
-import time
 import logging
 from typing import Any, Optional, Callable
 
@@ -217,7 +216,7 @@ def start_training_bg(parameters: dict[str, Any], log_callback: Optional[Callabl
 
     def run():
         if log_callback:
-            log_callback(f"SYS: Initializing training job...")
+            log_callback("SYS: Initializing training job...")
             log_callback(f"SYS: Model: {model_name} | Dataset: {dataset} | Type: {finetuning_type}")
 
         # Construct basic training parameters (yaml or cli arg format)

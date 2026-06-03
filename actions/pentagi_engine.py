@@ -8,7 +8,6 @@
 """
 
 import sys
-import io
 # Fix Unicode encoding on Windows cp1252
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     try:
@@ -20,12 +19,8 @@ import os
 import re
 import json
 import socket
-import struct
 import subprocess
-import threading
 import time
-import ipaddress
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -623,7 +618,7 @@ def run_real_ssh_audit(host: str, port: int = 22, player=None) -> str:
     lines += [
         "",
         "─────────────────────────────────────────────────────────────",
-        f"🧙 SAGE NOTE: Always verify version-specific CVEs on NVD/ExploitDB.",
+        "🧙 SAGE NOTE: Always verify version-specific CVEs on NVD/ExploitDB.",
         "═══════════════════════════════════════════════════════════════",
     ]
     return "\n".join(lines)
@@ -842,13 +837,13 @@ def run_real_hash_identify(hash_value: str, player=None) -> str:
                 f"   {desc}",
                 "",
                 "⚔️  CRACK COMMANDS:",
-                f"   # hashcat (GPU):",
+                "   # hashcat (GPU):",
                 f"   hashcat -m {hc_mode} hash.txt /path/to/rockyou.txt",
                 f"   hashcat -m {hc_mode} hash.txt /path/to/rockyou.txt -r rules/best64.rule",
-                f"",
-                f"   # John the Ripper:",
+                "",
+                "   # John the Ripper:",
                 f"   john --format={john_fmt} --wordlist=rockyou.txt hash.txt",
-                f"",
+                "",
                 "🌐 ONLINE CRACKERS:",
                 "   • https://crackstation.net",
                 "   • https://hashes.com",

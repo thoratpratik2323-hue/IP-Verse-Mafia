@@ -18,12 +18,8 @@
 import os
 import sys
 import json
-import socket
-import struct
-import random
 import time
 import threading
-from datetime import datetime
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     try:
@@ -491,19 +487,19 @@ def dos_toolkit(parameters: dict, player=None) -> str:
 
         for key, atk in DOS_ATTACK_TYPES.items():
             lines += [
-                f"",
+                "",
                 f"{'─'*60}",
                 f"⚡ {atk['name']}",
                 f"   Layer    : {atk['layer']}",
                 f"   Protocol : {atk['protocol']}",
                 f"   Impact   : {atk['impact']}",
-                f"",
-                f"   HOW IT WORKS:",
+                "",
+                "   HOW IT WORKS:",
             ]
             for line in atk["how"].split("\n"):
                 lines.append(f"   {line}")
             lines += [
-                f"",
+                "",
                 f"   TOOLS    : {' | '.join(atk['tools'][:2])}",
                 f"   DEFENSE  : {' | '.join(atk['defense'][:3])}",
             ]
@@ -585,7 +581,7 @@ def dos_toolkit(parameters: dict, player=None) -> str:
         lines = [BANNER, WARNING,
                  f"         💻 PoC CODE: {atk['name']}",
                  "══════════════════════════════════════════════════════════════",
-                 f"⚠️  Use ONLY on your own authorized systems!",
+                 "⚠️  Use ONLY on your own authorized systems!",
                  "",
                  "```python",
                  poc.strip(),
@@ -624,7 +620,6 @@ def dos_toolkit(parameters: dict, player=None) -> str:
         duration = int(parameters.get("duration", 10))
 
         # Safety check — block public IPs/domains unless explicitly confirmed
-        import re
         is_local = any(url.startswith(p) for p in [
             "http://localhost", "http://127.", "http://10.", "http://192.168.",
             "http://172.16.", "http://172.17.", "https://localhost"

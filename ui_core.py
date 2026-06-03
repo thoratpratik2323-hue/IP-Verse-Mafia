@@ -1640,12 +1640,12 @@ class VoiceResponseBubble(QFrame):
         super().__init__(parent)
         self.setObjectName("VoiceResponseBubble")
         self.setFixedHeight(110)
-        self.setStyleSheet(f"""
-            #VoiceResponseBubble {{
+        self.setStyleSheet("""
+            #VoiceResponseBubble {
                 background: rgba(4, 7, 14, 0.78);
                 border: 1.5px solid rgba(6, 182, 212, 0.25);
                 border-radius: 12px;
-            }}
+            }
         """)
         
         self._shadow = QGraphicsDropShadowEffect(self)
@@ -1763,11 +1763,11 @@ class MainWindow(QMainWindow):
 
         self._central_widget = SpaceCentralWidget()
         self._central_widget.setObjectName("CentralWidget")
-        self._central_widget.setStyleSheet(f"""
-            QWidget#CentralWidget {{
+        self._central_widget.setStyleSheet("""
+            QWidget#CentralWidget {
                 background: transparent;
                 border: none;
-            }}
+            }
         """)
         self.setCentralWidget(self._central_widget)
 
@@ -1800,7 +1800,7 @@ class MainWindow(QMainWindow):
         # ── Wrapped HUD inside a beautiful rounded obsidian card ──────────────
         self._hud_container = QWidget()
         self._hud_container.setStyleSheet(
-            f"background: transparent; border: none; border-radius: 12px;"
+            "background: transparent; border: none; border-radius: 12px;"
         )
         hud_lay = QVBoxLayout(self._hud_container)
         hud_lay.setContentsMargins(10, 10, 10, 10)
@@ -2254,15 +2254,15 @@ class MainWindow(QMainWindow):
         self._sandbox_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
         self._sandbox_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._sandbox_btn.setToolTip("Open Interactive Algorithm Sandbox")
-        self._sandbox_btn.setStyleSheet(f"""
-            QPushButton {{
+        self._sandbox_btn.setStyleSheet("""
+            QPushButton {
                 background: rgba(3, 105, 161, 0.12); color: #27C8F5;
                 border: 1px solid rgba(3, 105, 161, 0.35); border-radius: 18px;
                 letter-spacing: 0.5px;
-            }}
-            QPushButton:hover {{
+            }
+            QPushButton:hover {
                 background: rgba(3, 105, 161, 0.22); color: #27C8F5; border: 1.5px solid #27C8F5;
-            }}
+            }
         """)
         self._sandbox_btn.clicked.connect(self._toggle_sandbox)
         # lay.addWidget(self._sandbox_btn)
@@ -2439,17 +2439,17 @@ class MainWindow(QMainWindow):
         self._slide_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
         self._slide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._slide_btn.setToolTip("Toggle Active Logs & File Uploads Drawer")
-        self._slide_btn.setStyleSheet(f"""
-            QPushButton {{
+        self._slide_btn.setStyleSheet("""
+            QPushButton {
                 background: rgba(16, 185, 129, 0.12); color: #10b981;
                 border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 18px;
                 letter-spacing: 0.5px;
                 padding-left: 8px;
                 padding-right: 8px;
-            }}
-            QPushButton:hover {{
+            }
+            QPushButton:hover {
                 background: rgba(16, 185, 129, 0.22); color: #10b981; border: 1.5px solid #10b981;
-            }}
+            }
         """)
         self._slide_btn.clicked.connect(self._toggle_right_panel)
         lay.addWidget(self._slide_btn)
@@ -3329,7 +3329,8 @@ class MainWindow(QMainWindow):
     def _toggle_startup(self):
         enabled = self._startup_btn.isChecked()
         try:
-            import winreg, sys
+            import winreg
+            import sys
             key = winreg.OpenKey(
                 winreg.HKEY_CURRENT_USER,
                 self._STARTUP_REG_KEY, 0,
@@ -3613,9 +3614,9 @@ class MainWindow(QMainWindow):
         self._left_panel = QWidget()
         self._left_panel.setFixedWidth(190)  # Compact, elegant terminal layout!
         self._left_panel.setStyleSheet(
-            f"background: rgba(5, 12, 32, 0.48);"
-            f"border: 1.5px solid rgba(6, 182, 212, 0.35);"
-            f"border-radius: 12px;"
+            "background: rgba(5, 12, 32, 0.48);"
+            "border: 1.5px solid rgba(6, 182, 212, 0.35);"
+            "border-radius: 12px;"
         )
         
         # Add gorgeous high-tech neon drop shadow
@@ -3678,8 +3679,8 @@ class MainWindow(QMainWindow):
         )
         self._left_console_log.setFont(QFont("Consolas", 7))
         self._left_console_log.setStyleSheet(
-            f"color: rgba(6, 182, 212, 0.55); background: rgba(2, 4, 8, 0.45); "
-            f"border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 6px; padding: 10px;"
+            "color: rgba(6, 182, 212, 0.55); background: rgba(2, 4, 8, 0.45); "
+            "border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 6px; padding: 10px;"
         )
         self._left_console_log.setWordWrap(True)
         lay.addWidget(self._left_console_log)
@@ -3697,9 +3698,9 @@ class MainWindow(QMainWindow):
         # 1. Chrono Card (Time)
         self._time_panel = QWidget()
         self._time_panel.setStyleSheet(
-            f"background: rgba(2, 3, 5, 0.92);"
-            f"border: 1.5px solid rgba(59, 130, 246, 0.18);"
-            f"border-radius: 12px;"
+            "background: rgba(2, 3, 5, 0.92);"
+            "border: 1.5px solid rgba(59, 130, 246, 0.18);"
+            "border-radius: 12px;"
         )
         
         # Add dynamic Cobalt-Blue glowing shadow matching C.PRI highlight
@@ -3746,9 +3747,9 @@ class MainWindow(QMainWindow):
         # 2. Climate Card (Weather)
         self._weather_panel = QWidget()
         self._weather_panel.setStyleSheet(
-            f"background: rgba(2, 3, 5, 0.92);"
-            f"border: 1.5px solid rgba(139, 92, 246, 0.18);"
-            f"border-radius: 12px;"
+            "background: rgba(2, 3, 5, 0.92);"
+            "border: 1.5px solid rgba(139, 92, 246, 0.18);"
+            "border-radius: 12px;"
         )
         
         # Add dynamic Royal Violet glowing shadow matching C.ACC highlight
@@ -3930,19 +3931,19 @@ class MainWindow(QMainWindow):
         # Screen Time footer badge
         self._screentime_lbl = QLabel("📊 SCREENTIME: --")
         self._screentime_lbl.setFont(QFont("Segoe UI", 8))
-        self._screentime_lbl.setStyleSheet(f"color: #10B981; background: transparent;")
+        self._screentime_lbl.setStyleSheet("color: #10B981; background: transparent;")
         lay.addWidget(self._screentime_lbl)
 
         # Flame Git Streak footer badge
         self._streak_lbl = QLabel("🔥 STREAK: --")
         self._streak_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._streak_lbl.setStyleSheet(f"color: #EF4444; background: transparent;")
+        self._streak_lbl.setStyleSheet("color: #EF4444; background: transparent;")
         lay.addWidget(self._streak_lbl)
 
         # Alarm footer badge
         self._alarm_lbl = QLabel("⏰ ALARM: --")
         self._alarm_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._alarm_lbl.setStyleSheet(f"color: #F59E0B; background: transparent;")
+        self._alarm_lbl.setStyleSheet("color: #F59E0B; background: transparent;")
         lay.addWidget(self._alarm_lbl)
 
         lay.addStretch()
@@ -3989,11 +3990,11 @@ class MainWindow(QMainWindow):
     def _apply_theme(self):
         # 1. Main Window / Central widget background
         self.setStyleSheet(f"QMainWindow {{ background-color: {C.BG}; }}")
-        self._central_widget.setStyleSheet(f"""
-            QWidget#CentralWidget {{
+        self._central_widget.setStyleSheet("""
+            QWidget#CentralWidget {
                 background: transparent;
                 border: none;
-            }}
+            }
         """)
 
         # 2. Header
@@ -4156,7 +4157,7 @@ class MainWindow(QMainWindow):
                     )
 
         # 7. HUD Container
-        self._hud_container.setStyleSheet(f"background: transparent; border: none; border-radius: 12px;")
+        self._hud_container.setStyleSheet("background: transparent; border: none; border-radius: 12px;")
 
         # 8. Right Panel
         self._right_panel.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 12px;")
@@ -4225,23 +4226,23 @@ class MainWindow(QMainWindow):
         self._update_mic_btn_style()
 
         if hasattr(self, "_response_bubble"):
-            self._response_bubble.setStyleSheet(f"""
-                #VoiceResponseBubble {{
+            self._response_bubble.setStyleSheet("""
+                #VoiceResponseBubble {
                     background: rgba(4, 7, 14, 0.78);
                     border: 1.5px solid rgba(6, 182, 212, 0.25);
                     border-radius: 12px;
-                }}
+                }
             """)
             self._response_bubble._shadow.setColor(QColor(C.PRI))
             self._response_bubble.label.setStyleSheet(f"color: {C.TEXT}; background: transparent; border: none;")
 
         if hasattr(self, "_bottom_input_row_widget"):
-            self._bottom_input_row_widget.setStyleSheet(f"""
-                QWidget#BottomInputContainer {{
+            self._bottom_input_row_widget.setStyleSheet("""
+                QWidget#BottomInputContainer {
                     background: rgba(4, 7, 14, 0.75);
                     border: 1px solid rgba(6, 182, 212, 0.2);
                     border-radius: 20px;
-                }}
+                }
             """)
             self._input_shadow.setColor(QColor(C.PRI))
 
@@ -4346,12 +4347,12 @@ class MainWindow(QMainWindow):
     def _build_bottom_input_row(self) -> QWidget:
         widget = QWidget()
         widget.setObjectName("BottomInputContainer")
-        widget.setStyleSheet(f"""
-            QWidget#BottomInputContainer {{
+        widget.setStyleSheet("""
+            QWidget#BottomInputContainer {
                 background: rgba(4, 7, 14, 0.75);
                 border: 1px solid rgba(6, 182, 212, 0.2);
                 border-radius: 20px;
-            }}
+            }
         """)
         self._input_shadow = QGraphicsDropShadowEffect(self)
         self._input_shadow.setBlurRadius(12)
@@ -4981,7 +4982,7 @@ class AwesomeReposDialog(QDialog):
         
         self.lbl_desc = QLabel("Please select a repository from the left panel to explore details.")
         self.lbl_desc.setFont(QFont("Segoe UI", 10))
-        self.lbl_desc.setStyleSheet(f"color: #cbd5e1; line-height: 1.4;")
+        self.lbl_desc.setStyleSheet("color: #cbd5e1; line-height: 1.4;")
         self.lbl_desc.setWordWrap(True)
         detail_lay.addWidget(self.lbl_desc)
         
@@ -4994,7 +4995,7 @@ class AwesomeReposDialog(QDialog):
         
         self.lbl_features = QLabel("")
         self.lbl_features.setFont(QFont("Segoe UI", 9.5))
-        self.lbl_features.setStyleSheet(f"color: #94a3b8;")
+        self.lbl_features.setStyleSheet("color: #94a3b8;")
         self.lbl_features.setWordWrap(True)
         detail_lay.addWidget(self.lbl_features)
         
@@ -5437,11 +5438,10 @@ class LlamaFactoryDialog(QDialog):
         super().__init__(parent)
         from PyQt6.QtWidgets import (
             QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, 
-            QComboBox, QTextEdit, QLineEdit, QProgressBar
+            QComboBox, QTextEdit
         )
-        from PyQt6.QtCore import Qt, QTimer, pyqtSignal
-        from PyQt6.QtGui import QFont, QColor
-        import time
+        from PyQt6.QtCore import Qt, QTimer
+        from PyQt6.QtGui import QFont
         
         self.setWindowTitle("🔥 LLAMA FACTORY TUNING CENTER")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
@@ -5454,18 +5454,18 @@ class LlamaFactoryDialog(QDialog):
         # Cyberpunk Frame
         container = QFrame(self)
         container.setObjectName("containerFrame")
-        container.setStyleSheet(f"""
-            #containerFrame {{
+        container.setStyleSheet("""
+            #containerFrame {
                 background-color: rgba(12, 10, 18, 0.98);
                 border: 2px solid #F43F5E;
                 border-radius: 16px;
-            }}
-            QLabel {{
+            }
+            QLabel {
                 color: #f8fafc;
                 background: transparent;
                 font-family: 'Segoe UI';
-            }}
-            QLineEdit, QComboBox {{
+            }
+            QLineEdit, QComboBox {
                 background-color: rgba(30, 20, 35, 0.6);
                 border: 1px solid rgba(244, 63, 94, 0.4);
                 border-radius: 6px;
@@ -5473,8 +5473,8 @@ class LlamaFactoryDialog(QDialog):
                 font-family: 'Segoe UI';
                 font-size: 11px;
                 padding: 6px;
-            }}
-            QTextEdit {{
+            }
+            QTextEdit {
                 background-color: rgba(15, 12, 22, 0.9);
                 border: 1px solid rgba(244, 63, 94, 0.3);
                 border-radius: 8px;
@@ -5482,8 +5482,8 @@ class LlamaFactoryDialog(QDialog):
                 font-family: 'Consolas', monospace;
                 font-size: 11px;
                 padding: 10px;
-            }}
-            QPushButton {{
+            }
+            QPushButton {
                 background-color: rgba(244, 63, 94, 0.12);
                 color: #F43F5E;
                 border: 1px solid rgba(244, 63, 94, 0.4);
@@ -5492,11 +5492,11 @@ class LlamaFactoryDialog(QDialog):
                 font-size: 11px;
                 font-weight: bold;
                 padding: 8px 16px;
-            }}
-            QPushButton:hover {{
+            }
+            QPushButton:hover {
                 background-color: rgba(244, 63, 94, 0.25);
                 border: 1.2px solid #F43F5E;
-            }}
+            }
         """)
         
         container_lay = QVBoxLayout(container)
@@ -5737,11 +5737,10 @@ class MythosSentinelDialog(QDialog):
         super().__init__(parent)
         from PyQt6.QtWidgets import (
             QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
-            QComboBox, QTextEdit, QLineEdit, QStackedWidget, QWidget, QFileDialog
+            QTextEdit, QStackedWidget
         )
-        from PyQt6.QtCore import Qt, QTimer
-        from PyQt6.QtGui import QFont, QColor
-        import time
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtGui import QFont
 
         self.setWindowTitle("🛡️ MYTHOS SENTINEL")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)

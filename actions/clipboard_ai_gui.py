@@ -1,4 +1,3 @@
-import sys
 import threading
 import pyperclip
 from PyQt6.QtWidgets import (

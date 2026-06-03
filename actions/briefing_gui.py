@@ -1,9 +1,8 @@
-import sys
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextBrowser, QWidget
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QColor
+from PyQt6.QtGui import QFont
 from actions.morning_briefer import generate_briefing
 
 class BriefingPanel(QDialog):
@@ -126,6 +125,6 @@ class BriefingPanel(QDialog):
                 # get briefing plain text
                 brief = generate_briefing(parent)
                 parent.ip_ray.speak(brief)
-            except Exception as e:
+            except Exception:
                 pass
         self.close()

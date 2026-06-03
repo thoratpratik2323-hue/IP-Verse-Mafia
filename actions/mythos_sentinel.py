@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Dict
 
 def _get_base_dir() -> Path:
     if getattr(sys, "frozen", False):
@@ -100,7 +100,7 @@ Your specialty is finding memory unsafety, buffer overflows, memory leaks, race 
 Provide a comprehensive, professional, and educational security audit of the following code. Write in a precise, helpful, and cyberpunk-toned style.
 
 Target File/Project: {label}
-{f"(Note: Some source files were truncated to fit context limits)" if is_truncated else ""}
+{"(Note: Some source files were truncated to fit context limits)" if is_truncated else ""}
 
 Return a JSON document with the following schema:
 {{

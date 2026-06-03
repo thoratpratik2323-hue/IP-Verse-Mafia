@@ -4,7 +4,6 @@ actions/file_classifier.py — Background watcher that auto-classifies study mat
 This is a premium action module for the IP Prime personal assistant suite.
 """
 
-import os
 import time
 import shutil
 import threading
@@ -97,7 +96,7 @@ class FileClassifierThread(threading.Thread):
                         
                         # Dynamic log to PyQt6 system status if UI is running
                         try:
-                            from ui import IPRayUI
+                            pass
                             # Safely write to UI console if possible
                         except Exception:
                             pass

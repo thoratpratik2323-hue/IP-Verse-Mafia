@@ -51,8 +51,8 @@ class VivaExaminer:
             )
             self.current_question = response.text.strip()
             return self.current_question
-        except Exception as e:
-            fallback = f"Explain the difference between a list and a tuple in Python."
+        except Exception:
+            fallback = "Explain the difference between a list and a tuple in Python."
             self.current_question = fallback
             return fallback
 
@@ -90,7 +90,7 @@ class VivaExaminer:
             self.score += data.get("grade", 70)
             self.current_q_idx += 1
             return data
-        except Exception as e:
+        except Exception:
             # Fallback
             dummy_data = {"grade": 80, "feedback": "Solid answer bro! Direct and clear concept."}
             self.history.append({
@@ -156,7 +156,7 @@ class VivaExaminer:
             try:
                 dest_file = dest_folder / "viva_scorecard.md"
                 dest_file.write_text(scorecard, encoding="utf-8")
-                print(f"[VivaExaminer] ✓ Created Technical Viva Scorecard at SecondBrain/viva_scorecard.md")
+                print("[VivaExaminer] ✓ Created Technical Viva Scorecard at SecondBrain/viva_scorecard.md")
             except Exception as err:
                 print(f"[VivaExaminer] Error saving scorecard file: {err}")
                 

@@ -332,7 +332,6 @@ def reminder(
 
     # Write to alarms.json for our in-process checker loop to trigger speak + SFX
     try:
-        from pathlib import Path
         import json
         import random
         # Find base dir

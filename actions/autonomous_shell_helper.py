@@ -179,7 +179,8 @@ def query_solana_wallet(action: str, target: str = "", amount: float = 0.0, play
             return f"Insufficient SOL balance. Available: {history['balance']:.2f} SOL, requested: {amount} SOL, sir."
 
         # Execute simulated transaction
-        import time, random
+        import time
+        import random
         tx_sig = f"tx_sig_sol_{int(time.time())}{random.randint(1000, 9999)}abc"
         
         # Deduct balance

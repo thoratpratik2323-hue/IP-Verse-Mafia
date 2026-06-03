@@ -83,3 +83,12 @@ memory/lancedb_store/
 
 # User local workspace
 CODING PROJECTS/
+
+# Databases, personal history, and runtime stats
+memory/brain.db*
+memory/archive/
+memory/*.json
+memory/long_term/*.json
+data/*.json
+data/*.csv
+data/*.txt

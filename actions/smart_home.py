@@ -280,7 +280,8 @@ def espectre_presence_trigger(sensor_id: str, state: str, player=None, main_assi
     sensor = data["sensors"][sid]
     sensor["state"] = st
     # Set realistic Wi-Fi CSI variance based on state
-    import random, time
+    import random
+    import time
     sensor["csi_variance"] = round(random.uniform(0.85, 2.45), 2) if st in ["motion", "occupied"] else round(random.uniform(0.01, 0.06), 2)
     sensor["last_active"] = "2026-05-27 " + time.strftime("%H:%M")
     

@@ -1,15 +1,20 @@
 {
     "date": "2026-06-03",
     "apps": {
-        "antigravity": 1930,
-        "python": 590,
+        "antigravity": 8560,
+        "python": 930,
         "applicationframehost": 30,
-        "firefox": 330,
-        "msedge": 350,
-        "explorer": 70,
+        "firefox": 830,
+        "msedge": 840,
+        "explorer": 130,
         "shellexperiencehost": 40,
         "notepad": 120,
-        "pickerhost": 10
+        "pickerhost": 10,
+        "credentialuibroker": 10,
+        "cmd": 10,
+        "searchhost": 40,
+        "startmenuexperiencehost": 10,
+        "chrome": 560
     },
     "limits": {
         "chrome": 7200

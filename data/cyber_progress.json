@@ -1,5 +1,7 @@
 {
-  "topics_completed": [],
+  "topics_completed": [
+    "networking"
+  ],
   "quiz_scores": {},
   "current_roadmap": "None"
 }

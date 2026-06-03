@@ -1,7 +1,6 @@
 import json
 import re
 from google import genai
-from google.genai import types
 from typing import Dict, Any
 
 from actions.prime_utils import get_api_key

@@ -4,8 +4,6 @@ actions/habits_engine.py — Dynamic habit tracker that integrates auto-checking
 This is a premium action module for the IP Prime personal assistant suite.
 """
 
-import os
-import time
 from pathlib import Path
 from datetime import datetime
 

@@ -6,9 +6,8 @@ This is a standard action module for the IP Prime personal assistant suite.
 
 import os
 import json
-import sqlite3
 from pathlib import Path
-from actions.semantic_store import _get_gemini_client, index_file, init_db, DB_PATH
+from actions.semantic_store import _get_gemini_client, index_file, init_db
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 API_KEYS_PATH = BASE_DIR / "config" / "api_keys.json"

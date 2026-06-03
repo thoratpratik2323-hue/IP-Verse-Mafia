@@ -4,11 +4,10 @@ actions/visualizer_gui.py — Custom interactive PyQt6 widget for the Code Visua
 This is a premium action module for the IP Prime personal assistant suite.
 """
 
-import time
 import random
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QRectF
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
-    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider
+    QWidget, QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
 )
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from actions.code_visualizer import CodeVisualizer
@@ -128,7 +127,7 @@ class SandboxPanel(QFrame):
         title_lay = QHBoxLayout()
         self.title_lbl = QLabel("◈ ALGORITHM SANDBOX")
         self.title_lbl.setFont(QFont("Consolas", 10, QFont.Weight.Bold))
-        self.title_lbl.setStyleSheet(f"color: #27C8F5; background: transparent; border: none;")
+        self.title_lbl.setStyleSheet("color: #27C8F5; background: transparent; border: none;")
         title_lay.addWidget(self.title_lbl)
         title_lay.addStretch()
         

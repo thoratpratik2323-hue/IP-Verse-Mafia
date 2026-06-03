@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image
 
 from PyQt6.QtCore import Qt, QRect, QSize, QPoint, QBuffer, QIODevice, pyqtSignal, QObject
-from PyQt6.QtGui import QPainter, QPixmap, QColor, QFont, QCursor
+from PyQt6.QtGui import QPainter, QColor, QFont, QCursor
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QRubberBand, QDialog, QVBoxLayout, 
     QHBoxLayout, QTextBrowser, QPushButton, QLabel

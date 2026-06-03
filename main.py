@@ -394,7 +394,6 @@ class IPRayLive:
         self.ui             = ui
         self.session        = None
         self.audio_in_queue = None
-        import queue
         self.audio_playback_queue = queue.Queue()
         self.out_queue      = None
         self._loop          = None
@@ -710,7 +709,7 @@ class IPRayLive:
                 self.speak(brief)
                 from PyQt6.QtCore import QTimer
                 QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_briefing", lambda: None)())
-            except Exception as e:
+            except Exception:
                 self.speak("Bhai morning briefing generate nahi ho payi.")
             return
 
@@ -964,7 +963,8 @@ class IPRayLive:
             self.ui.write_log("SYS: Intercepted 'go to sleep' command.")
             self.speak("Going to sleep now, sir. Good night.")
             def _shutdown():
-                import time, os
+                import time
+                import os
                 save_shutdown_summary()
                 time.sleep(1.5)
                 os._exit(0)
@@ -1679,7 +1679,7 @@ class IPRayLive:
                                         self.speak(brief)
                                         from PyQt6.QtCore import QTimer
                                         QTimer.singleShot(150, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_briefing", lambda: None)())
-                                    except Exception as e:
+                                    except Exception:
                                         self.speak("Bhai morning briefing generate nahi ho payi.")
 
                                 # ─── Voice command: Clipboard AI ────────────────────
@@ -2145,7 +2145,7 @@ def start_ipc_watcher(ui):
                             ipc_file.write_text(json.dumps(data, indent=4), encoding="utf-8")
                             
                             print(f"[IP PRIME IPC] ✅ Command [{request_id}] processed successfully.")
-                            ui.write_log(f"IPC: Command completed.")
+                            ui.write_log("IPC: Command completed.")
                         except Exception as ex:
                             try:
                                 data = json.loads(ipc_file.read_text(encoding="utf-8"))

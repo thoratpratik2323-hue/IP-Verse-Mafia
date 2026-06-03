@@ -21,15 +21,12 @@ import os
 import sys
 import json
 import re
-import time
 import socket
 import urllib.request
 import urllib.parse
 import urllib.error
 import ssl
 import html
-from datetime import datetime
-from typing import Optional
 
 # Fix Windows encoding
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
@@ -179,7 +176,7 @@ def search_cve_live(query: str, limit: int = 10) -> str:
             published = cve.get("published", "")[:10]
 
             lines += [
-                f"",
+                "",
                 f"  {sev_icon} {cve_id}  |  CVSS: {score}  |  {severity}  |  Published: {published}",
                 f"  📝 {desc[:180]}{'...' if len(desc) > 180 else ''}",
                 f"  🔗 https://nvd.nist.gov/vuln/detail/{cve_id}",
@@ -317,14 +314,14 @@ def web_search_live(query: str, search_type: str = "general") -> str:
                         lines.append(f"    {url}")
 
         if not abstract and not answer and not related:
-            lines.append(f"  No instant results. Try these:")
+            lines.append("  No instant results. Try these:")
             lines += [
                 f"  🔍 https://duckduckgo.com/?q={encoded}",
                 f"  🔍 https://www.google.com/search?q={encoded}",
             ]
 
     except json.JSONDecodeError:
-        lines.append(f"  Search parse error.")
+        lines.append("  Search parse error.")
 
     # Security-specific additional resources
     if any(kw in query.lower() for kw in ["hack", "exploit", "cve", "vuln", "attack", "pentest", "ctf"]):
@@ -335,8 +332,8 @@ def web_search_live(query: str, search_type: str = "general") -> str:
             f"  💥 https://www.exploit-db.com/search?q={encoded}",
             f"  🕷️  https://sploitus.com/?query={encoded}",
             f"  🐙 https://github.com/search?q={encoded}&type=repositories",
-            f"  📖 https://book.hacktricks.xyz/",
-            f"  🏆 https://gtfobins.github.io/",
+            "  📖 https://book.hacktricks.xyz/",
+            "  🏆 https://gtfobins.github.io/",
         ]
 
     lines.append("═" * 66)
@@ -415,9 +412,9 @@ def check_breach_live(email_or_username: str) -> str:
                 "  ⚠️ HIBP requires paid API key for email lookup.",
                 "  Use these free alternatives:",
                 f"  🔍 https://haveibeenpwned.com/account/{encoded}",
-                f"  🔍 https://breachdirectory.org/",
+                "  🔍 https://breachdirectory.org/",
                 f"  🔍 https://dehashed.com/search?query={encoded}",
-                f"  🔍 https://leak-lookup.com/",
+                "  🔍 https://leak-lookup.com/",
                 f"  🔍 https://intelx.io/?s={encoded}",
             ]
         elif "HTTP_ERROR:404" in raw:
@@ -438,9 +435,9 @@ def check_breach_live(email_or_username: str) -> str:
     else:
         lines += [
             f"  Username/domain check for: {target}",
-            f"  🔍 https://whatsmyname.app/ (username tracking)",
-            f"  🔍 https://namechk.com/ (social media check)",
-            f"  🔍 https://sherlock.project/ (open source tool)",
+            "  🔍 https://whatsmyname.app/ (username tracking)",
+            "  🔍 https://namechk.com/ (social media check)",
+            "  🔍 https://sherlock.project/ (open source tool)",
         ]
 
     # Password breach check (k-anonymity, safe)
@@ -534,7 +531,7 @@ def discover_subdomains_live(domain: str) -> str:
                 lines += ["🤖 AI TARGET ANALYSIS:", ai]
 
     except json.JSONDecodeError:
-        lines.append(f"  Parse error from crt.sh")
+        lines.append("  Parse error from crt.sh")
 
     lines.append("═" * 66)
     return "\n".join(lines)
@@ -564,8 +561,8 @@ def shodan_lookup_live(target: str) -> str:
             "  💡 Free alternatives (no key needed):",
             f"  🔍 https://www.shodan.io/host/{target} (browser)",
             f"  🔍 https://censys.io/hosts/{target}",
-            f"  🔍 https://fofa.info/result?qbase64=... ",
-            f"  🔍 https://hunter.how/",
+            "  🔍 https://fofa.info/result?qbase64=... ",
+            "  🔍 https://hunter.how/",
             f"  🔍 https://viz.greynoise.io/ip/{target}",
         ]
         return "\n".join(lines)

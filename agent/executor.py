@@ -3,7 +3,6 @@ import re
 import sys
 import threading
 import subprocess
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Callable

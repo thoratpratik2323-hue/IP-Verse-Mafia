@@ -8,7 +8,6 @@ import json
 import subprocess
 from pathlib import Path
 from google import genai
-from google.genai import types
 
 # Base paths
 BASE_DIR = Path(__file__).resolve().parent.parent

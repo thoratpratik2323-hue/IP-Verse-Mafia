@@ -2,7 +2,6 @@
 predictive_workspace.py — Analyzes schedule and project directories to proactively stage tools, apps, and files.
 """
 
-import os
 import json
 import time
 import subprocess

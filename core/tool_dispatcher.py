@@ -1,7 +1,5 @@
-import asyncio
 import threading
 import traceback
-import sys
 
 # ── Action Imports ────────────────────────────────────────────────────────────
 from actions.file_processor import file_processor
@@ -32,8 +30,6 @@ from actions.premium_utilities import (
     voice_alarm_suite
 )
 from actions.warp_helper import warp_helper
-from actions import ghost_coder
-from actions import smart_drop_zone
 from actions.ask_antigravity import ask_antigravity
 
 # Premium Actions Suite 2026
@@ -416,7 +412,7 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             from actions.obsidian_helper import obsidian_rag_query
             r = await loop.run_in_executor(None, lambda: obsidian_rag_query(
                 query=args.get("query", ""),
-                player=self.player
+                player=player
             ))
             result = r or "Done."
 
@@ -992,7 +988,8 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             player.write_log("SYS: Shutdown requested.")
             speak("Goodbye, sir.")
             def _shutdown():
-                import time, os
+                import time
+                import os
                 time.sleep(1)
                 os._exit(0)
             threading.Thread(target=_shutdown, daemon=True).start()

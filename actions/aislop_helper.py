@@ -5,7 +5,6 @@ This module wraps the `scanaislop` Node-based CLI tool to scan and auto-fix
 common anomalies (placeholders, unused imports, dead code) in codebases.
 """
 
-import os
 import json
 import subprocess
 from pathlib import Path
@@ -128,11 +127,11 @@ def format_scan_results(data: dict, target_name: str) -> str:
         grade_desc = "Suboptimal. Significant AI-generated placeholders or dead branches found."
         
     output = [
-        f"### 🛡️ [AI-SLOP SCAN] ENGINEERING QUALITY GATE\n",
+        "### 🛡️ [AI-SLOP SCAN] ENGINEERING QUALITY GATE\n",
         f"- **Target scanned**: `{target_name}`",
         f"- **Code Score**: **{score}/100** ({badge})",
         f"- **Verdict**: *{grade_desc}*\n",
-        f"---"
+        "---"
     ]
     
     issues = data.get("issues", [])

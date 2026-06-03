@@ -1,7 +1,5 @@
 import subprocess
-import json
 import logging
-from pathlib import Path
 import os
 
 logger = logging.getLogger("ip_prime.repowire_mesh")
@@ -78,7 +76,7 @@ def broadcast(message: str, player=None) -> str:
         )
         
         if result.returncode == 0:
-            return f"\U0001f4e3 Broadcasted message successfully."
+            return "\U0001f4e3 Broadcasted message successfully."
         else:
             return f"Failed to broadcast message: {result.stderr}"
     except FileNotFoundError:

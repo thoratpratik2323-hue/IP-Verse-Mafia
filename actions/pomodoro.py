@@ -1,6 +1,5 @@
 import time
 import threading
-from pathlib import Path
 from typing import Optional, Any
 from actions.screen_time import get_active_window_app
 
