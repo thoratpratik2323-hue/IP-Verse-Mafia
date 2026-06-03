@@ -2165,6 +2165,36 @@ TOOL_DECLARATIONS: list[dict] = [
             "type": "OBJECT",
             "properties": {}
         }
+    },
+    {
+        "name": "llama_factory",
+        "description": "Clones, runs, and controls the LLaMA-Factory open-source fine-tuning toolkit locally.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "clone (clones the LLaMA-Factory repo), webui (launches LLaMA Board UI), train (starts local training job), status (checks training logs/process status)"
+                },
+                "model_name": {
+                    "type": "STRING",
+                    "description": "Local model name or path (required for train, e.g. Qwen/Qwen2.5-1.5B-Instruct)"
+                },
+                "dataset": {
+                    "type": "STRING",
+                    "description": "Dataset name or file path configured in data/ (required for train)"
+                },
+                "output_dir": {
+                    "type": "STRING",
+                    "description": "Directory to save fine-tuned checkpoints (required for train)"
+                },
+                "finetuning_type": {
+                    "type": "STRING",
+                    "description": "Fine-tuning strategy: lora (default), full, freeze"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 

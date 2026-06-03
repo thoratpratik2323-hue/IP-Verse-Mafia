@@ -3069,6 +3069,13 @@ class MainWindow(QMainWindow):
         )
         self._pv_repos_btn.setToolTip("Explore and clone premium coding and agent repositories directly")
 
+        # 9. LLaMA Factory Controller (Rose/Pink)
+        self._pv_llama_btn = make_matrix_btn(
+            "🔥  LLAMA FACTORY", self._pv_llama_factory,
+            "rgba(244, 63, 94, 0.12)", "#F43F5E", "rgba(244, 63, 94, 0.35)"
+        )
+        self._pv_llama_btn.setToolTip("Launch local fine-tuning jobs and LLaMA Board UI")
+
 
         lay.addStretch()
 
@@ -4616,6 +4623,13 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.write_log(f"SYS ERROR: Awesome Repos Explorer failed to launch: {e}")
 
+    def _pv_llama_factory(self):
+        try:
+            dialog = LlamaFactoryDialog(self)
+            dialog.exec()
+        except Exception as e:
+            self.write_log(f"SYS ERROR: LLaMA Factory Tuning Center failed to launch: {e}")
+
     def _apply_state(self, state: str):
 
         self.hud.state    = state
@@ -5402,3 +5416,296 @@ class IPRayUI:
 
     def set_router_badge(self, model: str):
         self._win._router_badge_sig.emit(model)
+
+
+class LlamaFactoryDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from PyQt6.QtWidgets import (
+            QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, 
+            QComboBox, QTextEdit, QLineEdit, QProgressBar
+        )
+        from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+        from PyQt6.QtGui import QFont, QColor
+        import time
+        
+        self.setWindowTitle("🔥 LLAMA FACTORY TUNING CENTER")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFixedSize(820, 560)
+        
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+        
+        # Cyberpunk Frame
+        container = QFrame(self)
+        container.setObjectName("containerFrame")
+        container.setStyleSheet(f"""
+            #containerFrame {{
+                background-color: rgba(12, 10, 18, 0.98);
+                border: 2px solid #F43F5E;
+                border-radius: 16px;
+            }}
+            QLabel {{
+                color: #f8fafc;
+                background: transparent;
+                font-family: 'Segoe UI';
+            }}
+            QLineEdit, QComboBox {{
+                background-color: rgba(30, 20, 35, 0.6);
+                border: 1px solid rgba(244, 63, 94, 0.4);
+                border-radius: 6px;
+                color: #f8fafc;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                padding: 6px;
+            }}
+            QTextEdit {{
+                background-color: rgba(15, 12, 22, 0.9);
+                border: 1px solid rgba(244, 63, 94, 0.3);
+                border-radius: 8px;
+                color: #38bdf8;
+                font-family: 'Consolas', monospace;
+                font-size: 11px;
+                padding: 10px;
+            }}
+            QPushButton {{
+                background-color: rgba(244, 63, 94, 0.12);
+                color: #F43F5E;
+                border: 1px solid rgba(244, 63, 94, 0.4);
+                border-radius: 6px;
+                font-family: 'Segoe UI';
+                font-size: 11px;
+                font-weight: bold;
+                padding: 8px 16px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(244, 63, 94, 0.25);
+                border: 1.2px solid #F43F5E;
+            }}
+        """)
+        
+        container_lay = QVBoxLayout(container)
+        container_lay.setContentsMargins(24, 24, 24, 24)
+        container_lay.setSpacing(16)
+        
+        # Header Row
+        header_lay = QHBoxLayout()
+        header = QLabel("🔥 LLAMA FACTORY TUNING CENTER")
+        header.setFont(QFont("Orbitron", 14, QFont.Weight.Bold))
+        header.setStyleSheet("color: #F43F5E; letter-spacing: 1px;")
+        
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(30, 30)
+        close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent; color: #f8fafc; border: none; font-size: 14px;
+            }
+            QPushButton:hover {
+                color: #F43F5E;
+            }
+        """)
+        close_btn.clicked.connect(self.close)
+        
+        header_lay.addWidget(header)
+        header_lay.addStretch()
+        header_lay.addWidget(close_btn)
+        container_lay.addLayout(header_lay)
+        
+        # Status indicators & Control buttons layout
+        ctrl_lay = QHBoxLayout()
+        ctrl_lay.setSpacing(12)
+        
+        self.status_lbl = QLabel("Checking setup status...")
+        self.status_lbl.setFont(QFont("Segoe UI", 10))
+        
+        self.clone_btn = QPushButton("CLONE REPOSITORY")
+        self.clone_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.clone_btn.clicked.connect(self._clone_repo)
+        
+        self.board_btn = QPushButton("LAUNCH LLAMA BOARD UI")
+        self.board_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.board_btn.clicked.connect(self._launch_webui)
+        
+        ctrl_lay.addWidget(self.status_lbl)
+        ctrl_lay.addStretch()
+        ctrl_lay.addWidget(self.clone_btn)
+        ctrl_lay.addWidget(self.board_btn)
+        container_lay.addLayout(ctrl_lay)
+        
+        # Divider Line
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        line.setStyleSheet("background-color: rgba(244, 63, 94, 0.2);")
+        container_lay.addWidget(line)
+        
+        # Hyperparameter Selection Row
+        param_lay = QHBoxLayout()
+        param_lay.setSpacing(16)
+        
+        # Model Selection
+        model_v = QVBoxLayout()
+        model_v.addWidget(QLabel("Target Base Model"))
+        self.model_combo = QComboBox()
+        self.model_combo.addItems([
+            "Qwen/Qwen2.5-1.5B-Instruct",
+            "Qwen/Qwen2.5-7B-Instruct",
+            "meta-llama/Llama-3-8B-Instruct",
+            "meta-llama/Llama-3.2-3B-Instruct",
+            "microsoft/Phi-3-mini-4k-instruct"
+        ])
+        self.model_combo.setEditable(True)
+        model_v.addWidget(self.model_combo)
+        param_lay.addLayout(model_v)
+        
+        # Dataset Selection
+        data_v = QVBoxLayout()
+        data_v.addWidget(QLabel("Training Dataset"))
+        self.data_combo = QComboBox()
+        self.data_combo.addItems(["identity", "alpaca_en_demo", "self_cognition", "custom_notes"])
+        self.data_combo.setEditable(True)
+        data_v.addWidget(self.data_combo)
+        param_lay.addLayout(data_v)
+        
+        # Fine-tuning Strategy
+        ft_v = QVBoxLayout()
+        ft_v.addWidget(QLabel("Tuning Strategy"))
+        self.ft_combo = QComboBox()
+        self.ft_combo.addItems(["lora", "full", "freeze"])
+        ft_v.addWidget(self.ft_combo)
+        param_lay.addLayout(ft_v)
+        
+        # Training Action button
+        train_btn_v = QVBoxLayout()
+        train_btn_v.addWidget(QLabel("")) # Spacer
+        self.train_btn = QPushButton("⚡ START TRAINING")
+        self.train_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.train_btn.clicked.connect(self._start_training)
+        train_btn_v.addWidget(self.train_btn)
+        param_lay.addLayout(train_btn_v)
+        
+        container_lay.addLayout(param_lay)
+        
+        # Text Console Output
+        console_lbl = QLabel("🖥 CONSOLE LOGS & OUTPUT FEED")
+        console_lbl.setFont(QFont("Orbitron", 9, QFont.Weight.Bold))
+        console_lbl.setStyleSheet("color: rgba(244, 63, 94, 0.8);")
+        container_lay.addWidget(console_lbl)
+        
+        self.console = QTextEdit()
+        self.console.setReadOnly(True)
+        self.console.setPlaceholderText("LLaMA-Factory logs will stream here...")
+        container_lay.addWidget(self.console)
+        
+        main_lay.addWidget(container)
+        
+        # Settle status checker timer
+        self.status_timer = QTimer(self)
+        self.status_timer.timeout.connect(self._check_status)
+        self.status_timer.start(2500)
+        
+        # Initial check
+        self._check_status()
+        
+    def _check_status(self):
+        try:
+            from actions.llama_factory_helper import check_repo_status, is_process_running
+            status = check_repo_status()
+            
+            if status == "CLONED":
+                self.status_lbl.setText("Status: Ready (Repository cloned)")
+                self.status_lbl.setStyleSheet("color: #4ade80;")
+                self.clone_btn.setText("RE-INSTALL PACKAGES")
+                self.board_btn.setEnabled(True)
+                self.train_btn.setEnabled(True)
+            elif status == "INCOMPLETE":
+                self.status_lbl.setText("Status: Incomplete repository structure")
+                self.status_lbl.setStyleSheet("color: #fbbf24;")
+                self.clone_btn.setText("CLONE REPOSITORY")
+                self.board_btn.setEnabled(False)
+                self.train_btn.setEnabled(False)
+            else:
+                self.status_lbl.setText("Status: Repository missing (Setup required)")
+                self.status_lbl.setStyleSheet("color: #f87171;")
+                self.clone_btn.setText("CLONE REPOSITORY")
+                self.board_btn.setEnabled(False)
+                self.train_btn.setEnabled(False)
+
+            # Update button text based on run state
+            if is_process_running("webui"):
+                self.board_btn.setText("STOP LLAMA BOARD")
+                self.board_btn.setStyleSheet("background-color: rgba(244, 63, 94, 0.25); color: #fff; border: 1.2px solid #F43F5E;")
+            else:
+                self.board_btn.setText("LAUNCH LLAMA BOARD UI")
+                self.board_btn.setStyleSheet("")
+
+            if is_process_running("train"):
+                self.train_btn.setText("⏹ STOP TRAINING")
+                self.train_btn.setStyleSheet("background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1.2px solid #ef4444;")
+            else:
+                self.train_btn.setText("⚡ START TRAINING")
+                self.train_btn.setStyleSheet("")
+        except Exception:
+            pass
+
+    def _clone_repo(self):
+        try:
+            from actions.llama_factory_helper import clone_llama_factory_bg
+            self.console.clear()
+            self.console.append("SYS: Starting repository clone subprocess...")
+            clone_llama_factory_bg(self._log_callback)
+        except Exception as e:
+            self.console.append(f"SYS ERROR: {e}")
+
+    def _launch_webui(self):
+        try:
+            from actions.llama_factory_helper import is_process_running, terminate_process, launch_llama_board_bg
+            if is_process_running("webui"):
+                terminate_process("webui")
+                self.console.append("SYS: LLaMA Board WebUI subprocess terminated.")
+                self._check_status()
+            else:
+                self.console.clear()
+                self.console.append("SYS: Spawning LLaMA Board UI...")
+                launch_llama_board_bg(self._log_callback)
+                self._check_status()
+        except Exception as e:
+            self.console.append(f"SYS ERROR: {e}")
+
+    def _start_training(self):
+        try:
+            from actions.llama_factory_helper import is_process_running, terminate_process, start_training_bg
+            import time
+            if is_process_running("train"):
+                terminate_process("train")
+                self.console.append("SYS: Training process aborted by user.")
+                self._check_status()
+            else:
+                params = {
+                    "model_name": self.model_combo.currentText(),
+                    "dataset": self.data_combo.currentText(),
+                    "finetuning_type": self.ft_combo.currentText(),
+                    "output_dir": f"saves/fine_tuned_{int(time.time())}"
+                }
+                self.console.clear()
+                start_training_bg(params, self._log_callback)
+                self._check_status()
+        except Exception as e:
+            self.console.append(f"SYS ERROR: {e}")
+
+    def _log_callback(self, txt: str):
+        self.console.append(txt)
+        self.console.ensureCursorVisible()
+
+    # Enable mouse dragging for frameless window
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            self.move(event.globalPosition().toPoint() - self.drag_position)
+            event.accept()
