@@ -908,25 +908,12 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: finance_tracker(parameters=args, player=player))
             result = r or "Done."
 
-        elif name == "order_tracker":
-            from actions.order_tracker import order_tracker
-            r = await loop.run_in_executor(None, lambda: order_tracker(parameters=args, player=player))
-            result = r or "Done."
-
-        elif name == "bill_splitter":
-            from actions.bill_splitter import bill_splitter
-            r = await loop.run_in_executor(None, lambda: bill_splitter(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "network_monitor":
             from actions.network_monitor import network_monitor
             r = await loop.run_in_executor(None, lambda: network_monitor(parameters=args, player=player))
             result = r or "Done."
 
-        elif name == "face_recognition":
-            from actions.face_recognition import face_recognition
-            r = await loop.run_in_executor(None, lambda: face_recognition(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "wifi_speed_logger":
             from actions.wifi_speed_logger import wifi_speed_logger

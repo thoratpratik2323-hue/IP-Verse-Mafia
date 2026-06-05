@@ -18,38 +18,7 @@ def get_base_dir() -> Path:
 
 BASE_DIR = get_base_dir()
 
-# Mock Solana Wallet Address for Pratik Sir
-SOLANA_WALLET_MOCK = "Prat1kThoratWalletAddress1111111111111111111"
-WALLETS_HISTORY_FILE = Path.home() / ".ipprime" / "solana_history.json"
 
-def _load_solana_history():
-    WALLETS_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if WALLETS_HISTORY_FILE.exists():
-        try:
-            return json.loads(WALLETS_HISTORY_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            pass
-    
-    # Default mock transactions history
-    initial_data = {
-        "balance": 150.50, # 150.50 SOL
-        "transactions": [
-            {"tx_id": "tx_3b9f4a12", "type": "RECEIVE", "amount": 10.0, "from": "Manus_Agent_Core", "date": "2026-05-26 14:30"},
-            {"tx_id": "tx_8c9d01ef", "type": "TRANSFER", "amount": 1.5, "to": "Grok_Public_Node", "date": "2026-05-25 10:15"},
-            {"tx_id": "tx_2d9e03ab", "type": "SWAP", "amount": 5.0, "detail": "5 SOL to 650 USDC", "date": "2026-05-24 18:45"}
-        ]
-    }
-    try:
-        WALLETS_HISTORY_FILE.write_text(json.dumps(initial_data, indent=4), encoding="utf-8")
-    except Exception:
-        pass
-    return initial_data
-
-def _save_solana_history(data):
-    try:
-        WALLETS_HISTORY_FILE.write_text(json.dumps(data, indent=4), encoding="utf-8")
-    except Exception:
-        pass
 
 def run_autonomous_loop(goal: str, max_steps: int = 5, player=None) -> str:
     """concept from ANUS CLI: Runs an autonomous shell execution loop to achieve a goal."""
@@ -154,89 +123,14 @@ FINISHED: <a concise summary in Hinglish explaining what you accomplished and th
         f"Execution Trace:\n{history_text}"
     )
 
-def query_solana_wallet(action: str, target: str = "", amount: float = 0.0, player=None) -> str:
-    """concept from SOLANUS: Simulates Solana blockchain wallet telemetry operations."""
-    history = _load_solana_history()
-    act = action.lower().strip()
-
-    if act == "balance":
-        msg = (
-            f"### Solana Wallet Telemetry (SOLANUS)\n\n"
-            f"- **Wallet Owner**: Pratik Thorat Sir\n"
-            f"- **Public Wallet Address**: `{SOLANA_WALLET_MOCK}`\n"
-            f"- **Current Balance**: `{history['balance']:.2f} SOL`\n"
-            f"- **Network State**: Mainnet-Beta (Connected)\n"
-            f"- **Valuation**: ~{(history['balance'] * 145.20):,.2f} USD (at mock rate 145.20 USD/SOL)"
-        )
-        return msg
-
-    elif act == "transfer":
-        if not target:
-            return "Please provide a target Solana recipient wallet address, sir."
-        if amount <= 0.0:
-            return "Transaction amount must be greater than 0 SOL, sir."
-        if history["balance"] < amount:
-            return f"Insufficient SOL balance. Available: {history['balance']:.2f} SOL, requested: {amount} SOL, sir."
-
-        # Execute simulated transaction
-        import time
-        import random
-        tx_sig = f"tx_sig_sol_{int(time.time())}{random.randint(1000, 9999)}abc"
-        
-        # Deduct balance
-        history["balance"] -= amount
-        # Append transaction
-        new_tx = {
-            "tx_id": tx_sig[:12],
-            "type": "TRANSFER",
-            "amount": amount,
-            "to": target[:24] + "...",
-            "date": "2026-05-27 " + time.strftime("%H:%M")
-        }
-        history["transactions"].insert(0, new_tx)
-        _save_solana_history(history)
-
-        msg = (
-            f"### Transaction Confirmed (SOLANUS)\n\n"
-            f"Transaction successfully broadcasted to Solana Mainnet, sir!\n\n"
-            f"- **Action**: Transferred {amount:.4f} SOL\n"
-            f"- **To Address**: `{target}`\n"
-            f"- **Gas Fee Paid**: `0.00005 SOL`\n"
-            f"- **Transaction Signature**: `{tx_sig}`\n"
-            f"- **Updated Wallet Balance**: `{history['balance']:.2f} SOL`"
-        )
-        return msg
-
-    elif act == "history":
-        tx_lines = ""
-        for tx in history["transactions"][:5]:
-            if tx["type"] == "RECEIVE":
-                tx_lines += f"- **RECEIVE**: `+{tx['amount']} SOL` from `{tx.get('from', 'Unknown')}` ({tx['date']})\n"
-            elif tx["type"] == "TRANSFER":
-                tx_lines += f"- **TRANSFER**: `-{tx['amount']} SOL` to `{tx.get('to', 'Unknown')}` ({tx['date']})\n"
-            elif tx["type"] == "SWAP":
-                tx_lines += f"- **SWAP**: `{tx['detail']}` ({tx['date']})\n"
-        
-        msg = (
-            f"### Solana Recent Transaction History (SOLANUS)\n\n"
-            f"Wallet: `{SOLANA_WALLET_MOCK[:12]}...`\n\n"
-            f"{tx_lines or 'No recent transactions found, sir.'}"
-        )
-        return msg
-
-    else:
-        return f"Unknown wallet action '{action}', sir. Supported actions are: balance, transfer, history."
-
 def autonomous_shell_helper(parameters: dict, player=None) -> str:
     """
-    Main dispatcher for autonomous shell execution and Solana wallet telemetry.
+    Main dispatcher for autonomous shell execution.
 
     Parameters (dict keys):
-        action (str)     : autonomous_run | solana_balance | solana_transfer | solana_history
+        action (str)     : autonomous_run
         goal (str)       : Target objective for autonomous terminal run
         max_steps (int)  : Maximum command iterations for autonomous run (default: 5)
-        target (str)     : Target recipient address for SOL transfers
-        amount (float)   : Solana amount to transfer
 
     Returns:
         str: Result message for the user.
@@ -245,17 +139,9 @@ def autonomous_shell_helper(parameters: dict, player=None) -> str:
     action = p.get("action", "autonomous_run").lower().strip()
     goal = p.get("goal", "").strip()
     max_steps = int(p.get("max_steps", 5))
-    target = p.get("target", "").strip()
-    amount = float(p.get("amount", 0.0))
 
     if action == "autonomous_run":
         return run_autonomous_loop(goal, max_steps, player)
-    elif action == "solana_balance":
-        return query_solana_wallet("balance", player=player)
-    elif action == "solana_transfer":
-        return query_solana_wallet("transfer", target, amount, player)
-    elif action == "solana_history":
-        return query_solana_wallet("history", player=player)
     else:
         return f"Invalid autonomous shell action: '{action}', sir."
 

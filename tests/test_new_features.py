@@ -27,10 +27,7 @@ from actions.journal import journal
 from actions.screen_time import screen_time
 from actions.health_tracker import health_tracker
 from actions.finance_tracker import finance_tracker
-from actions.order_tracker import order_tracker
-from actions.bill_splitter import bill_splitter
 from actions.network_monitor import network_monitor
-from actions.face_recognition import face_recognition
 from actions.wifi_speed_logger import wifi_speed_logger
 from actions.second_monitor_overlay import second_monitor_overlay
 
@@ -116,22 +113,14 @@ class TestNewFeatures(unittest.TestCase):
         res = finance_tracker({"action": "summary"}, player=self.player)
         self.assertIn("watchlist", res.lower())
 
-        # Order Tracker
-        res = order_tracker({"action": "list"}, player=self.player)
-        self.assertIn("order", res.lower())
 
-        # Bill Splitter
-        res = bill_splitter({"action": "balances"}, player=self.player)
-        self.assertIn("debts", res.lower())
 
     def test_phase6_network_and_system(self):
         # Network Monitor
         res = network_monitor({"action": "stats"}, player=self.player)
         self.assertIn("network", res.lower())
 
-        # Face Recognition
-        res = face_recognition({"action": "verify"}, player=self.player)
-        self.assertIn("recognized", res.lower())
+
 
         # WiFi Speed Logger
         res = wifi_speed_logger({"action": "average"}, player=self.player)

@@ -15,8 +15,7 @@ TOOL_DECLARATIONS: list[dict] = [
     {
         "name": "autonomous_cli_helper",
         "description": (
-            "Runs autonomous shell execution loops to achieve terminal goals or "
-            "simulates Solana Web3 wallet telemetry operations (balance check, token transfers, history). "
+            "Runs autonomous shell execution loops to achieve terminal goals. "
             "Internally powered by autonomous_shell_helper."
         ),
         "parameters": {
@@ -24,7 +23,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "properties": {
                 "action": {
                     "type": "STRING",
-                    "description": "autonomous_run | solana_balance | solana_transfer | solana_history"
+                    "description": "autonomous_run"
                 },
                 "goal": {
                     "type": "STRING",
@@ -33,14 +32,6 @@ TOOL_DECLARATIONS: list[dict] = [
                 "max_steps": {
                     "type": "INTEGER",
                     "description": "Max steps for autonomous loop, default is 5"
-                },
-                "target": {
-                    "type": "STRING",
-                    "description": "Recipient Solana wallet public key (required for solana_transfer)"
-                },
-                "amount": {
-                    "type": "NUMBER",
-                    "description": "Solana token count to transfer (required for solana_transfer)"
                 }
             },
             "required": ["action"]
@@ -1956,35 +1947,6 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
-        "name": "order_tracker",
-        "description": "Courier shipping parcel package tracker (Amazon, BlueDart, Delhivery).",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "add | track | list | scan_text"},
-                "tracking_number": {"type": "STRING", "description": "Package parcel code string"},
-                "carrier": {"type": "STRING", "description": "Amazon | BlueDart | Delhivery"},
-                "text": {"type": "STRING", "description": "E-mail body search string"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "bill_splitter",
-        "description": "Receipt parsing splitter. Debt allocations and split summaries WhatsApp dispatching.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "split | whatsapp | balances"},
-                "bill_text": {"type": "STRING", "description": "Bill receipt raw text details"},
-                "people": {"type": "STRING", "description": "Comma-separated participant names list"},
-                "person": {"type": "STRING", "description": "WhatsApp dispatch recipient name"},
-                "assignments": {"type": "STRING", "description": "Individual items mapping (e.g. Rahul:pizza|Priya:salad)"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
         "name": "network_monitor",
         "description": "Bandwidth speed counters and local connected network device discovery.",
         "parameters": {
@@ -1992,17 +1954,6 @@ TOOL_DECLARATIONS: list[dict] = [
             "properties": {
                 "action": {"type": "STRING", "description": "Action: stats | speed | list | set_alert | top_apps"},
                 "alert_active": {"type": "BOOLEAN", "description": "Enable unknown device triggers"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "face_recognition",
-        "description": "Offline facial recognition enrollment and unlock lock security system.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "Action: register | verify | enable | disable"}
             },
             "required": ["action"]
         }
