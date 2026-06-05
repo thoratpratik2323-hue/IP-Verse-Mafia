@@ -98,7 +98,11 @@ TOOL_DECLARATIONS: list[dict] = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "city": {"type": "STRING", "description": "City name"}
+                "city": {"type": "STRING", "description": "City name"},
+                "open_browser": {
+                    "type": "BOOLEAN",
+                    "description": "Set to true ONLY if the user explicitly asked to open or show the weather webpage/browser window. Default is false."
+                }
             },
             "required": ["city"]
         }

@@ -356,5 +356,25 @@ class TestNewFeatures(unittest.TestCase):
             actions.image_generator.EXPORTS_DIR = old_exports
             shutil.rmtree(temp_exports)
 
+    @patch("webbrowser.open")
+    @patch("urllib.request.urlopen")
+    def test_weather_report_behavior(self, mock_urlopen, mock_webbrowser_open):
+        from actions.weather_report import weather_action
+        
+        # Test Case 1: open_browser is True
+        mock_webbrowser_open.return_value = True
+        res_browser = weather_action({"city": "Ukkalgaon", "open_browser": True}, player=self.player)
+        self.assertIn("Showing the weather", res_browser)
+        mock_webbrowser_open.assert_called_once()
+        
+        # Test Case 2: open_browser is False (default)
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = b"Sunny +38C"
+        mock_urlopen.return_value.__enter__.return_value = mock_resp
+        
+        res_silent = weather_action({"city": "Ukkalgaon"}, player=self.player)
+        self.assertIn("Weather Update for Ukkalgaon", res_silent)
+        self.assertIn("Sunny +38C", res_silent)
+
 if __name__ == "__main__":
     unittest.main()
