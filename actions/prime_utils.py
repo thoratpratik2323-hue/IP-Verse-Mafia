@@ -94,6 +94,38 @@ def image_to_base64_url(image_in) -> str:
             print(f"[Unified Model] Part-like convert failed: {e}")
     return ""
 
+def _call_openrouter_fallback(contents, config=None, model_name=None) -> UnifiedModelResponse:
+    """Helper to perform OpenRouter free LLM fallback call."""
+    import base64
+    from actions.openrouter_helper import client as or_client
+    
+    prompt_text = ""
+    image_b64 = ""
+    mime_type = "image/png"
+    
+    contents_list = contents if isinstance(contents, list) else [contents]
+    for item in contents_list:
+        if isinstance(item, str):
+            prompt_text += item + "\n"
+        elif hasattr(item, "inline_data") and item.inline_data:
+            image_b64 = base64.b64encode(item.inline_data.data).decode("utf-8")
+            mime_type = getattr(item.inline_data, "mime_type", mime_type)
+        elif isinstance(item, bytes):
+            image_b64 = base64.b64encode(item).decode("utf-8")
+            
+    prompt_text = prompt_text.strip()
+    system_instruction = ""
+    if config:
+        system_instruction = getattr(config, "system_instruction", "")
+        if isinstance(config, dict):
+            system_instruction = config.get("system_instruction", "")
+
+    if image_b64:
+        res = or_client.vision(prompt_text, image_b64, mime=mime_type, system=system_instruction or "Analyze the image.", model=model_name)
+    else:
+        res = or_client.chat(prompt_text, system=system_instruction or "You are a helpful assistant.", model=model_name)
+    return UnifiedModelResponse(text=res)
+
 def call_unified_model(contents, config=None, category="coding", model_name=None, **kwargs) -> UnifiedModelResponse:
     """Central dispatch for all non-live LLM calls in the codebase."""
     base_dir = get_base_dir()
@@ -203,8 +235,16 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         if not base_url:
             base_url = "http://localhost:3000/v1"
 
-    if model and "gemini" in model.lower() and provider != "freellmapi":
+    if model and "gemini" in model.lower() and provider != "freellmapi" and provider != "openrouter":
         provider = "gemini"
+
+    if provider == "openrouter":
+        print(f"[Unified Model] OpenRouter provider active. Target model: {model}")
+        try:
+            return _call_openrouter_fallback(contents, config, model_name=model_name)
+        except Exception as e:
+            print(f"[Unified Model] OpenRouter call failed: {e}. Falling back to Gemini...")
+            provider = "gemini"
 
     # If provider is gemini or fallback triggered, run Gemini SDK
     if (provider == "gemini" or not base_url or not api_key) and provider != "freellmapi":
@@ -266,7 +306,11 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
                             continue
                     
                     if attempt == max_attempts - 1:
-                        raise RuntimeError(f"Unified model call failed on both modern and legacy Gemini fallbacks: {e} | {le}")
+                        try:
+                            print("[Unified Model] Gemini fallbacks failed. Trying OpenRouter free fallback...")
+                            return _call_openrouter_fallback(contents, config, model_name=model_name)
+                        except Exception as or_err:
+                            raise RuntimeError(f"Unified model call failed on both modern and legacy Gemini fallbacks and OpenRouter fallback: {e} | {le} | {or_err}")
 
     # 3. NVIDIA/OpenAI API Call
     import requests
@@ -347,7 +391,11 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
             )
             return UnifiedModelResponse(text=response.text or "")
         except Exception as fallback_err:
-            raise RuntimeError(f"Unified model failed on Nvidia and could not fall back to Gemini: {e} | {fallback_err}")
+            try:
+                print("[Unified Model] Nvidia and Gemini fallbacks failed. Trying OpenRouter free fallback...")
+                return _call_openrouter_fallback(contents, config, model_name=model_name)
+            except Exception as or_err:
+                raise RuntimeError(f"Unified model failed on Nvidia, Gemini and OpenRouter: {e} | {fallback_err} | {or_err}")
 
 # Legacy google-generativeai API compatibility wrapper
 class UnifiedGenerativeModel:

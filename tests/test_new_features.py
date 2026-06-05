@@ -249,5 +249,76 @@ class TestNewFeatures(unittest.TestCase):
         finally:
             shutil.rmtree(temp_dir)
 
+    @patch("requests.post")
+    @patch("actions.openrouter_helper._load_api_key", return_value="dummy_or_key")
+    def test_openrouter_client_chat(self, mock_load_key, mock_post):
+        from actions.openrouter_helper import OpenRouterClient
+        
+        # Setup mock response
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "choices": [{"message": {"content": "Hello! I am OpenRouter."}}]
+        }
+        mock_post.return_value = mock_resp
+        
+        client = OpenRouterClient()
+        reply = client.chat("Hi")
+        self.assertEqual(reply, "Hello! I am OpenRouter.")
+
+    @patch("requests.post")
+    @patch("actions.openrouter_helper._load_api_key", return_value="dummy_or_key")
+    def test_openrouter_client_rate_limiting(self, mock_load_key, mock_post):
+        from actions.openrouter_helper import OpenRouterClient
+        import actions.openrouter_helper
+        
+        # Reset rate limits
+        actions.openrouter_helper._rate_limited.clear()
+        
+        # Mock 429 for the first model, 200 for the second
+        mock_resp_429 = MagicMock()
+        mock_resp_429.status_code = 429
+        
+        mock_resp_200 = MagicMock()
+        mock_resp_200.status_code = 200
+        mock_resp_200.json.return_value = {
+            "choices": [{"message": {"content": "Fallback reply"}}]
+        }
+        
+        mock_post.side_effect = [mock_resp_429, mock_resp_200]
+        
+        client = OpenRouterClient()
+        reply = client.chat("Hi")
+        self.assertEqual(reply, "Fallback reply")
+        
+        # First model (meta-llama/llama-3.3-70b-instruct:free) should be rate limited
+        self.assertTrue(client._is_rate_limited("meta-llama/llama-3.3-70b-instruct:free"))
+
+    @patch("google.generativeai.GenerativeModel")
+    @patch("requests.post")
+    @patch("actions.prime_utils._call_openrouter_fallback")
+    @patch("google.genai.Client")
+    @patch("actions.prime_utils.get_api_key", return_value="dummy_key")
+    def test_prime_utils_openrouter_fallback(self, mock_get_key, mock_genai_client, mock_or_fallback, mock_post, mock_legacy_model):
+        from actions.prime_utils import call_unified_model, UnifiedModelResponse
+        
+        # Make requests.post raise an exception to simulate Nvidia/OpenAI failure
+        mock_post.side_effect = Exception("Nvidia service unavailable")
+        
+        # Make Gemini modern client throw rate limit (429)
+        mock_client = MagicMock()
+        mock_genai_client.return_value = mock_client
+        mock_client.models.generate_content.side_effect = Exception("429 Resource Exhausted")
+        
+        # Make Gemini legacy model throw rate limit (429)
+        mock_legacy_model.return_value.generate_content.side_effect = Exception("429 Legacy Resource Exhausted")
+        
+        # Mock OpenRouter fallback success
+        mock_or_fallback.return_value = UnifiedModelResponse(text="OpenRouter fallback success")
+        
+        res = call_unified_model("Write a python loop", category="coding")
+        self.assertEqual(res.text, "OpenRouter fallback success")
+        mock_or_fallback.assert_called_once()
+
 if __name__ == "__main__":
     unittest.main()
