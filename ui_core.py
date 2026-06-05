@@ -4885,27 +4885,29 @@ class MainWindow(QMainWindow):
                 print(f"[Hotkey Registry] Failed to register Win32 hotkey: {e}")
 
     def nativeEvent(self, eventType, message):
-        if eventType == b"windows_generic_MSG":
+        if eventType == b"windows_generic_MSG" and message:
             try:
-                import ctypes
-                from ctypes import wintypes
-                class MSG(ctypes.Structure):
-                    _fields_ = [
-                        ("hwnd", wintypes.HWND),
-                        ("message", wintypes.UINT),
-                        ("wParam", wintypes.WPARAM),
-                        ("lParam", wintypes.LPARAM),
-                        ("time", wintypes.DWORD),
-                        ("pt", wintypes.POINT),
-                    ]
-                msg = MSG.from_address(int(message))
-                if msg.message == 0x0312:  # WM_HOTKEY
-                    if msg.wParam == 100:  # Our hotkey ID
-                        self.toggle_hud_visibility()
-                        return True, 0
+                addr = int(message)
+                if addr != 0:
+                    import ctypes
+                    from ctypes import wintypes
+                    class MSG(ctypes.Structure):
+                        _fields_ = [
+                            ("hwnd", wintypes.HWND),
+                            ("message", wintypes.UINT),
+                            ("wParam", wintypes.WPARAM),
+                            ("lParam", wintypes.LPARAM),
+                            ("time", wintypes.DWORD),
+                            ("pt", wintypes.POINT),
+                        ]
+                    msg = MSG.from_address(addr)
+                    if msg.message == 0x0312:  # WM_HOTKEY
+                        if msg.wParam == 100:  # Our hotkey ID
+                            self.toggle_hud_visibility()
+                            return True, 0
             except Exception as e:
                 print(f"[nativeEvent Error] {e}")
-        return super().nativeEvent(eventType, message)
+        return False, 0
 
     def toggle_hud_visibility(self):
         if self.isVisible() and not self.isMinimized() and self.isActiveWindow():
