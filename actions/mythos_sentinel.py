@@ -1623,13 +1623,7 @@ def mythos_sentinel(parameters: dict, player=None) -> str:
         return run_mythos_patcher(code_content, language, player=player)
 
     elif action == "tutor":
-        try:
-            from actions.cyber_tutor import cyber_tutor
-            tutor_params = dict(parameters)
-            tutor_params["action"] = parameters.get("sub_action", "list")
-            return cyber_tutor(tutor_params, player=player)
-        except Exception as e:
-            return f"Error loading Cybersecurity Tutor: {e}"
+        return "The local Cybersecurity Tutor tool has been decommissioned. Please leverage my native LLM capabilities directly for tutoring, roadmap planning, and quizzes on cybersecurity topics."
 
     elif action == "decode":
         sub_action = parameters.get("sub_action", "").lower().strip()
@@ -1638,13 +1632,7 @@ def mythos_sentinel(parameters: dict, player=None) -> str:
         elif sub_action == "dependency_auditor":
             return run_dependency_audit(parameters.get("file_path", ""), player=player)
         else:
-            try:
-                from actions.ctf_helper import ctf_helper
-                ctf_params = dict(parameters)
-                ctf_params["action"] = sub_action
-                return ctf_helper(ctf_params, player=player)
-            except Exception as e:
-                return f"Error loading CTF Helper: {e}"
+            return f"Decoding operations for '{sub_action}' have been decommissioned from the local helper. Please leverage my native LLM capabilities directly to decode Morse, Base64, Hex, ROT13, Caesar ciphers, or identify hashes."
 
     # ── ELITE HACKER ARSENAL ──────────────────────────────────────────────────
     elif action == "recon":

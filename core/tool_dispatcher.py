@@ -42,7 +42,6 @@ from actions.email_summarizer import email_summarizer
 from actions.mobile_telekinesis import mobile_telekinesis
 from actions.smart_home import smart_home_enhanced
 from actions.autonomous_shell_helper import autonomous_cli_helper
-from actions.soap2soap_helper import soap2soap_remaker
 from actions.file_explorer import file_explorer
 from actions.hermes_agent import hermes_agent
 from actions.code_companion import code_companion
@@ -732,9 +731,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                 r = await loop.run_in_executor(None, lambda: get_auto_reply_status(player=player))
             result = r or "Done."
 
-        elif name == "soap2soap_remaker":
-            r = await loop.run_in_executor(None, lambda: soap2soap_remaker(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "file_explorer":
             r = await loop.run_in_executor(None, lambda: file_explorer(parameters=args, player=player))
@@ -845,15 +841,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: habit_tracker(parameters=args, player=player))
             result = r or "Done."
 
-        elif name == "emotion_detector":
-            from actions.emotion_detector import emotion_detector
-            r = await loop.run_in_executor(None, lambda: emotion_detector(parameters=args, player=player))
-            result = r or "Done."
-
-        elif name == "tutor_mode":
-            from actions.tutor_mode import tutor_mode
-            r = await loop.run_in_executor(None, lambda: tutor_mode(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "email_ai":
             from actions.email_ai import email_ai
@@ -956,10 +943,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             result = r or "Done."
 
 
-        elif name == "printer_3d_controller":
-            from actions.printer_3d_controller import printer_3d_controller
-            r = await loop.run_in_executor(None, lambda: printer_3d_controller(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "enable_hacker_mode":
             from actions.model_switcher import model_switcher
@@ -975,15 +958,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: model_switcher(parameters=args_copy, player=player))
             result = r or "Done."
 
-        elif name == "cyber_tutor":
-            from actions.cyber_tutor import cyber_tutor
-            r = await loop.run_in_executor(None, lambda: cyber_tutor(parameters=args, player=player))
-            result = r or "Done."
-
-        elif name == "ctf_helper":
-            from actions.ctf_helper import ctf_helper
-            r = await loop.run_in_executor(None, lambda: ctf_helper(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "password_toolkit":
             from actions.password_tools import password_tools

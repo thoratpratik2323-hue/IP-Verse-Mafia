@@ -13,8 +13,6 @@ from unittest.mock import MagicMock, patch
 from actions.local_llm import local_llm
 from actions.model_switcher import model_switcher
 from actions.habit_tracker import habit_tracker
-from actions.emotion_detector import emotion_detector
-from actions.tutor_mode import tutor_mode
 from actions.email_ai import email_ai
 from actions.discord_helper import discord_helper
 from actions.telegram_bot import telegram_bot
@@ -35,7 +33,6 @@ from actions.network_monitor import network_monitor
 from actions.face_recognition import face_recognition
 from actions.wifi_speed_logger import wifi_speed_logger
 from actions.second_monitor_overlay import second_monitor_overlay
-from actions.printer_3d_controller import printer_3d_controller
 
 class TestNewFeatures(unittest.TestCase):
 
@@ -55,14 +52,6 @@ class TestNewFeatures(unittest.TestCase):
         # Habit Tracker
         res = habit_tracker({"action": "report"}, player=self.player)
         self.assertIn("habit", res.lower())
-
-        # Emotion Detector
-        res = emotion_detector({"action": "get_mood"}, player=self.player)
-        self.assertIn("mood", res.lower())
-
-        # Tutor Mode
-        res = tutor_mode({"action": "report"}, player=self.player)
-        self.assertIn("learning", res.lower())
 
     def test_phase2_comms(self):
         # Email AI
@@ -152,12 +141,6 @@ class TestNewFeatures(unittest.TestCase):
         # Second Monitor Overlay
         res = second_monitor_overlay({"action": "update_tasks", "value": "test"}, player=self.player)
         self.assertIn("updated", res.lower())
-
-
-
-        # 3D Printer Controller
-        res = printer_3d_controller({"action": "status"}, player=self.player)
-        self.assertIn("print", res.lower())
 
     def test_phase8_autonomy_upgrades(self):
         # Test compact_memory import and execution

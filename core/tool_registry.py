@@ -1502,19 +1502,6 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
-        "name": "soap2soap_remaker",
-        "description": "Soap2Soap 3-Agent Collaborative Cinematic Video Remaking Framework. Agent 1 (Video Understanding) creates language and visual bridges, Agent 2 (Video Generation) builds a detailed cinematic shot sequence, Agent 3 (Verification) validates identity stability and temporal continuity. Saves history locally. Use this to generate AI video production scripts from any prompt.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "remake (default) | list"},
-                "prompt": {"type": "STRING", "description": "The cinematic scene/video idea to remake"},
-                "remake_type": {"type": "STRING", "description": "cinematic | anime | documentary | music_video (default: cinematic)"},
-                "source_style": {"type": "STRING", "description": "Art style reference: cyberpunk | noir | bollywood | sci-fi | fantasy | realistic (default: cyberpunk)"}
-            }
-        }
-    },
-    {
         "name": "file_explorer",
         "description": "Full File Explorer Automation — browse directories, search files, copy/move/rename/delete, create files & folders, preview content, open with default app, compress/extract ZIP, find duplicates, bulk rename (regex), disk usage, recent files, bookmarks, directory tree view, large files finder, file type stats, and live file watcher. Use for any file system operation.",
         "parameters": {
@@ -1762,32 +1749,6 @@ TOOL_DECLARATIONS: list[dict] = [
                 "action": {"type": "STRING", "description": "add | check | report | delete | evening_check"},
                 "name": {"type": "STRING", "description": "Habit name to register or check off"},
                 "frequency": {"type": "STRING", "description": "daily (default) | weekly"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "emotion_detector",
-        "description": "Biometric face emotion watcher. Matches webcam expressions to personality adjustments.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "detect | get_mood"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "tutor_mode",
-        "description": "Spaced repetition Leitner box tutoring cards and study logs.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "add | start | quiz | outcome | report | reminder"},
-                "topic": {"type": "STRING", "description": "Learning topic name"},
-                "question": {"type": "STRING", "description": "Quiz question payload"},
-                "answer": {"type": "STRING", "description": "Quiz answer key"},
-                "correct": {"type": "BOOLEAN", "description": "User quiz outcome result indicator"}
             },
             "required": ["action"]
         }
@@ -2084,18 +2045,6 @@ TOOL_DECLARATIONS: list[dict] = [
     },
 
     {
-        "name": "printer_3d_controller",
-        "description": "OctoPrint 3D printer status tracking, temperatures checking, and job controls.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "status | temps | start | pause | cancel | files"},
-                "file_name": {"type": "STRING", "description": "Target Gcode file to print"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
         "name": "enable_hacker_mode",
         "description": "Activates Hacker Mode, updating your personality to an expert ethical hacker and enabling the security console skull badge, sir.",
         "parameters": {
@@ -2111,34 +2060,6 @@ TOOL_DECLARATIONS: list[dict] = [
             "type": "OBJECT",
             "properties": {},
             "required": []
-        }
-    },
-    {
-        "name": "cyber_tutor",
-        "description": "Interactive cybersecurity tutor and educational quiz system. Teaches networking, web security, Linux, and cryptography conceptually.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "teach | list | roadmap | quiz"},
-                "topic_id": {"type": "STRING", "description": "The specific topic key to learn (e.g. 'networking', 'web_security')"},
-                "roadmap_path": {"type": "STRING", "description": "The learning roadmap path to set (e.g. 'beginner', 'web_pentesting')"},
-                "quiz_id": {"type": "STRING", "description": "The target quiz question ID (required to answer or show a specific question)"},
-                "user_answer": {"type": "STRING", "description": "The user's answer option to submit for a quiz question"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "ctf_helper",
-        "description": "Educational CTF challenges assistance. Decodes common formats (Base64, Hex, ROT13, Morse), cracks Caesar ciphers locally, identifies hashes, and gives helpful guidelines.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "decode_base64 | decode_hex | decode_rot13 | decode_morse | crack_caesar | detect_encoding | hash_identifier | extract_strings | stego_check | hint"},
-                "text": {"type": "STRING", "description": "The raw string to decode, check encoding, identify hash, or get hints for"},
-                "file_path": {"type": "STRING", "description": "Absolute file path for extracting strings or checking stego metadata"}
-            },
-            "required": ["action"]
         }
     },
     {
