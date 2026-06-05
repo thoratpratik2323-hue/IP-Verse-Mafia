@@ -321,5 +321,40 @@ class TestNewFeatures(unittest.TestCase):
         self.assertEqual(res.text, "OpenRouter fallback success")
         mock_or_fallback.assert_called_once()
 
+    @patch("requests.get")
+    @patch("actions.image_generator._load_keys", return_value={"ideogram": "", "replicate": ""})
+    def test_image_generator_free_tier(self, mock_load_keys, mock_requests_get):
+        from actions.image_generator import image_generator
+        import tempfile
+        import shutil
+        from pathlib import Path
+        
+        # Setup mock image download
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.content = b"fake_png_data"
+        mock_requests_get.return_value = mock_resp
+        
+        # Override the EXPORTS_DIR during testing to avoid polluting actual directories
+        temp_exports = tempfile.mkdtemp()
+        import actions.image_generator
+        old_exports = actions.image_generator.EXPORTS_DIR
+        actions.image_generator.EXPORTS_DIR = Path(temp_exports)
+        
+        try:
+            # We patch startfile since we don't want to launch real viewers in tests
+            with patch("os.startfile") as mock_startfile:
+                res = image_generator({"prompt": "A beautiful sunset", "aspect_ratio": "16:9"})
+                self.assertIn("Image generate ho gayi hai", res)
+                self.assertIn("exports/art_", res)
+                
+                # Check that file was indeed saved
+                files = list(Path(temp_exports).glob("art_*.png"))
+                self.assertEqual(len(files), 1)
+                self.assertEqual(files[0].read_bytes(), b"fake_png_data")
+        finally:
+            actions.image_generator.EXPORTS_DIR = old_exports
+            shutil.rmtree(temp_exports)
+
 if __name__ == "__main__":
     unittest.main()

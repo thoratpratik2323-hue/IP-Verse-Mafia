@@ -31,6 +31,7 @@ from actions.premium_utilities import (
 )
 from actions.warp_helper import warp_helper
 from actions.ask_antigravity import ask_antigravity
+from actions.image_generator import image_generator
 
 # Premium Actions Suite 2026
 from actions.task_planner import task_planner
@@ -168,6 +169,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                 None,
                 lambda: file_processor(parameters=args, player=player, speak=speak)
             )
+            result = r or "Done."
+
+        elif name == "image_generator":
+            r = await loop.run_in_executor(None, lambda: image_generator(parameters=args, player=player))
             result = r or "Done."
 
         elif name == "computer_control":

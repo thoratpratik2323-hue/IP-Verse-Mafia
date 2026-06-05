@@ -2522,6 +2522,34 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "image_generator",
+        "description": (
+            "🎨 AI IMAGE & ART GENERATOR — Generates premium visual art, photos, or graphics using AI. "
+            "Supports high-quality models (Flux/SDXL/Ideogram) with a free fallback. "
+            "Saves generated files under 'CODING PROJECTS/exports/' and opens them automatically. "
+            "Actions: generate. "
+            "Trigger phrases: 'generate an image of X', 'create art of Y', 'draw a Z', 'flux model image'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "prompt": {
+                    "type": "STRING",
+                    "description": "Detailed prompt describing the image you want to generate. E.g., 'A futuristic cybernetic tiger, neon lighting, highly detailed'"
+                },
+                "aspect_ratio": {
+                    "type": "STRING",
+                    "description": "Aspect ratio of the generated image. E.g., '1:1', '16:9', '9:16', '4:3', '3:4' (default: '1:1')"
+                },
+                "provider": {
+                    "type": "STRING",
+                    "description": "The AI model provider to use. E.g., 'auto' (default), 'ideogram', 'replicate', 'pollinations' (free)"
+                }
+            },
+            "required": ["prompt"]
+        }
     }
 ]
 
