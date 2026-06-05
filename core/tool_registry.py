@@ -1418,18 +1418,6 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
-        "name": "webcam_mood",
-        "description": "Webcam Emotion Telemetry. Captures camera frame, runs Gemini visual emotional state diagnostics, and returns Hinglish advice.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "detect (default) | history | watch | stop_watch"},
-                "days": {"type": "INTEGER", "description": "History lookback range in days (default 7)"},
-                "interval": {"type": "INTEGER", "description": "Watcher interval in minutes (default 30)"}
-            }
-        }
-    },
-    {
         "name": "spotify_dj_mode",
         "description": "Intelligent Spotify DJ. Maps user mood (auto-detected via webcam or specified) to ambient playlist queries and opens Spotify app.",
         "parameters": {

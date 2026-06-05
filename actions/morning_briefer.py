@@ -137,14 +137,6 @@ def generate_briefing(player=None) -> str:
             tasks_summary = f"Task planner status: {pending_count} active objectives remaining in queue."
             if overdue_list:
                 overdue_warning = f"\n[WARNING] Critical Alert: {len(overdue_list)} objectives are overdue! Prioritize and eliminate these targets immediately, Pratik!"
-                
-        try:
-            from actions.study_planner import get_today_study_task
-            study_task = get_today_study_task()
-            if study_task:
-                tasks_summary += f"\n[STUDY PLAN] {study_task}"
-        except Exception:
-            pass
     except Exception as e:
         tasks_summary = f"Task planning count failed: {e}"
 

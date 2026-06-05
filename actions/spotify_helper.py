@@ -125,9 +125,9 @@ def spotify_dj_mode(mood: str = "auto", player=None) -> str:
     if mood == "auto":
         # First try to read the most recent logged mood from history
         try:
-            from actions.webcam_mood import MOOD_HISTORY_FILE
-            if MOOD_HISTORY_FILE.exists():
-                with open(MOOD_HISTORY_FILE, "r", encoding="utf-8") as f:
+            mood_file = Path.home() / ".ipprime" / "mood_history.json"
+            if mood_file.exists():
+                with open(mood_file, "r", encoding="utf-8") as f:
                     history_data = json.load(f)
                     history = history_data.get("history", [])
                     if history:

@@ -259,17 +259,6 @@ CORE_TOOLS = {
         "func": "live_code_reviewer",
         "pass_speak": True
     },
-    "webcam_mood": {
-        "description": "Webcam Mood Detector.",
-        "parameters": {
-            "action": "\"detect\" | \"history\" | \"watch\" | \"stop_watch\" (required)",
-            "days": "int (optional)",
-            "interval": "int (optional)"
-        },
-        "module": "actions.webcam_mood",
-        "func": "webcam_mood",
-        "pass_speak": True
-    },
     "spotify_helper": {
         "description": "Control Spotify playback and search tracks.",
         "parameters": {

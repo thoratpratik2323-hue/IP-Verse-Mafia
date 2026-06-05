@@ -1713,8 +1713,6 @@ class MainWindow(QMainWindow):
     _clipboard_ai_sig = pyqtSignal()
     _briefing_sig      = pyqtSignal()
     _pomodoro_sig      = pyqtSignal()
-    _dsa_sig           = pyqtSignal()
-    _study_sig         = pyqtSignal()
     _spotify_sig        = pyqtSignal()
     _translation_sig    = pyqtSignal()
     _team_intro_web_sig = pyqtSignal()
@@ -1766,8 +1764,6 @@ class MainWindow(QMainWindow):
         self._clipboard_ai_sig.connect(self._toggle_clipboard_ai)
         self._briefing_sig.connect(self._toggle_briefing)
         self._pomodoro_sig.connect(self._toggle_pomodoro)
-        self._dsa_sig.connect(self._toggle_dsa)
-        self._study_sig.connect(self._toggle_study)
         self._spotify_sig.connect(self._toggle_spotify)
         self._translation_sig.connect(self._toggle_translation)
         self._team_intro_web_sig.connect(self._run_web_team_introduction)
@@ -2330,23 +2326,6 @@ class MainWindow(QMainWindow):
         self._sandbox_btn.clicked.connect(self._toggle_sandbox)
         # lay.addWidget(self._sandbox_btn)
 
-        self._viva_btn = QPushButton("VIVA 🎤")
-        self._viva_btn.setFixedSize(90, 36)
-        self._viva_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._viva_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._viva_btn.setToolTip("Open Voice Technical Viva Prep Examiner")
-        self._viva_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(16, 185, 129, 0.12); color: #10B981;
-                border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 18px;
-                letter-spacing: 0.5px;
-            }
-            QPushButton:hover {
-                background: rgba(16, 185, 129, 0.22); color: #10B981; border: 1.5px solid #10B981;
-            }
-        """)
-        self._viva_btn.clicked.connect(self._toggle_viva)
-        # lay.addWidget(self._viva_btn)
 
         self._git_btn = QPushButton("GIT 🐙")
         self._git_btn.setFixedSize(80, 36)
@@ -2404,43 +2383,6 @@ class MainWindow(QMainWindow):
         self._focus_btn.clicked.connect(self._toggle_pomodoro)
         # lay.addWidget(self._focus_btn)
 
-        # DSA Button
-        self._dsa_btn = QPushButton("DSA 💡")
-        self._dsa_btn.setFixedSize(80, 36)
-        self._dsa_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._dsa_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._dsa_btn.setToolTip("Open DSA/LeetCode AI Assistant")
-        self._dsa_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(139, 92, 246, 0.12); color: #8B5CF6;
-                border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 18px;
-                letter-spacing: 0.5px;
-            }
-            QPushButton:hover {
-                background: rgba(139, 92, 246, 0.22); color: #8B5CF6; border: 1.5px solid #8B5CF6;
-            }
-        """)
-        self._dsa_btn.clicked.connect(self._toggle_dsa)
-        # lay.addWidget(self._dsa_btn)
-
-        # STUDY Button
-        self._study_btn = QPushButton("STUDY 📅")
-        self._study_btn.setFixedSize(90, 36)
-        self._study_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        self._study_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._study_btn.setToolTip("Open AI Study Scheduler")
-        self._study_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(59, 130, 246, 0.12); color: #3B82F6;
-                border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 18px;
-                letter-spacing: 0.5px;
-            }
-            QPushButton:hover {
-                background: rgba(59, 130, 246, 0.22); color: #3B82F6; border: 1.5px solid #3B82F6;
-            }
-        """)
-        self._study_btn.clicked.connect(self._toggle_study)
-        # lay.addWidget(self._study_btn)
 
         # MUSIC Button
         self._music_btn = QPushButton("MUSIC 🎵")
@@ -3582,18 +3524,7 @@ class MainWindow(QMainWindow):
             self._sandbox_panel.move(x, y)
             self._sandbox_panel.show()
 
-    def _toggle_viva(self):
-        if not hasattr(self, "_viva_panel") or self._viva_panel is None:
-            from actions.viva_gui import VivaPanel
-            self._viva_panel = VivaPanel(self)
-        
-        if self._viva_panel.isVisible():
-            self._viva_panel.hide()
-        else:
-            x = int(self.x() + (self.width() - self._viva_panel.width()) / 2)
-            y = int(self.y() + (self.height() - self._viva_panel.height()) / 2)
-            self._viva_panel.move(x, y)
-            self._viva_panel.show()
+
 
     def _toggle_git_autopilot(self):
         if not hasattr(self, "_git_panel") or self._git_panel is None:
@@ -3662,31 +3593,7 @@ class MainWindow(QMainWindow):
             self._pomodoro_panel.move(x, y)
             self._pomodoro_panel.show()
 
-    def _toggle_dsa(self):
-        if not hasattr(self, "_dsa_panel") or self._dsa_panel is None:
-            from actions.dsa_gui import DSAPanel
-            self._dsa_panel = DSAPanel(self)
-        
-        if self._dsa_panel.isVisible():
-            self._dsa_panel.hide()
-        else:
-            x = int(self.x() + (self.width() - self._dsa_panel.width()) / 2)
-            y = int(self.y() + (self.height() - self._dsa_panel.height()) / 2)
-            self._dsa_panel.move(x, y)
-            self._dsa_panel.show()
 
-    def _toggle_study(self):
-        if not hasattr(self, "_study_panel") or self._study_panel is None:
-            from actions.study_planner_gui import StudyPlannerPanel
-            self._study_panel = StudyPlannerPanel(self)
-        
-        if self._study_panel.isVisible():
-            self._study_panel.hide()
-        else:
-            x = int(self.x() + (self.width() - self._study_panel.width()) / 2)
-            y = int(self.y() + (self.height() - self._study_panel.height()) / 2)
-            self._study_panel.move(x, y)
-            self._study_panel.show()
 
     def _toggle_translation(self):
         try:

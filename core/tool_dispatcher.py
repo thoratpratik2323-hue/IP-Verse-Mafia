@@ -37,7 +37,6 @@ from actions.task_planner import task_planner
 from actions.morning_briefer import morning_briefer
 from actions.screenshot_code_gen import screenshot_code_gen
 from actions.live_code_reviewer import live_code_reviewer
-from actions.webcam_mood import webcam_mood
 from actions.email_summarizer import email_summarizer
 from actions.mobile_telekinesis import mobile_telekinesis
 from actions.smart_home import smart_home_enhanced
@@ -692,9 +691,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: live_code_reviewer(parameters=args, player=player))
             result = r or "Done."
 
-        elif name == "webcam_mood":
-            r = await loop.run_in_executor(None, lambda: webcam_mood(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "spotify_dj_mode":
             from actions.spotify_helper import spotify_dj_mode
