@@ -805,6 +805,24 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "ip_army",
+        "description": "Deploys the IP AI Army of specialized agents (IP Scout, IP Scribe, IP Codex, IP Lexicon, IP Audit) to execute complex coding, writing, localization, and audit operations concurrently.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "project_path": {
+                    "type": "STRING",
+                    "description": "Optional absolute path to target project workspace directory."
+                },
+                "instruction": {
+                    "type": "STRING",
+                    "description": "Goal instruction to decompose and execute using the AI army specialized agents."
+                }
+            },
+            "required": ["instruction"]
+        }
+    },
+    {
         "name": "semantic_search",
         "description": "Performs local RAG and semantic search using cosine similarity and Gemini embeddings. Searches indexed documents and files.",
         "parameters": {

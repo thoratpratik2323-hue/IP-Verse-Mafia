@@ -201,6 +201,24 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             threading.Thread(target=run_bg, daemon=True).start()
             result = "Sir, I have launched the Orchestrated Coder in a secure background thread. I will notify you the moment it finishes. You can continue speaking or performing other tasks!"
 
+        elif name == "ip_army":
+            from actions.ip_army import run_ip_army
+            proj = args.get("project_path", "")
+            inst = args.get("instruction", "")
+            def run_bg():
+                try:
+                    player.write_thought("Mobilizing the IP AI Army specialized division...")
+                    res = run_ip_army(project_path_str=proj, instruction=inst, player=player)
+                    player.write_thought("IP AI Army orchestration task complete!")
+                    player.write_log(f"SYS: IP Army Finished:\n{res}")
+                    speak("Sir, the IP AI Army has completed its tasks successfully.")
+                except Exception as e:
+                    player.write_log(f"SYS ERROR: IP Army failed: {e}")
+                    speak(f"Sir, the IP AI Army task has failed: {e}")
+            
+            threading.Thread(target=run_bg, daemon=True).start()
+            result = "Sir, I have deployed the IP AI Army of specialized agents in the background. They are working on your request right now!"
+
         elif name == "flight_finder":
             r = await loop.run_in_executor(None, lambda: flight_finder(parameters=args, player=player))
             result = r or "Done."

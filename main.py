@@ -617,11 +617,12 @@ class IPRayLive:
 
         import random
         sweet_samples = [
-            "System initialized, bhai! Main IP Prime online aa chuka hoon. Cockpit visualizers stable hain. Batao aaj kya build karein? Let's rule the day, bro!",
-            "Yo Pratik! Core system fully operational hai, dost. Space nebulae and stardust are synchronized. Batao bhai, aaj code me kya aag lagani hai?",
-            "All visual systems and semantic stores are online, bhai! IP Prime completely ready hai. Sab set hai, batao aaj kis command par kaam karna hai, bro!",
-            "Hey Pratik! Startup calibration complete! OLED cockpit is fully illuminated. Welcome back, bhai. Main ready hoon, tell me what's the plan today!",
-            "Online and operational, dost! Your custom-built Second Brain is loaded and habits tracker is live. Boliye, aaj kya fodna hai, bhai!"
+            "Welcome back, Pratik Sir. Systems are primed and ready. Awaiting your instructions, sir.",
+            "Good day, Pratik Sir. All core modules are fully operational. Standing by for your command.",
+            "Welcome, Pratik Sir. Memory stores synced and cockpit visualizers stable. Ready when you are.",
+            "Hello, Pratik Sir. IP Prime online. Let's make today highly productive, sir.",
+            "Welcome back, Sir. Secure connection established. Ready to assist with your features.",
+            "Welcome, Pratik Sir. Mainframe initialized successfully. How can I assist you today?"
         ]
         sample_greeting = random.choice(sweet_samples)
         

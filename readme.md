@@ -68,6 +68,8 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 | Archive Compression | Weekly/monthly digests of past conversations |
 | Semantic Router | Intelligently routes intent to the right action module |
 | Agent Orchestrator | Autonomous multi-step task planning and execution |
+| OpenRouter Fallback | Resilient cascade fallback to OpenRouter Free LLMs on Gemini/Nvidia 429 rate limit errors |
+| Screen Crash Auditor | Context-aware proactive screen monitor targeting developer windows (3-min) & general windows (60-min) |
 
 ### 🛡️ Security & Hacking
 | Feature | Details |
@@ -85,7 +87,7 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 | Web HUD | Floating web interface overlay on your desktop |
 | Web Search | DuckDuckGo-powered instant search |
 | Flight Finder | Search and compare flights directly |
-| Weather Report | Real-time weather for any location |
+| Weather Report | Real-time weather with silent wttr.in fallback, avoiding browser popups unless requested |
 | YouTube Helper | Fetch transcripts, search, and summarize videos |
 
 ### 💬 Communication
@@ -118,6 +120,7 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 | Reminder System | Smart reminders and alarms |
 | Chronos Routines | Scheduled & recurring task automation |
 | Obsidian Helper | Integrate with Obsidian knowledge base |
+| Obsidian Auto-Organizer | Semantic note auto-organizer, linker, and daily/weekly productivity summaries |
 | Spotify Helper | Control Spotify playback |
 | Media Controller | System-wide media controls |
 | n8n Dispatcher | Trigger n8n automation workflows |
@@ -139,6 +142,21 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 | Dashboard | Integrated HTML web dashboard |
 | GUI Window Switcher | Switch to any running window's GUI view |
 | Desktop Preview | Live desktop preview in assistant |
+
+### 👥 The IP AI Army
+IP Prime coordinates an elite team of **12 specialized autonomous agents** (the IP Army) to execute system-level operations, research, coding, and debugging tasks:
+*   **IP Prime (Grand Coordinator & Command Center)** - Ecosystem orchestration, database integration, and state manager.
+*   **Claude (Reasoning & Research Specialist)** - Deep logical analysis, code refactoring strategies, and system design structures.
+*   **Hermes (Automation & Operations Commander)** - Routine execution, background automation, and Windows Task Scheduler integration.
+*   **AntiGravity (Runtime Orchestration & Stability Engine)** - System performance monitor, thread pool optimizer, and screen/clipboard tracking loops.
+*   **Obsidian (Security Sentinel)** - Security auditing, encryption validation, and data compliance tracking.
+*   **Agent Inferno (Lead Tactician / Developer)** - Rapid code writing, test loops, compiler error debugging, and syntax stability.
+*   **Agent Zenith (Lead Architect / Auditor)** - System dependency checks, configurations auditing, and SOLID patterns compliance.
+*   **IP Scout (Research Division)** - Competitor analysis, facts gathering, and internet summaries.
+*   **IP Scribe (Content & Copywriting Division)** - Markdown formatting, copywriting, blog drafting, and email compositions.
+*   **IP Codex (Code Generation Division)** - Direct script writing and HTML/CSS web layout builds.
+*   **IP Lexicon (Translation & Localization Division)** - Preserving tone and formatting across multi-lingual translations.
+*   **IP Audit (Quality Assurance Division)** - Syntax checking, code reviews, and accessibility standards.
 
 ---
 
@@ -242,7 +260,14 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v6.x — *Unlimited Memory Brain (Current)*
+### v7.x — *Resilience, Proactive Audits & IP AI Army Unified Roster (Current)*
+- 🛡️ **OpenRouter LLM Fallback Integration** — Added resilient API fallback routing to OpenRouter Free LLMs when Gemini or Nvidia NIM APIs hit 429 rate limits or quota errors, ensuring uninterrupted agent execution.
+- 👁️ **Proactive Screen Crash Auditor** — Implemented an intelligent screen auditor that monitors active windows and logs screen time, running every 3 minutes on developer environments (VS Code, terminal, etc.) and every 60 minutes on general applications.
+- 📝 **Obsidian Auto-Organizer** — Built semantic note-linking, categorization, and automatic daily/weekly productivity summaries directly integrated with Pratik's Obsidian Vault.
+- 🌦️ **Weather Browser Popup Prevention** — Re-engineered `weather_report.py` to silently fetch wttr.in data in the background, avoiding browser popups unless explicitly requested with `open_browser=True`.
+- 🎖️ **Unified IP AI Army Roster** — Consolidated the 12 specialized agents of the IP AI Army (including renaming Agent Red to **Agent Inferno** and Agent Purple to **Agent Zenith**) into a unified team command format (`ip_army`).
+
+### v6.x — *Unlimited Memory Brain*
 - 🧠 **Unlimited Memory Brain** — Architected an **8-layer unified memory system** that searches ALL memory layers simultaneously: Long-term JSON, Episodic memory, Procedural workflows, Knowledge Base, Archive JSONL transcripts, SQLite Knowledge Graph, Compressed Digests, and LanceDB Vector Store. IP Prime now has effectively **infinite memory**.
 - 🗄️ **SQLite Knowledge Graph** (`memory/brain.py`) — New graph database with `entities`, `relations`, `facts` (subject-predicate-object triples), `timeline_events`, and `digests` tables. Thread-safe with WAL mode and mutex locks.
 - 📦 **Archive Compression Engine** (`memory/summarizer.py`) — Automatically compresses old daily JSONL archives into weekly/monthly digests to prevent storage bloat while keeping everything searchable.
