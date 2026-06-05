@@ -181,6 +181,71 @@ class TestNewFeatures(unittest.TestCase):
         res = claude_code_helper({"action": "status"}, player=self.player)
         self.assertIn("cloned", res.lower())
 
+    @patch("actions.ip_army.get_api_key", return_value="dummy_key")
+    @patch("actions.ip_army.genai.Client")
+    def test_ip_army_orchestration(self, mock_client_class, mock_get_key):
+        import json
+        import tempfile
+        import shutil
+        from pathlib import Path
+        from actions.ip_army import run_ip_army
+
+        # Setup mock client
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+        
+        # Mock planner response (JSON string representing steps)
+        mock_planner_response = MagicMock()
+        mock_planner_response.text = json.dumps([
+            {"id": "1", "agent": "ip_scout", "title": "Scout Task", "desc": "Do research"},
+            {"id": "2", "agent": "ip_codex", "title": "Codex Task", "desc": "Do coding"}
+        ])
+        
+        # Mock specialist response
+        mock_specialist_response = MagicMock()
+        mock_specialist_response.text = """===FILE_NAME===
+test_file.py
+===FILE_CONTENT===
+print("hello from IP army")
+"""
+        
+        # Mock final summary response
+        mock_final_response = MagicMock()
+        mock_final_response.text = "IP Army successfully executed the instructions."
+        
+        # The generate_content will be called multiple times
+        mock_client.models.generate_content.side_effect = [
+            mock_planner_response,
+            mock_specialist_response,
+            mock_specialist_response,
+            mock_final_response
+        ]
+
+        temp_workspace = tempfile.mkdtemp()
+        try:
+            res = run_ip_army(temp_workspace, "Write a test script", player=self.player)
+            self.assertEqual(res, "IP Army successfully executed the instructions.")
+            
+            # Check that files were created
+            created_file = Path(temp_workspace) / "test_file.py"
+            self.assertTrue(created_file.exists())
+            self.assertEqual(created_file.read_text(encoding="utf-8"), 'print("hello from IP army")')
+        finally:
+            shutil.rmtree(temp_workspace)
+
+    def test_ip_army_roster_listing(self):
+        from actions.ip_army import run_ip_army
+        res = run_ip_army("", "show team", player=self.player)
+        self.assertIn("THE IP AI ARMY — UNIFIED ROSTER", res)
+        self.assertIn("IP Prime", res)
+        self.assertIn("Agent Inferno", res)
+        self.assertIn("Agent Zenith", res)
+        self.assertIn("Claude", res)
+        self.assertIn("Hermes", res)
+        self.assertIn("AntiGravity", res)
+        self.assertIn("Obsidian", res)
+        self.assertIn("IP Scout", res)
+
     @patch("actions.screen_time.get_active_window_app")
     def test_option_b_screen_crash_auditor(self, mock_get_app):
         from agent.vision_loop import VisionLoop
