@@ -294,12 +294,13 @@ class TestNewFeatures(unittest.TestCase):
         # First model (meta-llama/llama-3.3-70b-instruct:free) should be rate limited
         self.assertTrue(client._is_rate_limited("meta-llama/llama-3.3-70b-instruct:free"))
 
+    @patch("actions.semantic_router.is_offline", return_value=False)
     @patch("google.generativeai.GenerativeModel")
     @patch("requests.post")
     @patch("actions.prime_utils._call_openrouter_fallback")
     @patch("google.genai.Client")
     @patch("actions.prime_utils.get_api_key", return_value="dummy_key")
-    def test_prime_utils_openrouter_fallback(self, mock_get_key, mock_genai_client, mock_or_fallback, mock_post, mock_legacy_model):
+    def test_prime_utils_openrouter_fallback(self, mock_get_key, mock_genai_client, mock_or_fallback, mock_post, mock_legacy_model, mock_is_offline):
         from actions.prime_utils import call_unified_model, UnifiedModelResponse
         
         # Make requests.post raise an exception to simulate Nvidia/OpenAI failure

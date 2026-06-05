@@ -517,7 +517,24 @@ class IPRayLive:
     def _speak_offline(self, text: str):
         """Pushes speech to the independent process queue for zero-GIL offline rendering."""
         try:
-            self.offline_tts_queue.put(text)
+            rt = self._realtime_settings()
+            pref_voice = rt.get("preferred_voice", "david").lower()
+            speech_rate = int(rt.get("speech_rate", 190))
+
+            david_token = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
+            zira_token  = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0"
+
+            voice_id = david_token
+            if pref_voice == "zira":
+                voice_id = zira_token
+
+            payload = {
+                "text": text,
+                "latin_text": text,
+                "voice_id": voice_id,
+                "rate": speech_rate
+            }
+            self.offline_tts_queue.put(payload)
         except Exception as e:
             print(f"[TTS Parent Coordinator] Failed to queue offline speech: {e}")
             print(f"[TTS OFFLINE FALLBACK] {text}")
@@ -1013,42 +1030,54 @@ class IPRayLive:
         if self._quiet_mode:
             return
 
-        # ─── Hindi-capable voice (Hemant = male, supports Hindi/Hinglish) ───
-        # Registry check: Hemant → Kalpana → David (English fallback, no Hindi pack)
+        # ─── Voice tokens (Jarvis David, Zira, Hindi-capable Hemant/Kalpana) ───
         hemant_token  = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_HI-IN_HEMANT_11.0"
         kalpana_token = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_HI-IN_KALPANA_11.0"
         david_token   = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
+        zira_token    = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0"
 
-        # Use cached voice selection after first call — avoids repeated registry scans
-        if not hasattr(self, "_cached_hindi_voice"):
-            try:
-                import winreg
+        rt = self._realtime_settings()
+        pref_voice = rt.get("preferred_voice", "david").lower()
+        speech_rate = int(rt.get("speech_rate", 190))
+
+        if pref_voice == "david":
+            selected_voice = david_token
+        elif pref_voice == "zira":
+            selected_voice = zira_token
+        elif pref_voice == "hemant":
+            selected_voice = hemant_token
+        elif pref_voice == "kalpana":
+            selected_voice = kalpana_token
+        else:
+            # Dynamic registry scan fallback
+            if not hasattr(self, "_cached_hindi_voice"):
                 try:
-                    winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                                   r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_HEMANT_11.0")
-                    self._cached_hindi_voice = hemant_token
-                    print("[IP PRIME] Hindi voice selected: Microsoft Hemant")
-                except FileNotFoundError:
+                    import winreg
                     try:
                         winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                                       r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_KALPANA_11.0")
-                        self._cached_hindi_voice = kalpana_token
-                        print("[IP PRIME] Hindi voice selected: Microsoft Kalpana")
+                                       r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_HEMANT_11.0")
+                        self._cached_hindi_voice = hemant_token
+                        print("[IP PRIME] Hindi voice selected: Microsoft Hemant")
                     except FileNotFoundError:
-                        self._cached_hindi_voice = david_token
-                        print("[IP PRIME] No Hindi TTS pack found — falling back to Microsoft David")
-            except Exception:
-                self._cached_hindi_voice = david_token
-
-        _hindi_voice = self._cached_hindi_voice
+                        try:
+                            winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                           r"SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_HI-IN_KALPANA_11.0")
+                            self._cached_hindi_voice = kalpana_token
+                            print("[IP PRIME] Hindi voice selected: Microsoft Kalpana")
+                        except FileNotFoundError:
+                            self._cached_hindi_voice = david_token
+                            print("[IP PRIME] No Hindi TTS pack found — falling back to Microsoft David")
+                except Exception:
+                    self._cached_hindi_voice = david_token
+            selected_voice = self._cached_hindi_voice
 
         voice_map = {
-            "ANTIGRAVITY": {"voice_id": _hindi_voice, "rate": 138},
-            "CLAUDE":      {"voice_id": _hindi_voice, "rate": 138},
-            "HERMES":      {"voice_id": _hindi_voice, "rate": 138},
-            "OBSIDIAN":    {"voice_id": _hindi_voice, "rate": 138},
-            "IP PRIME":    {"voice_id": _hindi_voice, "rate": 138},
-            "IP VERSE":    {"voice_id": _hindi_voice, "rate": 138},
+            "ANTIGRAVITY": {"voice_id": selected_voice, "rate": speech_rate},
+            "CLAUDE":      {"voice_id": selected_voice, "rate": speech_rate},
+            "HERMES":      {"voice_id": selected_voice, "rate": speech_rate},
+            "OBSIDIAN":    {"voice_id": selected_voice, "rate": speech_rate},
+            "IP PRIME":    {"voice_id": selected_voice, "rate": speech_rate},
+            "IP VERSE":    {"voice_id": selected_voice, "rate": speech_rate},
         }
 
         # Terminate the active child voice process to stop speech instantly!

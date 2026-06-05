@@ -1,4 +1,4 @@
-﻿"""Shared config loader for Prime platform features."""
+"""Shared config loader for Prime platform features."""
 from __future__ import annotations
 
 import json
@@ -34,9 +34,11 @@ _DEFAULT = {
         "mic_chunk_size": 1024,
         "play_buffer_samples": 1024,
         "low_latency_playback": True,
-        "interruption_threshold": 2500,
-        "disable_voice_interruption": True,
+        "interruption_threshold": 2000,
+        "disable_voice_interruption": False,
         "voice_gain": 1.8,
+        "preferred_voice": "david",
+        "speech_rate": 190,
     },
     "energy_metrics": {
         "enabled": True,
