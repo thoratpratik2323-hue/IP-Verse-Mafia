@@ -147,14 +147,16 @@ def get_weekly_summary() -> str:
         try:
             from google import genai
             client = genai.Client(api_key=gemini_key)
-            model = genai.GenerativeModel("gemini-2.0-flash")
             prompt = (
                 f"You are a wellness coach AI. Summarize the following journal entries of Pratik Sir "
                 f"from the past week:\n\n{outline}\n\n"
                 "Please generate a short, encouraging summary of: 1) Weekly Highlights, 2) Core themes / topics mentioned, "
                 "3) A motivational advice line in Hinglish. Keep it warm and concise."
             )
-            res = model.generate_content(prompt)
+            res = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             return f"### [WEEKLY JOURNAL REVIEW]\n\n{res.text.strip()}\n\nAll secure sir!"
         except Exception as e:
             logger.error("Failed compiling weekly journal summary via Gemini: %s", e)
