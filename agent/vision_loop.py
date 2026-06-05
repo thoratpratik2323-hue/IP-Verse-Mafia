@@ -47,6 +47,8 @@ class VisionLoop:
         
         # 3 minutes (180 seconds) for dev tools, 60 minutes (3600 seconds) otherwise
         interval = 180 if is_dev else 3600
+        if getattr(self.core, "power_save_mode", False):
+            interval *= 5  # Scale down frequency by 5x (15 minutes for dev, 5 hours for general)
         
         if current_time - self.last_vision_run < interval:
             return f"Vision loop rate-limited (runs once every {interval // 60} minutes)."

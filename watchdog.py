@@ -33,7 +33,15 @@ LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 def log(msg: str):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    line = f"[{timestamp}] {msg}"
+    bat_str = ""
+    try:
+        import psutil
+        bat = psutil.sensors_battery()
+        if bat:
+            bat_str = f" [Battery: {bat.percent}% {'Charging' if bat.power_plugged else 'Discharging'}]"
+    except Exception:
+        pass
+    line = f"[{timestamp}]{bat_str} {msg}"
     print(line)
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(line + "\n")

@@ -1986,6 +1986,7 @@ class IPRayLive:
             http_options={"api_version": "v1beta"}
         )
 
+        consecutive_failures = 0
         while True:
             try:
                 print("[IP PRIME] 🔌 Connecting...")
@@ -2005,6 +2006,7 @@ class IPRayLive:
                     self._turn_done_event = asyncio.Event()
 
                     print("[IP PRIME] ✅ Connected.")
+                    consecutive_failures = 0
                     self._force_welcome = False
                     self._connect_count += 1
 
@@ -2050,10 +2052,21 @@ class IPRayLive:
             except Exception as e:
                 print(f"[IP PRIME] ⚠️ {e}")
                 traceback.print_exc()
+                consecutive_failures += 1
+            
             self.set_speaking(False)
             self.ui.set_state("THINKING")
-            print("[IP PRIME] 🔄 Reconnecting in 3s...")
-            await asyncio.sleep(3)
+            
+            # Exponential backoff up to 60s
+            delay = min(3 * (2 ** (consecutive_failures - 1)), 60)
+            print(f"[IP PRIME] 🔄 Reconnecting in {delay}s...")
+            
+            t0 = time.time()
+            await asyncio.sleep(delay)
+            elapsed = time.time() - t0
+            if elapsed > delay + 10.0:
+                print("[IP PRIME] 🛌 Wake from sleep/hibernate detected. Re-calibrating system state...")
+                self.ui.write_log("SYS: Laptop wake detected. Re-calibrating system state...")
 
 def _alarm_checker_loop(ui):
     import json

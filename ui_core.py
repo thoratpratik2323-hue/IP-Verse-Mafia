@@ -21,13 +21,13 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import (
     QBrush, QColor, QDragEnterEvent, QDropEvent, QFont,
     QKeySequence, QLinearGradient, QPainter, QPainterPath, QPen,
-    QRadialGradient, QShortcut,
+    QRadialGradient, QShortcut, QIcon,
 )
 from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget, QSlider, QCheckBox, QComboBox,
-    QGraphicsDropShadowEffect, QDialog,
+    QGraphicsDropShadowEffect, QDialog, QSystemTrayIcon, QMenu,
 )
 
 
@@ -1735,6 +1735,19 @@ class MainWindow(QMainWindow):
         self._f12_shortcut = QShortcut(QKeySequence("F12"), self)
         self._f12_shortcut.activated.connect(lambda: self._set_fullscreen_slot(not self.isFullScreen()))
 
+        # Load laptop configuration
+        try:
+            cfg = json.loads(API_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            cfg = {}
+        self.global_hotkey_enabled = cfg.get("global_hotkey_enabled", True)
+        self.laptop_power_save_enabled = cfg.get("laptop_power_save_enabled", True)
+        self.minimize_to_tray_enabled = cfg.get("minimize_to_tray_enabled", True)
+        self.power_save_mode_active = False
+
+        self.setup_system_tray()
+        self.register_global_hotkeys()
+
         screen = QApplication.primaryScreen().availableGeometry()
         self.move(
             (screen.width()  - _DEFAULT_W) // 2,
@@ -2020,6 +2033,56 @@ class MainWindow(QMainWindow):
                     "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
                     "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
                 )
+
+        # Update Battery status if the label is created
+        if hasattr(self, "_status_battery_val") and psutil:
+            try:
+                bat = psutil.sensors_battery()
+                if bat:
+                    pct = bat.percent
+                    chg = bat.power_plugged
+                    self._status_battery_val.setText(f"{pct}% {'⚡' if chg else '🔋'}")
+                    if chg:
+                        self._status_battery_val.setStyleSheet(
+                            "color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.12); "
+                            "border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; padding: 2px 6px;"
+                        )
+                    elif pct > 35:
+                        self._status_battery_val.setStyleSheet(
+                            "color: #f59e0b; font-weight: bold; background: rgba(245, 158, 11, 0.12); "
+                            "border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 4px; padding: 2px 6px;"
+                        )
+                    else:
+                        self._status_battery_val.setStyleSheet(
+                            "color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.12); "
+                            "border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 4px; padding: 2px 6px;"
+                        )
+                    
+                    # Automatic Power Save trigger if enabled
+                    if getattr(self, "laptop_power_save_enabled", False) and not chg and pct <= 35:
+                        if not getattr(self, "power_save_mode_active", False):
+                            self.power_save_mode_active = True
+                            if hasattr(self, "core") and self.core:
+                                self.core.power_save_mode = True
+                            elif hasattr(self, "ip_ray") and hasattr(self.ip_ray, "autonomous_core") and self.ip_ray.autonomous_core:
+                                self.ip_ray.autonomous_core.power_save_mode = True
+                            self.write_log("SYS: Auto Power Save Mode activated (unplugged & low battery). Throttling background processes.")
+                    else:
+                        if getattr(self, "power_save_mode_active", False):
+                            self.power_save_mode_active = False
+                            if hasattr(self, "core") and self.core:
+                                self.core.power_save_mode = False
+                            elif hasattr(self, "ip_ray") and hasattr(self.ip_ray, "autonomous_core") and self.ip_ray.autonomous_core:
+                                self.ip_ray.autonomous_core.power_save_mode = False
+                            self.write_log("SYS: Auto Power Save Mode deactivated. Normal background operations resumed.")
+                else:
+                    self._status_battery_val.setText("N/A")
+                    self._status_battery_val.setStyleSheet(
+                        "color: #6b7280; font-weight: bold; background: rgba(107, 114, 128, 0.12); "
+                        "border: 1px solid rgba(107, 114, 128, 0.35); border-radius: 4px; padding: 2px 6px;"
+                    )
+            except Exception as e:
+                print(f"[Battery Monitor] Error updating battery: {e}")
 
         # 4. Live Terminal Uptime log
         try:
@@ -3083,6 +3146,40 @@ class MainWindow(QMainWindow):
         )
         self._pv_mythos_btn.setToolTip("Cybersecurity Sentinel: audit code, scan ports, and test knowledge with Mythos")
 
+        # ── Laptop & OS Integration Section ──────────────────────────────────
+        sep_laptop = QFrame(); sep_laptop.setFrameShape(QFrame.Shape.HLine)
+        sep_laptop.setStyleSheet(f"color: {C.BORDER};")
+        lay.addWidget(sep_laptop)
+
+        laptop_lbl = QLabel("💻 LAPTOP & OS INTEGRATION")
+        laptop_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        laptop_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent; letter-spacing: 0.5px;")
+        lay.addWidget(laptop_lbl)
+
+        # Style function for checkboxes
+        def _style_cb(cb):
+            cb.setStyleSheet(
+                f"QCheckBox {{ color: {C.TEXT_MED}; font-size: 11px; }}"
+                f"QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {C.BORDER}; border-radius: 3px; background: #000d12; }}"
+                f"QCheckBox::indicator:checked {{ background: {C.PRI}; border: 1px solid {C.PRI}; }}"
+            )
+            cb.stateChanged.connect(self._save_laptop_settings)
+            lay.addWidget(cb)
+
+        # Checkbox 1: Global Summon
+        self._hotkey_cb = QCheckBox("Enable Global Summon (Ctrl+Shift+Space)")
+        self._hotkey_cb.setChecked(self.global_hotkey_enabled)
+        _style_cb(self._hotkey_cb)
+
+        # Checkbox 2: Run in Tray on Close
+        self._tray_cb = QCheckBox("Run in System Tray on Close")
+        self._tray_cb.setChecked(self.minimize_to_tray_enabled)
+        _style_cb(self._tray_cb)
+
+        # Checkbox 3: Auto Power Save
+        self._power_save_cb = QCheckBox("Auto Power Save on Low Battery")
+        self._power_save_cb.setChecked(self.laptop_power_save_enabled)
+        _style_cb(self._power_save_cb)
 
         lay.addStretch()
 
@@ -3419,6 +3516,38 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"[Integrations Settings] Error saving: {e}")
 
+    def _save_laptop_settings(self):
+        try:
+            try:
+                existing = json.loads(API_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+            
+            self.global_hotkey_enabled = self._hotkey_cb.isChecked()
+            self.minimize_to_tray_enabled = self._tray_cb.isChecked()
+            self.laptop_power_save_enabled = self._power_save_cb.isChecked()
+            
+            existing["global_hotkey_enabled"] = self.global_hotkey_enabled
+            existing["minimize_to_tray_enabled"] = self.minimize_to_tray_enabled
+            existing["laptop_power_save_enabled"] = self.laptop_power_save_enabled
+            
+            import os
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_FILE.write_text(json.dumps(existing, indent=4), encoding="utf-8")
+            
+            if platform.system() == "Windows":
+                import ctypes
+                ctypes.windll.user32.UnregisterHotKey(int(self.winId()), 100)
+                if self.global_hotkey_enabled:
+                    ctypes.windll.user32.RegisterHotKey(
+                        int(self.winId()),
+                        100,
+                        0x0002 | 0x0004,
+                        0x20
+                    )
+        except Exception as e:
+            print(f"[Laptop Settings] Error saving: {e}")
+
     def _browse_obsidian_vault(self):
         from PyQt6.QtWidgets import QFileDialog
         dir_path = QFileDialog.getExistingDirectory(self, "Select Obsidian Vault Directory", self._obsidian_path_input.text() or "")
@@ -3663,10 +3792,12 @@ class MainWindow(QMainWindow):
         row_mic, self._status_mic_val = _make_status_row("MIC")
         row_voice, self._status_voice_val = _make_status_row("VOICE")
         row_api, self._status_api_val = _make_status_row("API")
+        row_battery, self._status_battery_val = _make_status_row("BATTERY")
 
         lay.addWidget(row_mic)
         lay.addWidget(row_voice)
         lay.addWidget(row_api)
+        lay.addWidget(row_battery)
 
         lay.addSpacing(6)
         
@@ -4751,12 +4882,132 @@ class MainWindow(QMainWindow):
         self._log.append_log(f"SYS: Initialised. OS={os_name.upper()}. IP PRIME online.")
 
     def closeEvent(self, event):
-        try:
-            from memory.memory_manager import save_shutdown_summary
-            save_shutdown_summary()
-        except Exception:
-            pass
-        super().closeEvent(event)
+        if self.minimize_to_tray_enabled and hasattr(self, "_tray_icon") and self._tray_icon.isVisible():
+            event.ignore()
+            self.hide()
+            self._tray_icon.showMessage(
+                "IP Prime",
+                "IP Prime is running in the background. Right-click the system tray icon to exit.",
+                QSystemTrayIcon.MessageIcon.Information,
+                3000
+            )
+        else:
+            try:
+                from memory.memory_manager import save_shutdown_summary
+                save_shutdown_summary()
+            except Exception:
+                pass
+            super().closeEvent(event)
+
+    def setup_system_tray(self):
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(os.path.dirname(__file__), "assets", "ip_prime_logo.png")
+        
+        self._tray_icon = QSystemTrayIcon(self)
+        if os.path.exists(icon_path):
+            self._tray_icon.setIcon(QIcon(icon_path))
+        else:
+            self._tray_icon.setIcon(self.style().standardIcon(self.style().StandardPixmap.SP_ComputerIcon))
+        
+        # Build tray context menu
+        menu = QMenu(self)
+        menu.setStyleSheet(
+            "QMenu { background-color: #050a14; color: #a0aec0; border: 1px solid #06b6d4; border-radius: 6px; padding: 4px; }"
+            "QMenu::item { padding: 6px 20px; border-radius: 4px; }"
+            "QMenu::item:selected { background-color: rgba(6, 182, 212, 0.2); color: #ffffff; }"
+        )
+        
+        show_action = menu.addAction("Show Assistant")
+        show_action.triggered.connect(self.toggle_hud_visibility)
+        
+        toggle_ps_action = menu.addAction("Toggle Power Save Mode")
+        toggle_ps_action.triggered.connect(self.toggle_power_save_mode_manually)
+        
+        menu.addSeparator()
+        
+        exit_action = menu.addAction("Exit")
+        exit_action.triggered.connect(self.exit_application_cleanly)
+        
+        self._tray_icon.setContextMenu(menu)
+        self._tray_icon.activated.connect(self._on_tray_activated)
+        self._tray_icon.show()
+
+    def _on_tray_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClicked:
+            self.toggle_hud_visibility()
+
+    def toggle_power_save_mode_manually(self):
+        self.power_save_mode_active = not self.power_save_mode_active
+        if hasattr(self, "core") and self.core:
+            self.core.power_save_mode = self.power_save_mode_active
+        elif hasattr(self, "ip_ray") and hasattr(self.ip_ray, "autonomous_core") and self.ip_ray.autonomous_core:
+            self.ip_ray.autonomous_core.power_save_mode = self.power_save_mode_active
+            
+        status = "ENABLED" if self.power_save_mode_active else "DISABLED"
+        self.write_log(f"SYS: Power Save Mode manually {status}.")
+        self._tray_icon.showMessage(
+            "IP Prime",
+            f"Power Save Mode manually {status}.",
+            QSystemTrayIcon.MessageIcon.Information,
+            2000
+        )
+
+    def exit_application_cleanly(self):
+        self.minimize_to_tray_enabled = False  # Bypass tray minimize in closeEvent
+        self.close()
+        QApplication.quit()
+
+    def register_global_hotkeys(self):
+        if not self.global_hotkey_enabled:
+            return
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+                res = ctypes.windll.user32.RegisterHotKey(
+                    int(self.winId()),
+                    100,
+                    0x0002 | 0x0004,
+                    0x20
+                )
+                if res:
+                    self.write_log("SYS: Registered Global Hotkey: Ctrl+Shift+Space")
+                else:
+                    self.write_log("SYS WARNING: Failed to register Global Hotkey (already in use).")
+            except Exception as e:
+                print(f"[Hotkey Registry] Failed to register Win32 hotkey: {e}")
+
+    def nativeEvent(self, eventType, message):
+        if eventType == b"windows_generic_MSG":
+            try:
+                import ctypes
+                from ctypes import wintypes
+                class MSG(ctypes.Structure):
+                    _fields_ = [
+                        ("hwnd", wintypes.HWND),
+                        ("message", wintypes.UINT),
+                        ("wParam", wintypes.WPARAM),
+                        ("lParam", wintypes.LPARAM),
+                        ("time", wintypes.DWORD),
+                        ("pt", wintypes.POINT),
+                    ]
+                msg = MSG.from_address(int(message))
+                if msg.message == 0x0312:  # WM_HOTKEY
+                    if msg.wParam == 100:  # Our hotkey ID
+                        self.toggle_hud_visibility()
+                        return True, 0
+            except Exception as e:
+                print(f"[nativeEvent Error] {e}")
+        return super().nativeEvent(eventType, message)
+
+    def toggle_hud_visibility(self):
+        if self.isVisible() and not self.isMinimized() and self.isActiveWindow():
+            self.hide()
+        else:
+            self.showNormal()
+            self.show()
+            self.raise_()
+            self.activateWindow()
 
     def setup_safety_guard_connections(self):
         from agent.safety_guard import SafetyGuard

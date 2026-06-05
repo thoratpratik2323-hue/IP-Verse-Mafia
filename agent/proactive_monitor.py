@@ -68,8 +68,9 @@ class ProactiveMonitor:
             except Exception as e:
                 print(f"[ProactiveMonitor] ⚠️ Error in monitor loop: {e}")
                 
-            # Check every 60 seconds to keep CPU/RAM usage minimal
-            time.sleep(60)
+            # Check every 60 seconds (or 180s in Power Save Mode) to keep CPU/RAM usage minimal
+            sleep_time = 180 if getattr(self.core, "power_save_mode", False) else 60
+            time.sleep(sleep_time)
             
     def _check_for_proactive_actions(self):
         """Runs the monitoring pipelines for all autonomous proactive agents."""
