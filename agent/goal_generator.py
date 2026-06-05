@@ -24,7 +24,13 @@ GOALS_LOG       = BASE_DIR / "logs" / "auto_goals.log"
 def _log(msg: str):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] [GoalGen] {msg}"
-    print(line)
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        try:
+            print(line.encode('ascii', errors='replace').decode('ascii'))
+        except Exception:
+            pass
     GOALS_LOG.parent.mkdir(parents=True, exist_ok=True)
     with open(GOALS_LOG, "a", encoding="utf-8") as f:
         f.write(line + "\n")

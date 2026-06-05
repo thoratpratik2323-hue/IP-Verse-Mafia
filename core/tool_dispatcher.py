@@ -3,7 +3,6 @@ import traceback
 
 # ── Action Imports ────────────────────────────────────────────────────────────
 from actions.file_processor import file_processor
-from actions.flight_finder     import flight_finder
 from actions.open_app          import open_app
 from actions.weather_report    import weather_action
 from actions.send_message      import send_message
@@ -57,9 +56,7 @@ from actions.predictive_workspace import predictive_workspace
 from actions.llama_factory_helper import llama_factory
 from actions.mythos_sentinel import mythos_sentinel
 from actions.pentagi_engine import pentagi_engine
-from actions.antidrone_defense import antidrone_defense
 from actions.mythos_internet import mythos_internet
-from actions.dos_toolkit import dos_toolkit
 from actions.wifi_security import wifi_security
 from actions.auto_updater import auto_update
 
@@ -219,9 +216,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             threading.Thread(target=run_bg, daemon=True).start()
             result = "Sir, I have deployed the IP AI Army of specialized agents in the background. They are working on your request right now!"
 
-        elif name == "flight_finder":
-            r = await loop.run_in_executor(None, lambda: flight_finder(parameters=args, player=player))
-            result = r or "Done."
 
         # --- Vision Suite ---
         elif name == "screen_clicker":
@@ -539,13 +533,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             ))
             result = r or "Done."
 
-        elif name == "pascal_3d_designer":
-            from actions.pascal_3d_designer import pascal_3d_designer
-            r = await loop.run_in_executor(None, lambda: pascal_3d_designer(
-                goal=args.get("goal"),
-                player=player
-            ))
-            result = r or "Done."
 
         elif name == "web_hud":
             r = await loop.run_in_executor(None, lambda: web_hud(parameters=args, player=player))
@@ -813,25 +800,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             result = "Sir, PentAGI real hacking engine is running in the background. Results will appear shortly."
 
 
-        elif name == "antidrone_defense":
-            act = args.get("action", "scan").lower()
-            if act == "monitor":
-                def run_drone_monitor():
-                    try:
-                        player.write_log("[AntiDrone] Continuous monitoring started.")
-                        res = antidrone_defense(parameters=args, player=player)
-                        player.write_log(f"[AntiDrone] {res[:80]}")
-                        speak("Sir, anti-drone monitoring is now active. I will alert you if any drone is detected.")
-                    except Exception as e:
-                        player.write_log(f"[AntiDrone] Error: {e}")
-                        speak(f"Sir, anti-drone monitor error: {e}")
-                import threading as _t
-                _t.Thread(target=run_drone_monitor, daemon=True).start()
-                result = "Sir, anti-drone monitoring system is now active in background. You will receive an alert if any drone WiFi is detected."
-            else:
-                r = await loop.run_in_executor(None, lambda: antidrone_defense(parameters=args, player=player))
-                result = r or "Done."
-
         elif name == "mythos_internet":
             def run_inet_bg():
                 try:
@@ -850,9 +818,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             _t.Thread(target=run_inet_bg, daemon=True).start()
             result = "Sir, I am searching the live internet for you. Results will appear in a moment."
 
-        elif name == "dos_toolkit":
-            r = await loop.run_in_executor(None, lambda: dos_toolkit(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "wifi_security":
             r = await loop.run_in_executor(None, lambda: wifi_security(parameters=args, player=player))
@@ -990,10 +955,6 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: second_monitor_overlay(parameters=args, player=player))
             result = r or "Done."
 
-        elif name == "deepfake_detector":
-            from actions.deepfake_detector import deepfake_detector
-            r = await loop.run_in_executor(None, lambda: deepfake_detector(parameters=args, player=player))
-            result = r or "Done."
 
         elif name == "printer_3d_controller":
             from actions.printer_3d_controller import printer_3d_controller

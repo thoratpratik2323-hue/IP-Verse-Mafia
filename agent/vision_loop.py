@@ -54,7 +54,14 @@ class VisionLoop:
             return f"Vision loop rate-limited (runs once every {interval // 60} minutes)."
             
         self.last_vision_run = current_time
-        print(f"[VisionLoop] 👁️ Capturing proactive screenshot for visual diagnostic (Active app: '{active_app}')...")
+        msg = f"[VisionLoop] 👁️ Capturing proactive screenshot for visual diagnostic (Active app: '{active_app}')..."
+        try:
+            print(msg)
+        except UnicodeEncodeError:
+            try:
+                print(msg.encode('ascii', errors='replace').decode('ascii'))
+            except Exception:
+                pass
         
         screenshot_path = Path.home() / ".ipprime" / "vision_temp.png"
         screenshot_path.parent.mkdir(parents=True, exist_ok=True)

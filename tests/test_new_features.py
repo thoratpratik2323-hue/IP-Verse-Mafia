@@ -35,7 +35,6 @@ from actions.network_monitor import network_monitor
 from actions.face_recognition import face_recognition
 from actions.wifi_speed_logger import wifi_speed_logger
 from actions.second_monitor_overlay import second_monitor_overlay
-from actions.deepfake_detector import deepfake_detector
 from actions.printer_3d_controller import printer_3d_controller
 
 class TestNewFeatures(unittest.TestCase):
@@ -154,9 +153,7 @@ class TestNewFeatures(unittest.TestCase):
         res = second_monitor_overlay({"action": "update_tasks", "value": "test"}, player=self.player)
         self.assertIn("updated", res.lower())
 
-        # Deepfake Detector
-        res = deepfake_detector({"action": "report", "file_path": "owner_face.jpg"}, player=self.player)
-        self.assertIn("deepfake", res.lower())
+
 
         # 3D Printer Controller
         res = printer_3d_controller({"action": "status"}, player=self.player)
@@ -252,6 +249,7 @@ print("hello from IP army")
         import time
 
         core = MagicMock()
+        core.power_save_mode = False
         loop = VisionLoop(core)
         
         # Test developer app interval (3 minutes)

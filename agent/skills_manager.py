@@ -160,17 +160,7 @@ CORE_TOOLS = {
         "func": "weather_action",
         "pass_speak": False
     },
-    "flight_finder": {
-        "description": "Search flights between cities on a date.",
-        "parameters": {
-            "origin": "string (required)",
-            "destination": "string (required)",
-            "date": "string (required)"
-        },
-        "module": "actions.flight_finder",
-        "func": "flight_finder",
-        "pass_speak": True
-    },
+
     "code_helper": {
         "description": "Write, edit, explain, or run programming code snippets.",
         "parameters": {
@@ -356,18 +346,7 @@ CORE_TOOLS = {
         "func": "pentagi_engine",
         "pass_speak": False
     },
-    "antidrone_defense": {
-        "description": "WiFi drone scanning, signature matching (Parrot/DJI SSIDs/MACs), and geofence/monitoring systems.",
-        "parameters": {
-            "action": "string (required) - 'scan' | 'monitor' | 'geofence' | 'report'",
-            "duration": "int (optional) - monitoring duration in seconds",
-            "radius": "string (optional) - geofence zone radius in meters",
-            "location": "string (optional) - location address"
-        },
-        "module": "actions.antidrone_defense",
-        "func": "antidrone_defense",
-        "pass_speak": False
-    },
+
     "mythos_internet": {
         "description": "Live internet queries for CVEs, exploits, subdomains, breaches (HIBP), and Shodan scanning.",
         "parameters": {
@@ -382,20 +361,7 @@ CORE_TOOLS = {
         "func": "mythos_internet",
         "pass_speak": False
     },
-    "dos_toolkit": {
-        "description": "DoS/DDoS education and authorized stress testing module for learning flood attack concepts, defense rules, and local load tests.",
-        "parameters": {
-            "action": "string (required) - 'learn' | 'attack_detail' | 'poc_code' | 'stress_test' | 'defense' | 'tools_list'",
-            "target": "string (optional) - target attack type or URL/IP",
-            "url": "string (optional) - target URL for stress_test action",
-            "threads": "int (optional) - number of threads for stress_test",
-            "duration": "int (optional) - duration in seconds for stress_test",
-            "confirmed": "string (optional) - set to 'yes' to authorize stress testing on non-local target URLs"
-        },
-        "module": "actions.dos_toolkit",
-        "func": "dos_toolkit",
-        "pass_speak": False
-    },
+
     "wifi_security": {
         "description": "WiFi security analysis, 4-way handshake theory, router configuration checklists, and local wireless posture audit.",
         "parameters": {

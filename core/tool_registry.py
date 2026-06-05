@@ -363,23 +363,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "required": []
         }
     },
-    {
-        "name": "flight_finder",
-        "description": "Searches Google Flights and speaks the best options.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "origin":      {"type": "STRING",  "description": "Departure city or airport code"},
-                "destination": {"type": "STRING",  "description": "Arrival city or airport code"},
-                "date":        {"type": "STRING",  "description": "Departure date (any format)"},
-                "return_date": {"type": "STRING",  "description": "Return date for round trips"},
-                "passengers":  {"type": "INTEGER", "description": "Number of passengers (default: 1)"},
-                "cabin":       {"type": "STRING",  "description": "economy | premium | business | first"},
-                "save":        {"type": "BOOLEAN", "description": "Save results to Notepad"},
-            },
-            "required": ["origin", "destination", "date"]
-        }
-    },
+
     {
         "name": "shutdown_ip_ray",
         "description": (
@@ -1063,17 +1047,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "required": ["repo_name"]
         }
     },
-    {
-        "name": "pascal_3d_designer",
-        "description": "Design a 3D floor plan layout, walls, rooms, and place furniture objects using the Pascal 3D editor (editor.pascal.app) autonomously based on natural language goal description.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "goal": {"type": "STRING", "description": "The exact description of the 3D design to build (e.g. 'Draw a square room and place a table at the center')"}
-            },
-            "required": ["goal"]
-        }
-    },
+
     {
         "name": "web_hud",
         "description": "Launches the dynamic glassmorphic Web HUD dashboard inside the browser to monitor system statistics, check logs, and trigger interactive commands.",
@@ -2108,18 +2082,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "required": ["action"]
         }
     },
-    {
-        "name": "deepfake_detector",
-        "description": "Deepfake forensics media analyzer. GAN fingerprinting and JPEG artifacts detector.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING", "description": "image | video | report"},
-                "file_path": {"type": "STRING", "description": "File path target to check"}
-            },
-            "required": ["action"]
-        }
-    },
+
     {
         "name": "printer_3d_controller",
         "description": "OctoPrint 3D printer status tracking, temperatures checking, and job controls.",
@@ -2383,50 +2346,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "required": ["action"]
         }
     },
-    {
-        "name": "antidrone_defense",
-        "description": (
-            "🛡️ ANTI-DRONE DEFENSE SYSTEM — Detects and alerts about unauthorized drones flying nearby. "
-            "Uses real WiFi scanning to find drone SSIDs (DJI, Parrot, Autel, Skydio, FPV drones). "
-            "Use when user says: 'drone detect karo', 'anti-drone lagao', 'check karo koi drone toh nahi', "
-            "'drone uda raha hai', 'scan karo drone ke liye', 'monitor karo drone', 'antidrone on karo'. "
-            "Actions: "
-            "scan (single WiFi scan — instantly checks if any drone in range), "
-            "monitor (continuous background monitoring every 10s — alerts with sound + popup when drone found), "
-            "stop (stop continuous monitor), "
-            "frequencies (show drone RF frequencies — 2.4GHz/5.8GHz/433MHz info), "
-            "countermeasures (legal anti-drone options in India — DGCA reporting, police, Digital Sky), "
-            "geofence (setup protected zone with authority contact info), "
-            "log (view detection history log). "
-            "IMPORTANT: This system detects drones legally via WiFi. RF jamming is illegal."
-        ),
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {
-                    "type": "STRING",
-                    "description": "Action: scan | monitor | stop | frequencies | countermeasures | geofence | log"
-                },
-                "interval": {
-                    "type": "INTEGER",
-                    "description": "For monitor: scan interval in seconds (default 10)"
-                },
-                "duration": {
-                    "type": "INTEGER",
-                    "description": "For monitor: total monitoring duration in seconds (default 300 = 5 min)"
-                },
-                "radius": {
-                    "type": "STRING",
-                    "description": "For geofence: protected zone radius in meters (default 500)"
-                },
-                "location": {
-                    "type": "STRING",
-                    "description": "For geofence: location name or address"
-                }
-            },
-            "required": ["action"]
-        }
-    },
+
     {
         "name": "mythos_internet",
         "description": (
@@ -2475,52 +2395,7 @@ TOOL_DECLARATIONS: list[dict] = [
             "required": ["action"]
         }
     },
-    {
-        "name": "dos_toolkit",
-        "description": (
-            "⚡ DoS TOOLKIT — DoS/DDoS education and authorized stress testing module for IP Prime. "
-            "Provides guides, details, and educational PoC code for SYN flood, UDP flood, HTTP flood, Slowloris, ICMP flood, and amplification. "
-            "Also includes an authorized HTTP stress tester for local testing. "
-            "Actions: "
-            "learn (get full DoS/DDoS theory and types), "
-            "attack_detail (deep dive into specific attack e.g. syn_flood, udp_flood, slowloris), "
-            "poc_code (get Python proof-of-concept code), "
-            "stress_test (run HTTP load test — needs target url, threads, duration. confirmed='yes' if public url), "
-            "defense (get network indicators, iptables rules, SIEM Splunk queries), "
-            "tools_list (list of Kali & Python tools for DoS). "
-            "Trigger phrases: 'DoS detail', 'DDoS attack seekho', 'stress test local', 'Slowloris defense', 'SYN flood PoC'."
-        ),
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {
-                    "type": "STRING",
-                    "description": "Action: learn | attack_detail | poc_code | stress_test | defense | tools_list"
-                },
-                "target": {
-                    "type": "STRING",
-                    "description": "Target attack type (e.g. syn_flood, udp_flood, http_flood, slowloris) or URL/IP"
-                },
-                "url": {
-                    "type": "STRING",
-                    "description": "Target URL for stress_test action"
-                },
-                "threads": {
-                    "type": "INTEGER",
-                    "description": "Number of threads for stress_test (default 10)"
-                },
-                "duration": {
-                    "type": "INTEGER",
-                    "description": "Duration in seconds for stress_test (default 10)"
-                },
-                "confirmed": {
-                    "type": "STRING",
-                    "description": "Set to 'yes' to authorize stress testing on non-local target URLs"
-                }
-            },
-            "required": ["action"]
-        }
-    },
+
     {
         "name": "wifi_security",
         "description": (
