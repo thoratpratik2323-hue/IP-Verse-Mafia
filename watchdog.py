@@ -42,7 +42,13 @@ def log(msg: str):
     except Exception:
         pass
     line = f"[{timestamp}]{bat_str} {msg}"
-    print(line)
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        try:
+            print(line.encode("ascii", errors="replace").decode("ascii"))
+        except Exception:
+            pass
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(line + "\n")
 
