@@ -2307,6 +2307,56 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["prompt"]
         }
+    },
+    {
+        "name": "coding_workflow",
+        "description": (
+            "🚀 NEXT-GEN SELF-HEALING CODING WORKFLOW — Runs an elite multi-agent and self-healing software engineering pipeline. "
+            "1. Coding: Automatically plans and implements file changes using the IP AI Army. "
+            "2. Verification: Executes specified unit test or compiler commands to check compilation. "
+            "3. Self-Healing: If verification fails, automatically deploys the Terminal Doctor to diagnose and heal syntax/logical errors. "
+            "4. Save & Version Control: If verification passes, stages changes and auto-commits via the Git Assistant with standard conventional commits. "
+            "Trigger when Pratik Sir says: run coding workflow, coding pipeline chalao, execute coder workflow, self-healing code workflow."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "instruction": {
+                    "type": "STRING",
+                    "description": "Natural language instruction of the feature to build or bug to fix (required)"
+                },
+                "project_path": {
+                    "type": "STRING",
+                    "description": "Absolute path to the project directory (defaults to current workspace root)"
+                },
+                "test_command": {
+                    "type": "STRING",
+                    "description": "Shell command to execute verification tests (e.g. 'pytest tests/' or 'python -m unittest tests/test_chess.py')"
+                },
+                "auto_commit": {
+                    "type": "BOOLEAN",
+                    "description": "Automatically stage and perform git commit on successful verification (default: true)"
+                }
+            },
+            "required": ["instruction"]
+        }
+    },
+    {
+        "name": "cmd_control",
+        "description": (
+            "Translates a natural language task into a single Windows PowerShell command and runs it. "
+            "Use this for quick terminal tasks that can be done with a single command."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "task": {
+                    "type": "STRING",
+                    "description": "The natural language instruction of what you want to execute (e.g. 'list all directories', 'kill process 1234')"
+                }
+            },
+            "required": ["task"]
+        }
     }
 ]
 

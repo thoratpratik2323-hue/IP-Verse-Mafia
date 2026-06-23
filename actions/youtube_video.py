@@ -277,23 +277,40 @@ def _handle_play(parameters: dict, player) -> str:
     if not query:
         return "Please tell me what you'd like to watch, sir."
 
+    # Detect YouTube Music intent
+    music_mode = parameters.get("music", False)
+    query_lower = query.lower()
+    
+    # Strip keywords and set music_mode
+    yt_music_keywords = ["on youtube music", "youtube music pe", "youtube music par", "in youtube music", "youtube music"]
+    for kw in yt_music_keywords:
+        if kw in query_lower:
+            music_mode = True
+            query = query.replace(kw, "").replace("  ", " ").strip()
+            query_lower = query.lower()
+
     if player:
-        player.write_log(f"[YouTube] Searching: {query}")
+        player.write_log(f"[YouTube] Searching: {query} (Music Mode: {music_mode})")
 
     print(f"[YouTube] 🔍 Scraping first non-Shorts video for: {query}")
 
     video_url = _scrape_first_video_url(query)
 
     if video_url:
+        video_id = _extract_video_id(video_url)
+        if music_mode and video_id:
+            music_url = f"https://music.youtube.com/watch?v={video_id}"
+            print(f"[YouTube Music] ▶️ Opening: {music_url}")
+            _open_url(music_url)
+            return f"Playing '{query}' on YouTube Music, sir!"
+
         # Default to premium full-screen ad-free embed format to bypass pre-roll and mid-roll ads
-        ad_free = parameters.get("ad_free", True)
-        if ad_free:
-            video_id = _extract_video_id(video_url)
-            if video_id:
-                embed_url = f"https://www.youtube.com/embed/{video_id}?autoplay=1"
-                print(f"[YouTube] ▶️ Opening Ad-Free Embed: {embed_url}")
-                _open_url(embed_url)
-                return f"Playing {query} in Premium Ad-Free Embed Mode, sir!"
+        ad_free = parameters.get("ad_free", False)
+        if ad_free and video_id:
+            embed_url = f"https://www.youtube.com/embed/{video_id}?autoplay=1"
+            print(f"[YouTube] ▶️ Opening Ad-Free Embed: {embed_url}")
+            _open_url(embed_url)
+            return f"Playing {query} in Premium Ad-Free Embed Mode, sir!"
 
         print(f"[YouTube] ▶️ Opening: {video_url}")
         _open_url(video_url)

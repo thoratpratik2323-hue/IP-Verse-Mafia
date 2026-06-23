@@ -21,9 +21,16 @@ class TestLaptopFeatures(unittest.TestCase):
         loop = VisionLoop(self.core)
         loop.client = MagicMock() # Mock the unified client
         
+        # Mock response to prevent JSON parsing errors on mock text
+        mock_response = MagicMock()
+        mock_response.text = '{"issues_detected": false}'
+        loop.client.models.generate_content.return_value = mock_response
+        
         # Mock active foreground app to code editor (dev environment)
         with patch("actions.screen_time.get_active_window_app", return_value="Code.exe"), \
-             patch("pyautogui.screenshot") as mock_screenshot:
+             patch("pyautogui.screenshot") as mock_screenshot, \
+             patch("pathlib.Path.read_bytes", return_value=b"dummy_bytes"), \
+             patch("pathlib.Path.unlink") as mock_unlink:
             
             # Normal Mode: runs every 3 minutes (180s)
             self.core.power_save_mode = False

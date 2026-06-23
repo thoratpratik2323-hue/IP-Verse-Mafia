@@ -386,6 +386,15 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             ))
             result = r or "Done."
 
+        elif name == "coding_workflow":
+            from actions.coding_workflow import run_coding_workflow
+            r = await loop.run_in_executor(None, lambda: run_coding_workflow(
+                parameters=args,
+                player=player,
+                speak=speak
+            ))
+            result = r or "Done."
+
         elif name == "auto_organize_notes":
             from actions.obsidian_helper import auto_organize_notes
             r = await loop.run_in_executor(None, lambda: auto_organize_notes(player=player))
@@ -973,6 +982,11 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             summary = args.get("summary", "")
             ok = await loop.run_in_executor(None, lambda: send_daily_digest_email(summary))
             result = "✅ Daily report email sent to your Gmail!" if ok else "❌ Email send failed. Check gmail_app_password in config/api_keys.json"
+
+        elif name == "cmd_control":
+            from actions.cmd_control import cmd_control
+            r = await loop.run_in_executor(None, lambda: cmd_control(parameters=args, player=player))
+            result = r or "Done."
 
         else:
             result = f"Unknown tool: {name}"

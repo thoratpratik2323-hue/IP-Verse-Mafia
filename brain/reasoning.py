@@ -11,7 +11,7 @@ class ReasoningEngine:
     
     def __init__(self, memory_engine):
         self.client = genai.Client(api_key=get_api_key())
-        self.model_name = "gemini-2.5-flash"
+        self.model_name = "gemini-2.5-flash-lite"
         self.memory = memory_engine
     
     def create_plan(self, goal: str, context: dict) -> dict:
@@ -55,6 +55,14 @@ class ReasoningEngine:
         }}
         """
         
+        _fallback = {
+            "understanding": goal,
+            "approach": "Fallback direct execution",
+            "confidence": 0.5,
+            "steps": [{"action": "generated_code", "reason": "Fallback", "parameters": {"prompt": goal}}],
+            "expected_time": "unknown",
+            "things_to_avoid": []
+        }
         try:
             response = self.client.models.generate_content(
                 model=self.model_name,
@@ -64,15 +72,13 @@ class ReasoningEngine:
             text_json = re.sub(r"```(?:json)?", "", result_text).strip().rstrip("`").strip()
             return json.loads(text_json)
         except Exception as e:
-            print(f"[ReasoningEngine] ⚠️ Failed to generate reasoning plan: {e}")
-            return {
-                "understanding": goal,
-                "approach": "Fallback direct execution",
-                "confidence": 0.5,
-                "steps": [{"action": "generated_code", "reason": "Fallback", "parameters": {"prompt": goal}}],
-                "expected_time": "unknown",
-                "things_to_avoid": []
-            }
+            err_str = str(e)
+            # Suppress noisy 400/429 cascades — just use fallback silently
+            if "400" in err_str or "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                print(f"[ReasoningEngine] ⚠️ API limit/format error ({err_str[:60]}). Using fallback plan.")
+            else:
+                print(f"[ReasoningEngine] ⚠️ Failed to generate reasoning plan: {e}")
+            return _fallback
     
     def should_ask_or_assume(self, confidence: float) -> str:
         """

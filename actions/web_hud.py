@@ -1415,6 +1415,59 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(routines).encode("utf-8"))
             return
 
+        elif parsed_url.path == "/api/metrics":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            try:
+                from prime_platform.energy_metrics import _load_usage, _system_power_hint, get_energy_dashboard
+                metrics = {
+                    "ok": True,
+                    "usage": _load_usage(),
+                    "power": _system_power_hint(),
+                    "dashboard_text": get_energy_dashboard(),
+                }
+            except Exception as e:
+                metrics = {"ok": False, "error": str(e)}
+            self.wfile.write(json.dumps(metrics).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/local":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            try:
+                from prime_platform.local_first import probe_ollama, get_local_status
+                ollama = probe_ollama(timeout=5.0)
+                local_status = {"ok": True, "ollama": ollama, "status_text": get_local_status(ollama)}
+            except Exception as e:
+                local_status = {"ok": False, "error": str(e)}
+            self.wfile.write(json.dumps(local_status).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/homelab":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            try:
+                from prime_platform.homelab import docker_status, list_containers
+                docker = docker_status()
+                if docker.startswith("Docker is not"):
+                    homelab = {
+                        "ok": True,
+                        "docker": docker,
+                        "containers": "Docker not available — install/start Docker Desktop to use homelab.",
+                    }
+                else:
+                    homelab = {"ok": True, "docker": docker, "containers": list_containers()}
+            except Exception as e:
+                homelab = {"ok": False, "error": str(e)}
+            self.wfile.write(json.dumps(homelab).encode("utf-8"))
+            return
+
         elif parsed_url.path == "/api/gestures/status":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

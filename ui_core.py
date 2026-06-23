@@ -16,8 +16,9 @@ import psutil
 
 from PyQt6.QtCore import (
     QEasingCurve, QPointF, QPropertyAnimation, QRectF, Qt,
-    QTimer, pyqtSignal,
+    QTimer, pyqtSignal, QUrl,
 )
+from PyQt6.QtMultimedia import QSoundEffect
 from PyQt6.QtGui import (
     QBrush, QColor, QDragEnterEvent, QDropEvent, QFont,
     QKeySequence, QLinearGradient, QPainter, QPainterPath, QPen,
@@ -97,6 +98,38 @@ _load_theme()
 
 def qcol(h: str, a: int = 255) -> QColor:
     c = QColor(h); c.setAlpha(a); return c
+
+class SoundManager:
+    def __init__(self):
+        self._active_effects = []
+        self.sounds = {}
+        
+        # Load standard Windows system sounds if available
+        if platform.system() == "Windows":
+            media_dir = Path(r"C:\Windows\Media")
+            self.sounds = {
+                "listening": media_dir / "Speech On.wav",
+                "thinking": media_dir / "Windows Information Bar.wav",
+                "speaking": media_dir / "Windows Message Nudge.wav",
+                "processing": media_dir / "Windows Notify System Generic.wav"
+            }
+
+    def play(self, state: str):
+        try:
+            self._active_effects = [e for e in self._active_effects if e.isPlaying()]
+        except Exception:
+            self._active_effects = []
+
+        sound_path = self.sounds.get(state.lower())
+        if sound_path and sound_path.exists():
+            try:
+                effect = QSoundEffect()
+                effect.setSource(QUrl.fromLocalFile(str(sound_path.resolve())))
+                effect.setVolume(0.2)
+                effect.play()
+                self._active_effects.append(effect)
+            except Exception as e:
+                print(f"[SoundManager] Error playing sound for state {state}: {e}")
 
 class _SysMetrics:
     def __init__(self):
@@ -1717,12 +1750,14 @@ class MainWindow(QMainWindow):
     _translation_sig    = pyqtSignal()
     _team_intro_web_sig = pyqtSignal()
     _agent_intro_done_sig = pyqtSignal()
+    _chess_sig = pyqtSignal()
 
 
 
 
     def __init__(self, face_path: str):
         super().__init__()
+        self._sound_manager = SoundManager()
         self.setWindowTitle("IP Prime")
         self.setMinimumSize(_MIN_W, _MIN_H)
         self.resize(_DEFAULT_W, _DEFAULT_H)
@@ -1767,6 +1802,7 @@ class MainWindow(QMainWindow):
         self._spotify_sig.connect(self._toggle_spotify)
         self._translation_sig.connect(self._toggle_translation)
         self._team_intro_web_sig.connect(self._run_web_team_introduction)
+        self._chess_sig.connect(self._toggle_chess)
 
 
 
@@ -3593,6 +3629,19 @@ class MainWindow(QMainWindow):
             self._pomodoro_panel.move(x, y)
             self._pomodoro_panel.show()
 
+    def _toggle_chess(self):
+        if not hasattr(self, "_chess_panel") or self._chess_panel is None:
+            from actions.chess_gui import ChessPanel
+            self._chess_panel = ChessPanel(self)
+        
+        if self._chess_panel.isVisible():
+            self._chess_panel.hide()
+        else:
+            x = int(self.x() + (self.width() - self._chess_panel.width()) / 2)
+            y = int(self.y() + (self.height() - self._chess_panel.height()) / 2)
+            self._chess_panel.move(x, y)
+            self._chess_panel.show()
+
 
 
     def _toggle_translation(self):
@@ -4684,6 +4733,11 @@ class MainWindow(QMainWindow):
             self.write_log(f"SYS ERROR: Mythos Sentinel failed to launch: {e}")
 
     def _apply_state(self, state: str):
+        if not hasattr(self, "_last_sound_state"):
+            self._last_sound_state = None
+        if state != self._last_sound_state:
+            self._last_sound_state = state
+            self._sound_manager.play(state)
 
         self.hud.state    = state
         self.hud.speaking = (state == "SPEAKING")

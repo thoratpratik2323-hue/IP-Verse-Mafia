@@ -102,12 +102,23 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
     First tries to use online Google TTS (gTTS) for natural Hindi/Hinglish speech.
     Falls back to pyttsx3 (local SAPI5) if offline or if it fails.
     """
+    # ── Fix: multiprocessing on Windows doesn't inherit venv ──────────────────
+    # Inject the venv site-packages so pyttsx3 / pythoncom can be found.
+    import sys, os
+    _here = os.path.dirname(os.path.abspath(__file__))
+    for _cand in [
+        os.path.join(_here, ".venv", "Lib", "site-packages"),
+        os.path.join(_here, "venv",  "Lib", "site-packages"),
+    ]:
+        if os.path.isdir(_cand) and _cand not in sys.path:
+            sys.path.insert(0, _cand)
+    # ──────────────────────────────────────────────────────────────────────────
     import pyttsx3
     import time
     import pythoncom
-    import sys
-    
+
     try:
+
         pythoncom.CoInitialize()
         engine = pyttsx3.init()
         engine.setProperty('rate', 165)
@@ -922,6 +933,52 @@ class IPRayLive:
                 QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_study", lambda: None)())
             except Exception:
                 pass
+            return
+
+        # ─── Voice command: Chess Partner ──────────────────────────────────────────
+        # Catch ANY mention of chess — "chess khelo", "let's chess", "chess buddy", etc.
+        chess_triggers = ["chess"]
+        if any(t in txt_l for t in chess_triggers):
+            self.ui.write_log("SYS: Chess Partner triggered via voice/text.")
+            self.speak("Opening Chess Partner! Let's play chess, Pratik Sir. You play White, I play Black.")
+            try:
+                from PyQt6.QtCore import QTimer
+                QTimer.singleShot(100, lambda: getattr(getattr(self.ui, "_win", None), "_toggle_chess", lambda: None)())
+            except Exception:
+                pass
+            return
+
+        # ─── Voice command: Coding Workflow ─────────────────────────────────────────
+        # Catch any request for a coding workflow or self-healing pipeline
+        workflow_triggers = ["coding workflow", "execute workflow", "coding pipeline", "coder workflow"]
+        if any(t in txt_l for t in workflow_triggers):
+            self.ui.write_log("SYS: Coding Workflow triggered via voice.")
+            instruction = ""
+            for trigger in workflow_triggers:
+                if trigger in txt_l:
+                    parts = txt.split(trigger, 1) # Keep case-sensitive or standard casing for instructions
+                    if len(parts) > 1 and parts[1].strip():
+                        instruction = parts[1].strip()
+                        if instruction.lower().startswith("to "):
+                            instruction = instruction[3:].strip()
+                        break
+            
+            if instruction:
+                self.speak(f"Initiating self-healing Coding Workflow for: {instruction}, sir.")
+                from actions.coding_workflow import run_coding_workflow
+                def run_bg():
+                    try:
+                        params = {"instruction": instruction}
+                        res = run_coding_workflow(params, player=self.ui, speak=self.speak)
+                        self.ui.write_log(f"SYS: Coding Workflow completed:\n{res}")
+                    except Exception as e:
+                        self.ui.write_log(f"SYS ERROR: Coding Workflow failed: {e}")
+                        self.speak(f"Sir, the coding workflow failed: {e}")
+                
+                import threading as _t
+                _t.Thread(target=run_bg, daemon=True).start()
+            else:
+                self.speak("Pratik Sir, please tell me what to build, for example: 'run coding workflow to create a python script'.")
             return
 
         # ─── Voice command: Live Translation HUD ───────────────────────────────
@@ -2236,13 +2293,13 @@ def main():
                 ui.write_log("SYS: Automated background semantic indexer online.")
             except Exception as e:
                 print(f"[IP PRIME] Failed to start AutoIndexerThread: {e}")
-            try:
-                from actions.file_classifier import FileClassifierThread
-                classifier = FileClassifierThread(check_interval_seconds=15)
-                classifier.start()
-                ui.write_log("SYS: Automated downloads file classifier online.")
-            except Exception as e:
-                ui.write_log(f"SYS WARNING: FileClassifier failed to load - {e}")
+            # try:
+            #     from actions.file_classifier import FileClassifierThread
+            #     classifier = FileClassifierThread(check_interval_seconds=15)
+            #     classifier.start()
+            #     ui.write_log("SYS: Automated downloads file classifier online.")
+            # except Exception as e:
+            #     ui.write_log(f"SYS WARNING: FileClassifier failed to load - {e}")
             try:
                 from actions.clipboard_manager import start_clipboard_monitor
                 from actions.screen_time import start_screen_time_monitor

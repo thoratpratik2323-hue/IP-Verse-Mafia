@@ -92,3 +92,7 @@ memory/long_term/*.json
 data/*.json
 data/*.csv
 data/*.txt
+
+# Embedded Claude Code directory
+actions/free-claude-code/
+

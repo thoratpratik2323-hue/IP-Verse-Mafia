@@ -108,11 +108,11 @@ class ProactiveMonitor:
         except Exception as e:
             print(f"[ProactiveMonitor] Predictive Agent error: {e}")
 
-        # 8. Computer Vision Loop Agent (Phase 4)
-        try:
-            self.vision_loop.proactive_screen_watch()
-        except Exception as e:
-            print(f"[ProactiveMonitor] Vision Agent error: {e}")
+        # 8. Computer Vision Loop Agent (Phase 4) - Disabled for CPU optimization
+        # try:
+        #     self.vision_loop.proactive_screen_watch()
+        # except Exception as e:
+        #     print(f"[ProactiveMonitor] Vision Agent error: {e}")
 
         # 9. Autonomous Goal Generator — Idle Goals
         try:

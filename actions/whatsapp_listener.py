@@ -225,7 +225,7 @@ class WhatsAppListenerService:
             for (const badge of badges) {
                 const label = (badge.getAttribute('aria-label') || '').toLowerCase();
                 const text = badge.innerText || '';
-                if (label.includes('unread') || (badge.classList.contains('x10l5t2y') && /^\d+$/.test(text))) {
+                if (label.includes('unread') || (badge.classList.contains('x10l5t2y') && /^\\d+$/.test(text))) {
                     let parent = badge.parentElement;
                     while (parent && parent !== pane) {
                         if (parent.getAttribute('role') === 'row' || parent.classList.contains('lhwtacf6') || parent.classList.contains('_199zF')) {
@@ -247,7 +247,7 @@ class WhatsAppListenerService:
                 for (const badge of badges) {
                     const label = (badge.getAttribute('aria-label') || '').toLowerCase();
                     const text = badge.innerText || '';
-                    if (label.includes('unread') || (badge.classList.contains('x10l5t2y') && /^\d+$/.test(text))) {
+                    if (label.includes('unread') || (badge.classList.contains('x10l5t2y') && /^\\d+$/.test(text))) {
                         let parent = badge.parentElement;
                         while (parent && parent !== pane) {
                             if (parent.getAttribute('role') === 'row' || parent.classList.contains('lhwtacf6') || parent.classList.contains('_199zF')) {

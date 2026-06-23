@@ -622,6 +622,7 @@
             <button class="tab-btn" id="btn-workstation" onclick="switchTab('workstation')">💻 WORKSTATION</button>
             <button class="tab-btn" id="btn-aero" onclick="switchTab('aero')">🖐️ AERO</button>
             <button class="tab-btn" id="btn-broadcast" onclick="switchTab('broadcast')">🔔 BROADCAST</button>
+            <button class="tab-btn" id="btn-system" onclick="switchTab('system')">⚡ SYSTEM</button>
         </div>
 
         <!-- 1. MINDMAP TAB -->
@@ -857,6 +858,26 @@
             <div style="display: flex; gap: 8px;">
                 <button class="cyber-btn" id="btn-save-broadcast" onclick="saveBroadcastConfig()" style="flex: 1; display: none;">SAVE_CONFIG</button>
                 <button class="cyber-btn" onclick="sendTestBroadcast()" style="flex: 1;">SEND_TEST_BROADCAST</button>
+            </div>
+        </div>
+
+        <!-- 6. SYSTEM TAB -->
+        <div class="tab-content" id="tab-system">
+            <div class="panel-section-title">&gt; SYSTEM_METRICS_AND_COST</div>
+            
+            <div class="glass-card">
+                <div class="glass-card-title">&gt; ENERGY_AND_API_COSTS</div>
+                <pre id="metrics-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45; overflow-y: auto; max-height: 180px;">Loading metrics...</pre>
+            </div>
+
+            <div class="glass-card">
+                <div class="glass-card-title">&gt; LOCAL_FIRST_STATUS</div>
+                <pre id="local-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45;">Loading local environment...</pre>
+            </div>
+
+            <div class="glass-card">
+                <div class="glass-card-title">&gt; HOMELAB_CONTAINERS</div>
+                <pre id="homelab-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45; overflow-y: auto; max-height: 120px;">Loading containers...</pre>
             </div>
         </div>
     </div>
@@ -1350,12 +1371,18 @@
         window.addEventListener('resize', onResize);
 
         // ── Cybernetic Left Panel Interactions & Custom API Bindings ──
+        let systemPollInterval = null;
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             document.getElementById('btn-' + tabId).classList.add('active');
             document.getElementById('tab-' + tabId).classList.add('active');
+            
+            if (tabId !== 'system' && systemPollInterval) {
+                clearInterval(systemPollInterval);
+                systemPollInterval = null;
+            }
             
             if (tabId === 'mindmap') {
                 loadMindMap();
@@ -1365,7 +1392,36 @@
                 loadGestureStatus();
             } else if (tabId === 'broadcast') {
                 loadBroadcastConfig();
+            } else if (tabId === 'system') {
+                loadSystemMetrics();
             }
+        }
+
+        async function loadSystemMetrics() {
+            async function fetchMetrics() {
+                try {
+                    const resMetrics = await fetch('/api/metrics');
+                    if (resMetrics.ok) {
+                        const j = await resMetrics.json();
+                        document.getElementById('metrics-panel-data').textContent = j.dashboard_text || JSON.stringify(j, null, 2);
+                    }
+                    const resLocal = await fetch('/api/local');
+                    if (resLocal.ok) {
+                        const j = await resLocal.json();
+                        document.getElementById('local-panel-data').textContent = j.status_text || JSON.stringify(j, null, 2);
+                    }
+                    const resHomelab = await fetch('/api/homelab');
+                    if (resHomelab.ok) {
+                        const j = await resHomelab.json();
+                        document.getElementById('homelab-panel-data').textContent = (j.docker || '') + '\n\n' + (j.containers || '');
+                    }
+                } catch (e) {
+                    console.error("Failed to load system metrics:", e);
+                }
+            }
+            fetchMetrics();
+            if (systemPollInterval) clearInterval(systemPollInterval);
+            systemPollInterval = setInterval(fetchMetrics, 5000);
         }
 
         // 🧠 MINDMAP NODE GRAPH INTERACTIVE VISUALIZER

@@ -150,13 +150,11 @@ def prime_gesture_control(parameters: dict, player=None) -> str:
 
 
 def prime_dashboard(parameters: dict, player=None) -> str:
-    from prime_platform.dashboard_server import start_dashboard, stop_dashboard
+    from actions.web_hud import web_hud
 
-    action = (parameters or {}).get("action", "start").lower()
+    action = (parameters or {}).get("action", "start").lower().strip()
+    port = (parameters or {}).get("port") or 5000
+    
     if action in ("stop", "off"):
-        return stop_dashboard()
-    port = parameters.get("port")
-    open_br = parameters.get("open_browser", True)
-    if isinstance(open_br, str):
-        open_br = open_br.lower() not in ("false", "0", "no")
-    return start_dashboard(port=port, open_browser=bool(open_br))
+        return web_hud(parameters={"action": "stop", "port": port}, player=player)
+    return web_hud(parameters={"action": "start", "port": port}, player=player)

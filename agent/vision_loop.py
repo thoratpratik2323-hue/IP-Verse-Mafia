@@ -8,6 +8,15 @@ try:
 except ImportError:
     pyautogui = None
 
+def safe_print(msg: str):
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        try:
+            print(msg.encode('ascii', errors='replace').decode('ascii'))
+        except Exception:
+            pass
+
 class VisionLoop:
     """
     Phase 4: Proactive Computer Vision Loop.
@@ -55,13 +64,7 @@ class VisionLoop:
             
         self.last_vision_run = current_time
         msg = f"[VisionLoop] 👁️ Capturing proactive screenshot for visual diagnostic (Active app: '{active_app}')..."
-        try:
-            print(msg)
-        except UnicodeEncodeError:
-            try:
-                print(msg.encode('ascii', errors='replace').decode('ascii'))
-            except Exception:
-                pass
+        safe_print(msg)
         
         screenshot_path = Path.home() / ".ipprime" / "vision_temp.png"
         screenshot_path.parent.mkdir(parents=True, exist_ok=True)
@@ -118,7 +121,7 @@ Do NOT include markdown blocks. Return only raw JSON."""
             if data.get("issues_detected"):
                 desc = data.get("issue_description")
                 act = data.get("recommended_action")
-                print(f"[VisionLoop] 👁️ Screen Issue Detected: '{desc}'")
+                safe_print(f"[VisionLoop] 👁️ Screen Issue Detected: '{desc}'")
                 
                 # Proactively register a recovery task!
                 self.core.add_goal(
@@ -137,5 +140,5 @@ Do NOT include markdown blocks. Return only raw JSON."""
                     screenshot_path.unlink()
                 except Exception:
                     pass
-            print(f"[VisionLoop] ⚠️ Vision diagnostic loop failed: {e}")
+            safe_print(f"[VisionLoop] ⚠️ Vision diagnostic loop failed: {e}")
             return f"Vision loop failed: {e}"

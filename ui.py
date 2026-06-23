@@ -1,14 +1,14 @@
 """
-IP Prime — native PyQt HUD (reactive star orb + neural layout).
+IP Prime — Clean Minimal HUD (Simple Glass UI).
 
-Uses ui_core HudCanvas — morphing blob orb from ip-ray.
+Uses ui_simple — a lean, glassmorphic left-orb + right-chat layout.
 Default theme: cobalt blue (theme_idx 0).
 """
 from __future__ import annotations
 
 import json
 
-from ui_core import CONFIG_DIR, IPRayUI as _CoreIPRayUI, _load_theme
+from ui_simple import CONFIG_DIR, IPRayUI as _SimpleIPRayUI, _load_theme
 
 # 0 = cobalt blue · 4 = neon cyan-blue (electric orb)
 BLUE_THEME_IDX = 0
@@ -23,8 +23,8 @@ def _apply_blue_theme() -> None:
     _load_theme()
 
 
-class IPRayUI(_CoreIPRayUI):
-    """Public facade for main.py — same API as ui_core.IPRayUI."""
+class IPRayUI(_SimpleIPRayUI):
+    """Public facade for main.py — same API as ui_simple.IPRayUI."""
 
     def __init__(self, face_path: str, size=None):
         _apply_blue_theme()
