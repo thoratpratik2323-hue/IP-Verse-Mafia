@@ -152,8 +152,44 @@ def _offline_tts_worker(queue_obj, feedback_queue=None):
             if not text_devanagari.strip():
                 continue
                 
+            edge_tts_success = False
+            # 1. Try to synthesize using edge-tts (RyanNeural) first
+            if text_latin.strip():
+                try:
+                    import tempfile
+                    import os
+                    import ctypes
+                    from actions.edge_tts_helper import generate_speech
+                    
+                    temp_dir = tempfile.gettempdir()
+                    temp_audio_path = os.path.join(temp_dir, f"ip_prime_edge_{int(time.time())}_{os.getpid()}.mp3")
+                    
+                    # Generate voice with edge-tts RyanNeural
+                    if generate_speech(text_latin, "en-GB-RyanNeural", temp_audio_path):
+                        if os.path.exists(temp_audio_path):
+                            buf = ctypes.create_unicode_buffer(300)
+                            ctypes.windll.kernel32.GetShortPathNameW(temp_audio_path, buf, 300)
+                            short_path = buf.value if buf.value else temp_audio_path
+                            
+                            ctypes.windll.winmm.mciSendStringW(f'open "{short_path}" alias tts_audio', None, 0, 0)
+                            ctypes.windll.winmm.mciSendStringW('play tts_audio wait', None, 0, 0)
+                            ctypes.windll.winmm.mciSendStringW('close tts_audio', None, 0, 0)
+                            
+                            try: os.remove(temp_audio_path)
+                            except Exception: pass
+                            edge_tts_success = True
+                except Exception as e:
+                    print(f"[Offline TTS Process] edge-tts failed: {e}")
+                    sys.stdout.flush()
+
+            if edge_tts_success:
+                if feedback_queue:
+                    try: feedback_queue.put({"status": "done"})
+                    except Exception: pass
+                continue
+
             gtts_success = False
-            # 1. Try to synthesize using gTTS for Hinglish/Hindi
+            # 2. Try to synthesize using gTTS for Hinglish/Hindi
             if text_devanagari.strip():
                 try:
                     from gtts import gTTS
@@ -2171,6 +2207,13 @@ def _alarm_checker_loop(ui):
                             
                     if changed:
                         alarm_file.write_text(json.dumps(alarms, indent=4), encoding="utf-8")
+            # Run the voice cache scavenger loop
+            try:
+                import tempfile
+                from actions.edge_tts_helper import clean_old_voices
+                clean_old_voices(tempfile.gettempdir())
+            except Exception:
+                pass
         except Exception as e:
             print(f"[Alarm Checker Error] {e}")
             

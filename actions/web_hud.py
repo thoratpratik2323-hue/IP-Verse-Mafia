@@ -16,6 +16,7 @@ import random
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler
 from socketserver import ThreadingTCPServer
+from actions.iot_controller import get_iot_state as run_get_iot_state, toggle_iot as run_iot_toggle
 
 try:
     import psutil
@@ -1579,8 +1580,44 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data).encode("utf-8"))
             return
 
+        elif parsed_url.path == "/api/iot":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(run_get_iot_state()).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/screenshot":
+            try:
+                import pyautogui
+                import io
+                img = pyautogui.screenshot()
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=75)
+                img_bytes = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(img_bytes)
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(f"Screenshot failed: {e}".encode("utf-8"))
+                return
+
         # Fallback to default handler
         super().do_GET()
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.end_headers()
 
     def do_POST(self):
         parsed_url = urllib.parse.urlparse(self.path)
@@ -1631,7 +1668,55 @@ class WebHUDHandler(SimpleHTTPRequestHandler):
         except Exception:
             data = {}
 
-        if parsed_url.path == "/api/change_theme":
+        if parsed_url.path == "/api/chat":
+            user_text = data.get("text", "").strip()
+            log_event(f"Chat received: '{user_text}'")
+            if WebHUDServer.ui_instance:
+                from PyQt6.QtCore import QTimer
+                player = WebHUDServer.ui_instance
+                QTimer.singleShot(0, lambda: player._on_text_command(user_text))
+                reply = f"Acknowledged, Sir. Processing '{user_text}'."
+            else:
+                _run_system_command_async(user_text)
+                reply = f"Acknowledged. Simulated command: '{user_text}'"
+                
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"reply": reply, "audioUrl": None}).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/confirm_action":
+            decision = data.get("decision", "confirm")
+            log_event(f"Action confirmation received: {decision}")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "ok", "msg": f"Decision '{decision}' received."}).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/voice":
+            log_event("Voice command received from Web Cockpit.")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "ok", "reply": "Voice telemetry synced, Sir."}).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/iot":
+            device = data.get("device", "")
+            res = run_iot_toggle(device)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode("utf-8"))
+            return
+
+        elif parsed_url.path == "/api/change_theme":
             theme = data.get("theme")
             if theme and WebHUDServer.ui_instance:
                 WebHUDServer.ui_instance._change_theme_sig.emit(theme)

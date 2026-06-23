@@ -217,16 +217,30 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
             print(f"[Unified Model] Config read error: {e}")
 
     # 2. Extract provider details
+    import os
+    is_groq = (model_name and model_name.startswith("groq/"))
     if category == "vision":
         provider = cfg.get("vision_provider", "gemini").lower()
-        api_key = cfg.get("vision_api_key") or cfg.get("coding_api_key") or cfg.get("gemini_api_key", "")
-        base_url = cfg.get("vision_base_url", "")
-        model = model_name or cfg.get("vision_model", "nvidia/llama-3.2-11b-vision-instruct")
+        if is_groq or provider == "groq":
+            provider = "groq"
+            api_key = cfg.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
+            base_url = cfg.get("groq_base_url") or "https://api.groq.com/openai/v1"
+            model = (model_name.replace("groq/", "") if model_name else None) or cfg.get("groq_model") or "llama-3.2-11b-vision-preview"
+        else:
+            api_key = cfg.get("vision_api_key") or cfg.get("coding_api_key") or cfg.get("gemini_api_key", "")
+            base_url = cfg.get("vision_base_url", "")
+            model = model_name or cfg.get("vision_model", "nvidia/llama-3.2-11b-vision-instruct")
     else:
         provider = cfg.get("coding_provider", "gemini").lower()
-        api_key = cfg.get("coding_api_key") or cfg.get("gemini_api_key", "")
-        base_url = cfg.get("coding_base_url", "")
-        model = model_name or cfg.get("coding_model", "nvidia/llama-3.1-nemotron-70b-instruct")
+        if is_groq or provider == "groq":
+            provider = "groq"
+            api_key = cfg.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
+            base_url = cfg.get("groq_base_url") or "https://api.groq.com/openai/v1"
+            model = (model_name.replace("groq/", "") if model_name else None) or cfg.get("groq_model") or "llama-3.1-8b-instant"
+        else:
+            api_key = cfg.get("coding_api_key") or cfg.get("gemini_api_key", "")
+            base_url = cfg.get("coding_base_url", "")
+            model = model_name or cfg.get("coding_model", "nvidia/llama-3.1-nemotron-70b-instruct")
 
     # If provider is freellmapi and key/url is missing, use standard defaults
     if provider == "freellmapi":

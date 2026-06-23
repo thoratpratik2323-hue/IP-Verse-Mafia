@@ -2357,6 +2357,82 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["task"]
         }
+    },
+    {
+        "name": "youtube_macros",
+        "description": "Controls YouTube playback in active browser tab: play_video, pause, mute, volume_up, volume_down, forward, rewind, next, full_screen, theater_mode, subtitle.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "play_video | pause | mute | volume_up | volume_down | forward | rewind | next | full_screen | theater_mode | subtitle"
+                },
+                "query": {
+                    "type": "STRING",
+                    "description": "Search query or video title to search and play (required only for play_video)"
+                }
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "notepad_automation",
+        "description": "Controls Notepad: open new document, save, search/find, replace, write/type text.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "new_document | save | find | replace | write"
+                },
+                "text": {
+                    "type": "STRING",
+                    "description": "Text to write/type in Notepad (required only for write)"
+                }
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "panic_wipe",
+        "description": "Instantly force-closes all active web browser and communication windows for privacy lockdown.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "usb_monitor",
+        "description": "Toggles unauthorized USB port monitoring lockdown.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "enabled": {
+                    "type": "BOOLEAN",
+                    "description": "Enable (true) or disable (false) USB lockdown monitoring"
+                }
+            },
+            "required": ["enabled"]
+        }
+    },
+    {
+        "name": "iot_controller",
+        "description": "Controls smart home IoT devices like study lights, ambient shield, and secure gate.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": "toggle | get_state"
+                },
+                "device": {
+                    "type": "STRING",
+                    "description": "study_lights | ambient_shield | secure_gate (required only for toggle)"
+                }
+            },
+            "required": ["action"]
+        }
     }
 ]
 

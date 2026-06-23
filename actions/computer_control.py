@@ -277,15 +277,39 @@ def _clear_field() -> str:
     return "Field cleared"
 
 def _focus_window(title: str) -> str:
+    import platform
     os_name = _get_os()
 
     if os_name == "windows":
+        if not title or title.strip() in ["", "None"]:
+            return "Which application should I switch to, Sir?"
+        name_l = title.lower().strip()
+        PROCESS_NAMES = {
+            "chrome": "chrome",
+            "browser": "chrome",
+            "firefox": "firefox",
+            "notepad": "notepad",
+            "vs code": "code",
+            "code": "code",
+            "spotify": "spotify",
+            "calculator": "calculator",
+            "calc": "calculator",
+            "paint": "mspaint",
+            "word": "winword",
+            "excel": "excel",
+            "powerpoint": "powerpnt",
+        }
+        proc_name = PROCESS_NAMES.get(name_l, name_l)
         try:
-            script = f'(New-Object -ComObject WScript.Shell).AppActivate("{title}")'
-            subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
-                capture_output=True, timeout=5,
+            ps_script = (
+                "add-type -TypeDefinition 'using System; using System.Runtime.InteropServices; "
+                "public class Win32 { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); "
+                "[DllImport(\"user32.dll\")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow); }';"
+                f"$proc = Get-Process | Where-Object {{ $_.ProcessName -eq '{proc_name}' -or $_.MainWindowTitle -like '*{name_l}*' -or $_.ProcessName -like '*{name_l}*' }} | Where-Object {{ $_.MainWindowHandle -ne 0 }} | Select-Object -First 1;"
+                "if ($proc) { [Win32]::ShowWindowAsync($proc.MainWindowHandle, 9) | Out-Null; [Win32]::SetForegroundWindow($proc.MainWindowHandle) | Out-Null; Write-Output 'Success' } else { Write-Output 'NotFound' }"
             )
+            res = subprocess.run(["powershell", "-Command", ps_script], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            print(f"[SWITCH APP TELEMETRY] Target: {proc_name} -> {res.stdout.strip()}")
             time.sleep(0.3)
             return f"Focused window: {title}"
         except Exception as e:

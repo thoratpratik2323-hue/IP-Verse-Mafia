@@ -31,6 +31,11 @@ from actions.premium_utilities import (
 from actions.warp_helper import warp_helper
 from actions.ask_antigravity import ask_antigravity
 from actions.image_generator import image_generator
+from actions.youtube_macros import automate_youtube, play_youtube
+from actions.notepad_automation import automate_notepad
+from actions.panic_wipe import panic_wipe as run_panic_wipe
+from actions.usb_monitor import toggle_usb as run_usb_toggle
+from actions.iot_controller import toggle_iot as run_iot_toggle, get_iot_state as run_get_iot_state
 
 # Premium Actions Suite 2026
 from actions.task_planner import task_planner
@@ -173,6 +178,38 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
         elif name == "computer_control":
             r = await loop.run_in_executor(None, lambda: computer_control(parameters=args, player=player))
             result = r or "Done."
+
+        elif name == "youtube_macros":
+            action = args.get("action", "").lower().strip()
+            if action == "play_video":
+                r = await loop.run_in_executor(None, lambda: play_youtube(query=args.get("query", "")))
+            else:
+                r = await loop.run_in_executor(None, lambda: automate_youtube(action=action))
+            result = r or "Done."
+
+        elif name == "notepad_automation":
+            action = args.get("action", "").lower().strip()
+            text = args.get("text", "")
+            r = await loop.run_in_executor(None, lambda: automate_notepad(action=action, arg=text))
+            result = r or "Done."
+
+        elif name == "panic_wipe":
+            r = await loop.run_in_executor(None, lambda: run_panic_wipe())
+            result = r.get("reply", "Done.")
+
+        elif name == "usb_monitor":
+            enabled = bool(args.get("enabled", False))
+            r = await loop.run_in_executor(None, lambda: run_usb_toggle(enabled=enabled))
+            result = f"USB monitor lockdown is now {'active' if r.get('active') else 'inactive'}."
+
+        elif name == "iot_controller":
+            action = args.get("action", "").lower().strip()
+            if action == "toggle":
+                r = await loop.run_in_executor(None, lambda: run_iot_toggle(device=args.get("device", "")))
+                result = r.get("reply", "Done.")
+            else:
+                r = await loop.run_in_executor(None, lambda: run_get_iot_state())
+                result = str(r)
 
         elif name == "game_updater":
             r = await loop.run_in_executor(None, lambda: game_updater(parameters=args, player=player, speak=speak))
