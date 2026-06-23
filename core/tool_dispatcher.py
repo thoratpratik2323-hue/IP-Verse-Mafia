@@ -36,6 +36,10 @@ from actions.notepad_automation import automate_notepad
 from actions.panic_wipe import panic_wipe as run_panic_wipe
 from actions.usb_monitor import toggle_usb as run_usb_toggle
 from actions.iot_controller import toggle_iot as run_iot_toggle, get_iot_state as run_get_iot_state
+from actions.app_shortcuts import automate_calculator, automate_clock, automate_paint, automate_settings, automate_explorer
+from actions.web_app_macros import automate_gmail, automate_drive
+from actions.whatsapp_automation import send_whatsapp as run_send_whatsapp
+from actions.realtime_knowledge import fetch_realtime_knowledge as run_fetch_realtime_knowledge
 
 # Premium Actions Suite 2026
 from actions.task_planner import task_planner
@@ -210,6 +214,48 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             else:
                 r = await loop.run_in_executor(None, lambda: run_get_iot_state())
                 result = str(r)
+
+        elif name == "app_shortcuts":
+            app = args.get("app", "").lower().strip()
+            action = args.get("action", "").lower().strip()
+            path_arg = args.get("path_arg", "")
+            
+            if app == "calc":
+                r = await loop.run_in_executor(None, lambda: automate_calculator(action=action))
+            elif app == "clock":
+                r = await loop.run_in_executor(None, lambda: automate_clock(action=action))
+            elif app == "paint":
+                r = await loop.run_in_executor(None, lambda: automate_paint(action=action))
+            elif app == "settings":
+                r = await loop.run_in_executor(None, lambda: automate_settings(action=action))
+            elif app == "explorer":
+                r = await loop.run_in_executor(None, lambda: automate_explorer(action=action, arg=path_arg))
+            else:
+                r = f"Unknown app shortcut target: '{app}'"
+            result = r or "Done."
+
+        elif name == "web_app_macros":
+            service = args.get("service", "").lower().strip()
+            action = args.get("action", "").lower().strip()
+            
+            if service == "gmail":
+                r = await loop.run_in_executor(None, lambda: automate_gmail(action=action))
+            elif service == "drive":
+                r = await loop.run_in_executor(None, lambda: automate_drive(action=action))
+            else:
+                r = f"Unknown web app service macro: '{service}'"
+            result = r or "Done."
+
+        elif name == "whatsapp_automation":
+            target = args.get("target", "")
+            message = args.get("message", "")
+            r = await loop.run_in_executor(None, lambda: run_send_whatsapp(target=target, message=message))
+            result = r or "Done."
+
+        elif name == "realtime_knowledge":
+            query = args.get("query", "")
+            r = await loop.run_in_executor(None, lambda: run_fetch_realtime_knowledge(query=query))
+            result = r or "Done."
 
         elif name == "game_updater":
             r = await loop.run_in_executor(None, lambda: game_updater(parameters=args, player=player, speak=speak))

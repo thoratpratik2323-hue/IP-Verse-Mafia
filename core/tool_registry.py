@@ -2433,6 +2433,78 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "app_shortcuts",
+        "description": "Controls standard Windows apps: Calculator, Clock, Paint, Settings, and File Explorer.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "app": {
+                    "type": "STRING",
+                    "description": "calc | clock | paint | settings | explorer"
+                },
+                "action": {
+                    "type": "STRING",
+                    "description": "The specific shortcut/nav action e.g. scientific, standard, timer, alarm, new_canvas, save, wifi, open_downloads, new_folder"
+                },
+                "path_arg": {
+                    "type": "STRING",
+                    "description": "Optional directory/folder target string for explorer open action"
+                }
+            },
+            "required": ["app", "action"]
+        }
+    },
+    {
+        "name": "web_app_macros",
+        "description": "Controls Gmail and Google Drive tabs inside browser utilizing keyboard shortcut macros.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "service": {
+                    "type": "STRING",
+                    "description": "gmail | drive"
+                },
+                "action": {
+                    "type": "STRING",
+                    "description": "gmail actions: compose, search, inbox, sent, starred, drafts, refresh; drive actions: new_doc, new_sheet, new_folder, search, recent"
+                }
+            },
+            "required": ["service", "action"]
+        }
+    },
+    {
+        "name": "whatsapp_automation",
+        "description": "Pre-fills and sends a message to a contact name or phone number on WhatsApp Web in Chrome.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "target": {
+                    "type": "STRING",
+                    "description": "Contact name or phone number"
+                },
+                "message": {
+                    "type": "STRING",
+                    "description": "Message to send"
+                }
+            },
+            "required": ["target", "message"]
+        }
+    },
+    {
+        "name": "realtime_knowledge",
+        "description": "Queries Tavily / Google News RSS / Wikipedia for real-time information, news, or general knowledge.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {
+                    "type": "STRING",
+                    "description": "Search query or question"
+                }
+            },
+            "required": ["query"]
+        }
     }
 ]
 
