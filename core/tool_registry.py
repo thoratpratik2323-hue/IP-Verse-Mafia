@@ -2505,6 +2505,710 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["query"]
         }
+    },
+    {
+        "name": "automate_multitasking",
+        "description": (
+            "Controls Windows workspace multitasking — snap windows, manage virtual desktops, "
+            "minimize/restore all, task view, and alt-tab. "
+            "Use when the user says 'snap left', 'new desktop', 'show desktop', 'minimize all', "
+            "'task view', 'switch app', 'maximize window', etc."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {
+                    "type": "STRING",
+                    "description": (
+                        "Multitasking action. Examples: 'minimize all', 'restore all', "
+                        "'snap left', 'snap right', 'maximize window', 'minimize window', "
+                        "'new desktop', 'next desktop', 'previous desktop', 'close desktop', "
+                        "'task view', 'switch app'"
+                    )
+                }
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "automate_browser",
+        "description": (
+            "Executes keyboard shortcut automations inside Chrome or Firefox. "
+            "Use when the user says 'open new tab in chrome', 'close tab in firefox', "
+            "'refresh chrome', 'go incognito', 'open devtools', 'scroll down in chrome', etc."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "browser": {
+                    "type": "STRING",
+                    "description": "Browser name: 'chrome' or 'firefox'"
+                },
+                "action": {
+                    "type": "STRING",
+                    "description": (
+                        "Action to perform. Examples: 'new tab', 'close tab', 'next tab', "
+                        "'prev tab', 'refresh', 'hard refresh', 'zoom in', 'zoom out', "
+                        "'fullscreen', 'incognito', 'history', 'downloads', 'developer tools', "
+                        "'scroll down', 'scroll up', 'back', 'forward', 'address bar'"
+                    )
+                }
+            },
+            "required": ["browser", "action"]
+        }
+    },
+    {
+        "name": "switch_app",
+        "description": (
+            "Switches focus to an already-open application window using robust Win32 APIs. "
+            "Use when the user says 'switch to chrome', 'bring up spotify', 'focus vscode', "
+            "'open discord window', 'switch to notepad', etc."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "name": {
+                    "type": "STRING",
+                    "description": (
+                        "Name of the application to focus. Examples: 'chrome', 'vscode', "
+                        "'spotify', 'discord', 'notepad', 'whatsapp', 'explorer', 'terminal'"
+                    )
+                }
+            },
+            "required": ["name"]
+        }
+    },
+    {
+        "name": "run_system_maintenance",
+        "description": (
+            "Runs a system maintenance sweep — clears TEMP directories, old log files, "
+            "and cache files. Reports how many MB were freed. "
+            "Use when the user says 'run maintenance', 'clean temp files', 'clear cache', "
+            "'optimize system', 'free up space', etc."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "toggle_sandbox",
+        "description": (
+            "Toggles network sandbox mode. When enabled, kills all established external network "
+            "connections (except local). Useful for privacy lockdown. "
+            "Use when the user says 'enable network sandbox', 'isolate network', "
+            "'kill all connections', 'disable sandbox', 'deactivate network shield', etc."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "enabled": {
+                    "type": "BOOLEAN",
+                    "description": "true to enable sandbox (kill connections), false to disable"
+                }
+            },
+            "required": ["enabled"]
+        }
+    },
+
+    # ── SAT Batch 4 — 39 New Tools ──────────────────────────────────────────
+
+    {
+        "name": "deep_research",
+        "description": (
+            "JARVIS-class deep research engine. Searches multiple sources (DuckDuckGo, Tavily, Wikipedia) "
+            "and synthesizes a comprehensive Markdown report. "
+            "Use when user says 'deep research on X', 'research topic Y', 'find everything about Z', "
+            "'make a report on X', 'study this topic for me'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Research topic or question"},
+                "depth": {"type": "STRING", "description": "Research depth: 'quick', 'standard', 'deep' (default: standard)"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "document_generator",
+        "description": (
+            "Generates professional documents — PDF, Markdown, or TXT — with styled headers, sections, and bullet points. "
+            "Use when user says 'generate a PDF', 'create a document', 'write a report as PDF', "
+            "'make a professional document about X'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "content": {"type": "STRING", "description": "Document content or topic to generate"},
+                "format": {"type": "STRING", "description": "Output format: 'pdf', 'markdown', 'txt' (default: pdf)"},
+                "title": {"type": "STRING", "description": "Document title"}
+            },
+            "required": ["content"]
+        }
+    },
+    {
+        "name": "email_reader",
+        "description": (
+            "Reads emails from Gmail inbox via IMAP. Lists recent emails or reads a specific email. "
+            "Use when user says 'check my emails', 'read my inbox', 'show latest emails', 'read email from X'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'list' to show inbox, 'read' to read specific email"},
+                "count": {"type": "INTEGER", "description": "Number of emails to fetch (default: 5)"},
+                "search": {"type": "STRING", "description": "Search term to filter emails"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "email_sender",
+        "description": (
+            "Sends emails via Gmail SMTP. "
+            "Use when user says 'send an email to X', 'email Y saying Z', 'compose and send email'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "to": {"type": "STRING", "description": "Recipient email address"},
+                "subject": {"type": "STRING", "description": "Email subject"},
+                "body": {"type": "STRING", "description": "Email body content"}
+            },
+            "required": ["to", "subject", "body"]
+        }
+    },
+    {
+        "name": "notion_tool",
+        "description": (
+            "Controls Notion workspace — list pages, create new pages, search content. "
+            "Use when user says 'open Notion', 'create a Notion page about X', 'list my Notion pages', 'search Notion for Y'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'list', 'create', 'search'"},
+                "title": {"type": "STRING", "description": "Page title (for create)"},
+                "content": {"type": "STRING", "description": "Page content (for create)"},
+                "query": {"type": "STRING", "description": "Search query (for search)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "google_drive_tool",
+        "description": (
+            "Access Google Drive — list files, upload, download, search. "
+            "Use when user says 'show my Drive files', 'upload X to Drive', 'download Y from Drive', 'search Drive for Z'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'list', 'upload', 'download', 'search'"},
+                "query": {"type": "STRING", "description": "Search term or file name"},
+                "file_path": {"type": "STRING", "description": "Local file path for upload"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "huggingface_tool",
+        "description": (
+            "Access HuggingFace — run inference on models, search models/datasets. "
+            "Use when user says 'run X model on HuggingFace', 'search HuggingFace for Y', 'inference with HF model'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'inference', 'search_models', 'search_datasets'"},
+                "model": {"type": "STRING", "description": "HuggingFace model ID"},
+                "input": {"type": "STRING", "description": "Input text for inference"},
+                "query": {"type": "STRING", "description": "Search query"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "security_auditor",
+        "description": (
+            "Scans code files or directories for security vulnerabilities — SQL injection, XSS, hardcoded secrets, insecure packages. "
+            "Use when user says 'audit my code', 'scan for security issues', 'check for vulnerabilities in X', 'security scan'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'scan_secrets', 'vuln_check', 'system_security', 'deep_audit', 'audit_packages'"},
+                "target": {"type": "STRING", "description": "File or directory path to audit"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "study_mode",
+        "description": (
+            "Interactive study/quiz session on any topic. Saturday asks questions and evaluates answers. "
+            "Use when user says 'quiz me on X', 'study mode for Y', 'test my knowledge on Z', 'start a quiz'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'start', 'answer', 'skip', 'end', 'history'"},
+                "topic": {"type": "STRING", "description": "Topic to study (for start)"},
+                "answer": {"type": "STRING", "description": "User's answer to the current question"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "game_mode",
+        "description": (
+            "Activates/deactivates game mode — minimizes UI overhead, disables notifications, optimizes performance when gaming. "
+            "Use when user says 'game mode on', 'I'm gaming', 'enable game mode', 'disable game mode', 'exit game mode'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'on' to enable, 'off' to disable, 'status' to check"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "goals_tracker",
+        "description": (
+            "Track long-term goals with AI coaching. Set goals, mark progress, review status. "
+            "Use when user says 'add a goal', 'track my goal', 'show my goals', 'I completed goal X', 'review my goals'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'add', 'list', 'complete', 'delete', 'progress', 'coach'"},
+                "goal": {"type": "STRING", "description": "Goal description (for add)"},
+                "goal_id": {"type": "STRING", "description": "Goal ID (for complete/delete/progress)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "project_memory",
+        "description": (
+            "Per-project memory context — store and recall facts specific to a project without mixing with others. "
+            "Use when user says 'remember for project X', 'what do you know about project Y', 'store this for my current project'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'store', 'recall', 'list_projects', 'clear'"},
+                "project": {"type": "STRING", "description": "Project name"},
+                "fact": {"type": "STRING", "description": "Fact or info to store"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "project_setup",
+        "description": (
+            "Bootstraps a new coding project — creates folder structure, venv, git init, README. "
+            "Use when user says 'setup a new project', 'create project X', 'initialize new Python project', 'bootstrap my project'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "project_name": {"type": "STRING", "description": "Name of the project"},
+                "language": {"type": "STRING", "description": "Programming language (python, node, etc.)"},
+                "path": {"type": "STRING", "description": "Where to create the project (optional)"}
+            },
+            "required": ["project_name"]
+        }
+    },
+    {
+        "name": "plugin_creator",
+        "description": (
+            "Creates and registers a new tool plugin at runtime — no restart needed. "
+            "Use when user says 'create a new tool', 'make a plugin for X', 'build me a new action module'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "name": {"type": "STRING", "description": "Plugin/tool name"},
+                "description": {"type": "STRING", "description": "What the plugin should do"},
+                "code_hint": {"type": "STRING", "description": "Optional code snippet or logic hint"}
+            },
+            "required": ["name", "description"]
+        }
+    },
+    {
+        "name": "error_detective",
+        "description": (
+            "Analyzes error messages, stack traces, and exceptions to identify root cause and suggest fixes. "
+            "Use when user says 'what does this error mean', 'fix this error', 'debug this exception', 'analyze this stack trace'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "error": {"type": "STRING", "description": "Error message or stack trace to analyze"},
+                "context": {"type": "STRING", "description": "Additional context about what was being done"}
+            },
+            "required": ["error"]
+        }
+    },
+    {
+        "name": "explorer_control",
+        "description": (
+            "Controls Windows File Explorer — open folders, navigate, create directories. "
+            "Use when user says 'open this folder in Explorer', 'navigate to X in Explorer', 'go to Downloads in Explorer'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'open', 'navigate', 'get_active', 'new_folder'"},
+                "path": {"type": "STRING", "description": "Folder path to open or navigate to"},
+                "folder_name": {"type": "STRING", "description": "New folder name (for new_folder)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "export_conversation",
+        "description": (
+            "Exports the current conversation/chat session to PDF or TXT file. "
+            "Use when user says 'save this conversation', 'export our chat', 'save chat as PDF', 'export session'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "format": {"type": "STRING", "description": "Export format: 'pdf' or 'txt' (default: txt)"},
+                "filename": {"type": "STRING", "description": "Output filename (optional)"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "focus_mode",
+        "description": (
+            "Focus mode — blocks distracting websites, sets Do Not Disturb, optionally starts Pomodoro timer. "
+            "Use when user says 'focus mode on', 'block distractions', 'start focus session', 'unblock sites', 'stop focus mode'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'start', 'stop', 'block', 'unblock', 'status'"},
+                "duration": {"type": "INTEGER", "description": "Focus session duration in minutes (default: 25)"},
+                "sites": {"type": "STRING", "description": "Comma-separated sites to block (optional)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "git_copilot",
+        "description": (
+            "AI-powered Git assistant — AI-generated commit messages, smart push/pull, branch management. "
+            "Use when user says 'git commit', 'generate commit message', 'push my changes', 'git status with AI', 'create branch X'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'status', 'commit', 'push', 'pull', 'branch', 'log', 'diff'"},
+                "message": {"type": "STRING", "description": "Commit message (optional — AI generates if not provided)"},
+                "branch": {"type": "STRING", "description": "Branch name (for branch action)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "github_tool",
+        "description": (
+            "GitHub API integration — search repos, list issues, check PRs, view repo info. "
+            "Use when user says 'search GitHub for X', 'show issues in repo Y', 'list my GitHub repos', 'check PRs'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'search_repos', 'list_issues', 'list_prs', 'repo_info', 'my_repos'"},
+                "query": {"type": "STRING", "description": "Search query or repo name"},
+                "repo": {"type": "STRING", "description": "Repository (owner/repo format)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "github_action",
+        "description": (
+            "Trigger GitHub Actions, manage workflows, view run status. "
+            "Use when user says 'trigger GitHub action', 'run workflow X', 'check GitHub CI status'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'trigger', 'list_runs', 'cancel_run', 'list_workflows'"},
+                "repo": {"type": "STRING", "description": "Repository (owner/repo)"},
+                "workflow": {"type": "STRING", "description": "Workflow file name or ID"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "hacker_tools",
+        "description": (
+            "Network and security utilities — port scan, base64 encode/decode, hash identify, password audit, file encryption. "
+            "Use when user says 'scan ports on X', 'encode this in base64', 'what hash is this', 'encrypt this file'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'port_scan', 'encode', 'decode', 'hash_identify', 'password_audit', 'file_crypt'"},
+                "target": {"type": "STRING", "description": "IP, text, or file path"},
+                "key": {"type": "STRING", "description": "Encryption key (for file_crypt)"}
+            },
+            "required": ["action", "target"]
+        }
+    },
+    {
+        "name": "local_ingester",
+        "description": (
+            "Ingests local files (PDF, TXT, code) into a ChromaDB vector database for RAG memory. "
+            "Use when user says 'index this file', 'add this PDF to memory', 'ingest my documents', 'remember this file'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "path": {"type": "STRING", "description": "File or folder path to ingest"},
+                "collection": {"type": "STRING", "description": "Vector DB collection name (default: 'prime_kb')"}
+            },
+            "required": ["path"]
+        }
+    },
+    {
+        "name": "local_search",
+        "description": (
+            "Semantic search across locally indexed files and documents. "
+            "Use when user says 'search my documents for X', 'find in my local files', 'semantic search for Y in my notes'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Search query"},
+                "collection": {"type": "STRING", "description": "Collection to search (default: 'prime_kb')"},
+                "top_k": {"type": "INTEGER", "description": "Number of results (default: 5)"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "music_control",
+        "description": (
+            "System media controls — play, pause, next, previous, volume. "
+            "Use when user says 'play music', 'pause', 'next song', 'previous track', 'mute', 'volume up/down'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'play', 'pause', 'next', 'previous', 'mute', 'volume_up', 'volume_down'"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "obsidian_organizer",
+        "description": (
+            "Obsidian vault organizer — index notes, auto-categorize by topic, generate summaries. "
+            "Use when user says 'organize my Obsidian vault', 'categorize my notes', 'summarize Obsidian notes', 'index vault'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'index', 'categorize', 'summarize', 'search'"},
+                "vault_path": {"type": "STRING", "description": "Path to Obsidian vault (optional)"},
+                "query": {"type": "STRING", "description": "Search query (for search action)"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "auto_code_explainer",
+        "description": (
+            "Captures the active window screen and automatically explains the visible code. "
+            "Use when user says 'explain this code', 'what does this code do', 'explain what I see on screen', 'read this code'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "detail": {"type": "STRING", "description": "Level of detail: 'brief', 'detailed' (default: detailed)"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "auto_code_helper",
+        "description": (
+            "Real-time code assistant — provides suggestions, completions, and refactoring hints based on visible code. "
+            "Use when user says 'help me with this code', 'suggest improvements', 'how can I improve this', 'code hints'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "task": {"type": "STRING", "description": "What kind of help needed: 'suggest', 'complete', 'refactor', 'document'"},
+                "code": {"type": "STRING", "description": "Code snippet (optional — captures from screen if not provided)"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "voice_to_code",
+        "description": (
+            "Converts voice dictation directly into typed code in the active IDE/editor. "
+            "Use when user says 'type this code for me', 'write code by voice', 'dictate code', 'type what I say as code'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "code": {"type": "STRING", "description": "Code to type into the active editor"},
+                "language": {"type": "STRING", "description": "Programming language hint (optional)"}
+            },
+            "required": ["code"]
+        }
+    },
+    {
+        "name": "content_creator",
+        "description": (
+            "AI content creation — blog posts, social media captions, YouTube scripts, ad copy. "
+            "Use when user says 'write a blog post about X', 'create social media caption for Y', 'make YouTube script', 'write ad copy'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "type": {"type": "STRING", "description": "'blog', 'social', 'youtube', 'ad', 'email_newsletter', 'thread'"},
+                "topic": {"type": "STRING", "description": "Content topic"},
+                "tone": {"type": "STRING", "description": "Tone: 'professional', 'casual', 'funny', 'inspirational'"},
+                "length": {"type": "STRING", "description": "Length: 'short', 'medium', 'long'"}
+            },
+            "required": ["type", "topic"]
+        }
+    },
+    {
+        "name": "browser_agent",
+        "description": (
+            "Playwright headless browser agent — automates websites, fills forms, extracts data, takes screenshots. "
+            "Use when user says 'open this website and do X', 'fill this form', 'extract data from URL', 'automate browser task'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'open', 'click', 'type', 'extract', 'screenshot', 'scroll'"},
+                "url": {"type": "STRING", "description": "URL to navigate to"},
+                "selector": {"type": "STRING", "description": "CSS selector for element"},
+                "text": {"type": "STRING", "description": "Text to type"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "calendar_tool",
+        "description": (
+            "Google Calendar integration — add and list events. "
+            "Use when user says 'add event to calendar', 'schedule X on date Y', 'what events do I have', 'show calendar'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'list', 'create'"},
+                "title": {"type": "STRING", "description": "Event title (for create)"},
+                "date": {"type": "STRING", "description": "Event date/time (for create)"},
+                "duration": {"type": "INTEGER", "description": "Duration in minutes"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "scheduled_task",
+        "description": (
+            "Schedule tasks using Windows Task Scheduler. "
+            "Use when user says 'schedule this task', 'run X every day at Y time', 'create scheduled task', 'set up recurring task'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'create', 'list', 'delete', 'run'"},
+                "task_name": {"type": "STRING", "description": "Task name"},
+                "command": {"type": "STRING", "description": "Command to run"},
+                "schedule": {"type": "STRING", "description": "Schedule: 'daily', 'weekly', 'once', time like '09:00'"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "system_monitor",
+        "description": (
+            "Quick system stats — CPU, RAM, disk, battery, temperature. "
+            "Use when user says 'system stats', 'how is my CPU', 'RAM usage', 'battery level', 'system health'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "metric": {"type": "STRING", "description": "'all', 'cpu', 'ram', 'disk', 'battery', 'temperature'"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "translate_text",
+        "description": (
+            "Translates text between languages using Gemini AI. "
+            "Use when user says 'translate this to X', 'what is Y in Z language', 'translate: <text>'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "text": {"type": "STRING", "description": "Text to translate"},
+                "target_language": {"type": "STRING", "description": "Target language (e.g. 'Hindi', 'French', 'Spanish')"},
+                "source_language": {"type": "STRING", "description": "Source language (optional — auto-detected)"}
+            },
+            "required": ["text", "target_language"]
+        }
+    },
+    {
+        "name": "query_visual_timeline",
+        "description": (
+            "Queries the visual timeline (screen history) to find what was on screen at a given time. "
+            "Use when user says 'what was I doing an hour ago', 'show screen history', 'what was on my screen earlier', 'find in my screen history'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "What to search for in screen history"},
+                "time_ago": {"type": "STRING", "description": "Time range like '1 hour', '30 minutes', 'today'"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "quick_briefing",
+        "description": (
+            "Generates a quick morning/evening briefing with weather, news, and tasks. "
+            "Use when user says 'give me a briefing', 'morning briefing', 'quick summary of today', 'what should I know today'."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "type": {"type": "STRING", "description": "'morning', 'evening', 'quick' (default: quick)"}
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "web_search_quick",
+        "description": (
+            "Fast web search via Tavily API — returns quick results without deep synthesis. "
+            "Use when user says 'quick search for X', 'fast lookup Y', 'search the web for Z' (for deeper research use deep_research)."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Search query"}
+            },
+            "required": ["query"]
+        }
     }
 ]
-

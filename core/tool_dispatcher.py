@@ -40,6 +40,13 @@ from actions.app_shortcuts import automate_calculator, automate_clock, automate_
 from actions.web_app_macros import automate_gmail, automate_drive
 from actions.whatsapp_automation import send_whatsapp as run_send_whatsapp
 from actions.realtime_knowledge import fetch_realtime_knowledge as run_fetch_realtime_knowledge
+from actions.multitasking_control import (
+    automate_multitasking as run_automate_multitasking,
+    automate_browser as run_automate_browser,
+    switch_app as run_switch_app,
+    run_system_maintenance,
+    toggle_sandbox as run_toggle_sandbox,
+)
 
 # Premium Actions Suite 2026
 from actions.task_planner import task_planner
@@ -66,6 +73,46 @@ from actions.pentagi_engine import pentagi_engine
 from actions.mythos_internet import mythos_internet
 from actions.wifi_security import wifi_security
 from actions.auto_updater import auto_update
+
+# ── SAT Batch 4 — 39 New Action Imports ─────────────────────────────────────
+from actions.deep_research      import deep_research
+from actions.document_generator import document_generator
+from actions.email_reader       import email_reader
+from actions.email_sender       import send_email
+from actions.notion_tool        import notion_tool
+from actions.google_drive_tool  import google_drive_tool
+from actions.huggingface_tool   import huggingface_tool
+from actions.security_auditor   import security_audit
+from actions.study_mode         import study_mode
+from actions.game_mode          import game_mode
+from actions.goals_tracker      import goals_tracker
+from actions.project_memory     import project_memory
+from actions.project_setup      import project_setup
+from actions.plugin_creator     import plugin_creator
+from actions.error_detective    import error_detective
+from actions.explorer_control   import open_folder, navigate_active
+from actions.export_conversation import export_conversation
+from actions.focus_mode         import focus_mode as sat_focus_mode
+from actions.git_copilot        import git_copilot
+from actions.github_tool        import github_tool
+from actions.github_control     import github_action
+from actions.hacker_tools       import hacker_action
+from actions.local_ingester     import local_ingester
+from actions.local_search       import local_search
+from actions.music_control      import music_control
+from actions.obsidian_organizer import obsidian_action
+from actions.auto_code_explainer import auto_code_explainer
+from actions.auto_code_helper   import auto_code_helper
+from actions.voice_to_code      import voice_to_code
+from actions.content_creator    import content_creator
+from actions.browser_agent      import browser_agent
+from actions.calendar_tool      import calendar_tool
+from actions.scheduled_task     import scheduled_task
+from actions.system_monitor     import system_monitor
+from actions.translate          import translate_text
+from actions.query_visual       import query_visual_timeline
+from actions.briefing           import get_morning_briefing
+from actions.search             import web_search as quick_web_search
 
 
 # Also import play_sfx if needed inside threads
@@ -1070,6 +1117,220 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             from actions.cmd_control import cmd_control
             r = await loop.run_in_executor(None, lambda: cmd_control(parameters=args, player=player))
             result = r or "Done."
+
+        # ── Batch 3: Multitasking, Browser Shortcuts, App Switcher, Maintenance, Sandbox ──
+
+        elif name == "automate_multitasking":
+            action = args.get("action", "")
+            r = await loop.run_in_executor(None, lambda: run_automate_multitasking(action))
+            result = r or "Multitasking command executed, Sir."
+
+        elif name == "automate_browser":
+            browser = args.get("browser", "chrome")
+            action = args.get("action", "")
+            r = await loop.run_in_executor(None, lambda: run_automate_browser(browser, action))
+            result = r or "Browser shortcut executed, Sir."
+
+        elif name == "switch_app":
+            app_name = args.get("name", "")
+            r = await loop.run_in_executor(None, lambda: run_switch_app(app_name))
+            result = r or "Application switched, Sir."
+
+        elif name == "run_system_maintenance":
+            r = await loop.run_in_executor(None, run_system_maintenance)
+            result = r or "System maintenance complete, Sir."
+
+        elif name == "toggle_sandbox":
+            enabled = args.get("enabled", False)
+            r = await loop.run_in_executor(None, lambda: run_toggle_sandbox(bool(enabled)))
+            result = r or "Network sandbox toggled, Sir."
+
+        # ── SAT Batch 4 — 39 New Tool Dispatchers ────────────────────────────
+
+        elif name == "deep_research":
+            query = args.get("query", "")
+            depth = args.get("depth", "standard")
+            r = await loop.run_in_executor(None, lambda: deep_research(query=query, depth=depth, player=player, speak=speak))
+            result = r or "Research complete, Sir."
+
+        elif name == "document_generator":
+            r = await loop.run_in_executor(None, lambda: document_generator(parameters=args, player=player, speak=speak))
+            result = r or "Document generated, Sir."
+
+        elif name == "email_reader":
+            r = await loop.run_in_executor(None, lambda: email_reader(parameters=args, player=player, speak=speak))
+            result = r or "Emails retrieved, Sir."
+
+        elif name == "email_sender":
+            r = await loop.run_in_executor(None, lambda: send_email(
+                to=args.get("to", ""),
+                subject=args.get("subject", ""),
+                body=args.get("body", ""),
+                player=player
+            ))
+            result = r or "Email sent, Sir."
+
+        elif name == "notion_tool":
+            r = await loop.run_in_executor(None, lambda: notion_tool(parameters=args, player=player, speak=speak))
+            result = r or "Notion action complete, Sir."
+
+        elif name == "google_drive_tool":
+            r = await loop.run_in_executor(None, lambda: google_drive_tool(parameters=args, player=player, speak=speak))
+            result = r or "Google Drive action complete, Sir."
+
+        elif name == "huggingface_tool":
+            r = await loop.run_in_executor(None, lambda: huggingface_tool(parameters=args, player=player, speak=speak))
+            result = r or "HuggingFace action complete, Sir."
+
+        elif name == "security_auditor":
+            r = await loop.run_in_executor(None, lambda: security_audit(parameters=args, player=player, speak=speak))
+            result = r or "Security audit complete, Sir."
+
+        elif name == "study_mode":
+            r = await loop.run_in_executor(None, lambda: study_mode(parameters=args, player=player, speak=speak))
+            result = r or "Study mode action complete, Sir."
+
+        elif name == "game_mode":
+            action = args.get("action", "status")
+            r = await loop.run_in_executor(None, lambda: game_mode(action=action, player=player, speak=speak))
+            result = r or "Game mode toggled, Sir."
+
+        elif name == "goals_tracker":
+            r = await loop.run_in_executor(None, lambda: goals_tracker(parameters=args, player=player, speak=speak))
+            result = r or "Goals updated, Sir."
+
+        elif name == "project_memory":
+            r = await loop.run_in_executor(None, lambda: project_memory(parameters=args, player=player, speak=speak))
+            result = r or "Project memory updated, Sir."
+
+        elif name == "project_setup":
+            r = await loop.run_in_executor(None, lambda: project_setup(parameters=args, player=player, speak=speak))
+            result = r or "Project setup complete, Sir."
+
+        elif name == "plugin_creator":
+            r = await loop.run_in_executor(None, lambda: plugin_creator(parameters=args, player=player, speak=speak))
+            result = r or "Plugin created and registered, Sir."
+
+        elif name == "error_detective":
+            error = args.get("error", "")
+            context = args.get("context", "")
+            r = await loop.run_in_executor(None, lambda: error_detective(error=error, context=context, player=player, speak=speak))
+            result = r or "Error analysis complete, Sir."
+
+        elif name == "explorer_control":
+            action = args.get("action", "open")
+            path = args.get("path", "")
+            if action == "open":
+                r = await loop.run_in_executor(None, lambda: open_folder(path))
+            else:
+                r = await loop.run_in_executor(None, lambda: navigate_active(path))
+            result = r or "Explorer action complete, Sir."
+
+        elif name == "export_conversation":
+            fmt = args.get("format", "txt")
+            filename = args.get("filename", "")
+            r = await loop.run_in_executor(None, lambda: export_conversation(format=fmt, filename=filename, player=player, speak=speak))
+            result = r or "Conversation exported, Sir."
+
+        elif name == "focus_mode":
+            r = await loop.run_in_executor(None, lambda: sat_focus_mode(parameters=args, player=player, speak=speak))
+            result = r or "Focus mode toggled, Sir."
+
+        elif name == "git_copilot":
+            r = await loop.run_in_executor(None, lambda: git_copilot(parameters=args, player=player, speak=speak))
+            result = r or "Git action complete, Sir."
+
+        elif name == "github_tool":
+            r = await loop.run_in_executor(None, lambda: github_tool(parameters=args, player=player, speak=speak))
+            result = r or "GitHub action complete, Sir."
+
+        elif name == "github_action":
+            r = await loop.run_in_executor(None, lambda: github_action(parameters=args, player=player, speak=speak))
+            result = r or "GitHub action triggered, Sir."
+
+        elif name == "hacker_tools":
+            r = await loop.run_in_executor(None, lambda: hacker_action(parameters=args, player=player, speak=speak))
+            result = r or "Hacker tool action complete, Sir."
+
+        elif name == "local_ingester":
+            path = args.get("path", "")
+            collection = args.get("collection", "prime_kb")
+            r = await loop.run_in_executor(None, lambda: local_ingester(path=path, collection=collection, player=player, speak=speak))
+            result = r or "Files ingested into memory, Sir."
+
+        elif name == "local_search":
+            query = args.get("query", "")
+            collection = args.get("collection", "prime_kb")
+            top_k = args.get("top_k", 5)
+            r = await loop.run_in_executor(None, lambda: local_search(query=query, collection=collection, top_k=top_k, player=player, speak=speak))
+            result = r or "Local search complete, Sir."
+
+        elif name == "music_control":
+            action = args.get("action", "play")
+            r = await loop.run_in_executor(None, lambda: music_control(action=action, player=player))
+            result = r or "Music controlled, Sir."
+
+        elif name == "obsidian_organizer":
+            r = await loop.run_in_executor(None, lambda: obsidian_action(parameters=args, player=player, speak=speak))
+            result = r or "Obsidian vault organized, Sir."
+
+        elif name == "auto_code_explainer":
+            detail = args.get("detail", "detailed")
+            r = await loop.run_in_executor(None, lambda: auto_code_explainer(detail=detail, player=player, speak=speak))
+            result = r or "Code explained, Sir."
+
+        elif name == "auto_code_helper":
+            r = await loop.run_in_executor(None, lambda: auto_code_helper(parameters=args, player=player, speak=speak))
+            result = r or "Code assistance complete, Sir."
+
+        elif name == "voice_to_code":
+            code = args.get("code", "")
+            r = await loop.run_in_executor(None, lambda: voice_to_code(code=code, player=player))
+            result = r or "Code typed into editor, Sir."
+
+        elif name == "content_creator":
+            r = await loop.run_in_executor(None, lambda: content_creator(parameters=args, player=player, speak=speak))
+            result = r or "Content created, Sir."
+
+        elif name == "browser_agent":
+            r = await loop.run_in_executor(None, lambda: browser_agent(parameters=args, player=player, speak=speak))
+            result = r or "Browser task complete, Sir."
+
+        elif name == "calendar_tool":
+            r = await loop.run_in_executor(None, lambda: calendar_tool(parameters=args, player=player, speak=speak))
+            result = r or "Calendar action complete, Sir."
+
+        elif name == "scheduled_task":
+            r = await loop.run_in_executor(None, lambda: scheduled_task(parameters=args, player=player, speak=speak))
+            result = r or "Task scheduled, Sir."
+
+        elif name == "system_monitor":
+            metric = args.get("metric", "all")
+            r = await loop.run_in_executor(None, lambda: system_monitor(metric=metric, player=player))
+            result = r or "System stats retrieved, Sir."
+
+        elif name == "translate_text":
+            text = args.get("text", "")
+            target = args.get("target_language", "English")
+            source = args.get("source_language", "auto")
+            r = await loop.run_in_executor(None, lambda: translate_text(text=text, target_language=target, source_language=source, player=player))
+            result = r or "Translation complete, Sir."
+
+        elif name == "query_visual_timeline":
+            query = args.get("query", "")
+            time_ago = args.get("time_ago", "1 hour")
+            r = await loop.run_in_executor(None, lambda: query_visual_timeline(query=query, time_ago=time_ago, player=player, speak=speak))
+            result = r or "Visual timeline queried, Sir."
+
+        elif name == "quick_briefing":
+            btype = args.get("type", "quick")
+            r = await loop.run_in_executor(None, lambda: get_morning_briefing(briefing_type=btype, player=player, speak=speak))
+            result = r or "Briefing delivered, Sir."
+
+        elif name == "web_search_quick":
+            query = args.get("query", "")
+            r = await loop.run_in_executor(None, lambda: quick_web_search(query=query, player=player))
+            result = r or "Search complete, Sir."
 
         else:
             result = f"Unknown tool: {name}"
