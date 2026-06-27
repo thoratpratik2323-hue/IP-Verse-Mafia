@@ -207,6 +207,20 @@ class SaturdayLive:
             life_engine.start(self)
         except Exception as e:
             print(f"[WARN] Failed to start Life Engine: {e}")
+            
+        # Start Autonomy Core planning loop
+        try:
+            from core.autonomy_engine import autonomy_core
+            autonomy_core.start(
+                session_mgr=self,
+                interval=90,
+                idle_required=True,
+                idle_threshold=300,
+                autonomy_level="supervised",
+            )
+            print("[IP PRIME] Autonomy core successfully started.")
+        except Exception as e:
+            print(f"[WARN] Failed to start Autonomy Core: {e}")
             self.watcher.add_reminder("Bhai, meeting start hone wali hai!", "09:00")
             self.watcher.start()
             self.ui.write_log("SYS: Proactive reminder watcher started.")

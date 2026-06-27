@@ -1,0 +1,21 @@
+{
+  "safe_tools": [
+    "web_search", "web_search_quick", "weather_action", "system_monitor",
+    "translate_text", "query_visual_timeline", "quick_briefing",
+    "morning_briefing", "morning_briefer", "screen_explainer",
+    "design_extractor", "live_code_reviewer", "email_summarizer",
+    "clipboard_action", "task_planner", "reminder", "calendar_tool",
+    "fetch_realtime_knowledge", "file_explorer"
+  ],
+  "default_tier": "CONFIRM",
+  "forbidden_tools": [
+    "panic_wipe", "run_panic_wipe"
+  ],
+  "forbidden_keywords": [
+    "format c:", "rm -rf /", "rm -rf ~", "del /f /s /q", "factory_reset",
+    "factory reset", "disable firewall", "disable antivirus",
+    "disable_security", "wipe drive", "delete all", "shutdown -s -f",
+    "diskpart", "drop database", "delete_all"
+  ],
+  "max_steps_per_goal": 8
+}

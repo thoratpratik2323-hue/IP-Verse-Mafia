@@ -3210,5 +3210,26 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["query"]
         }
+    },
+    {
+        "name": "autonomy_engine",
+        "description": (
+            "Manages IP Prime's autonomous goal queue. Use when the user wants to "
+            "give Prime a standing objective to work on in the background, check "
+            "what it's working on, or approve/reject an action it's waiting on."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description":
+                    "add_goal | list_goals | pending_confirmations | approve | reject | set_level"},
+                "description": {"type": "STRING", "description": "Goal text (for add_goal)"},
+                "priority": {"type": "STRING", "description": "low | normal | high"},
+                "confirmation_id": {"type": "STRING", "description": "ID from pending_confirmations"},
+                "reason": {"type": "STRING", "description": "Why you're rejecting an action"},
+                "level": {"type": "STRING", "description": "off | supervised | trusted"}
+            },
+            "required": ["action"]
+        }
     }
 ]

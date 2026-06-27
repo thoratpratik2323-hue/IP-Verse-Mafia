@@ -63,6 +63,7 @@ from actions.code_companion import code_companion
 from actions.git_terminal_companion import git_terminal_companion
 from actions.project_debug_companion import project_debug_companion
 from actions.multimodal_perception import multimodal_perception
+from core.autonomy_engine import autonomy_engine as autonomy_engine_action
 from actions.autonomous_autopilot import autonomous_autopilot
 from actions.advanced_communicator import advanced_communicator
 from actions.token_juice import token_juice
@@ -1331,6 +1332,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             query = args.get("query", "")
             r = await loop.run_in_executor(None, lambda: quick_web_search(query=query, player=player))
             result = r or "Search complete, Sir."
+
+        elif name == "autonomy_engine":
+            r = await loop.run_in_executor(None, lambda: autonomy_engine_action(parameters=args, player=player))
+            result = r or "Done, sir."
 
         else:
             result = f"Unknown tool: {name}"
