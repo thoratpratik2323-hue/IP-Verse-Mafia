@@ -288,7 +288,7 @@ class IPPrimeOSDesktop(QMainWindow):
     def init_particles(self):
         w = self.width() if self.width() > 0 else 1920
         h = self.height() if self.height() > 0 else 1080
-        for _ in range(90):
+        for _ in range(45):
             self.particles.append(Particle(w, h))
         for x in range(0, w, 22):
             self.matrix_columns.append(MatrixColumn(x, h))
@@ -338,16 +338,19 @@ class IPPrimeOSDesktop(QMainWindow):
 
             if self.wallpaper_style == "plexus":
                 pts = self.particles
+                base_color = QColor(t["primary"])
+                pen = QPen(base_color, 0.8, Qt.PenStyle.SolidLine)
                 for i in range(len(pts)):
                     for j in range(i + 1, len(pts)):
                         dx = pts[i].x - pts[j].x
                         dy = pts[i].y - pts[j].y
-                        dist = math.sqrt(dx*dx + dy*dy)
-                        if dist < 130:
+                        dist_sq = dx*dx + dy*dy
+                        if dist_sq < 16900:  # 130 * 130 = 16900
+                            dist = math.sqrt(dist_sq)
                             alpha = int(65 * (1.0 - dist / 130))
-                            lc = QColor(t["primary"])
-                            lc.setAlpha(alpha)
-                            painter.setPen(QPen(lc, 0.8, Qt.PenStyle.SolidLine))
+                            base_color.setAlpha(alpha)
+                            pen.setColor(base_color)
+                            painter.setPen(pen)
                             painter.drawLine(QPoint(int(pts[i].x), int(pts[i].y)),
                                              QPoint(int(pts[j].x), int(pts[j].y)))
 
