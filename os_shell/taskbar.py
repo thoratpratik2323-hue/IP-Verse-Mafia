@@ -89,8 +89,46 @@ class OSTaskbar(QWidget):
         self.status_lbl = QLabel(self)
         self.status_lbl.setObjectName("SysStatusLabel")
         self.status_lbl.setFont(QFont("Outfit", 10))
-        self.status_lbl.setStyleSheet("color: rgba(136,153,166,0.9); background: transparent; margin-right: 8px;")
+        self.status_lbl.setStyleSheet("color: rgba(136,153,166,0.8); background: transparent; margin-right: 8px;")
         layout.addWidget(self.status_lbl)
+
+        # ── WiFi Button ──
+        self.wifi_btn = QPushButton(self._wifi_status, self)
+        self.wifi_btn.setObjectName("TrayWifi")
+        self.wifi_btn.setFont(QFont("Outfit", 10))
+        self.wifi_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.wifi_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent; border: none; color: #27C8F5;
+                padding: 2px 6px; margin-right: 4px;
+            }
+            QPushButton:hover {
+                color: #ffffff;
+                background: rgba(39, 200, 245, 0.12);
+                border-radius: 4px;
+            }
+        """)
+        self.wifi_btn.clicked.connect(lambda: self.launch("ms-availablenetworks:"))
+        layout.addWidget(self.wifi_btn)
+
+        # ── Bluetooth Button ──
+        self.bt_btn = QPushButton(self._bt_status, self)
+        self.bt_btn.setObjectName("TrayBluetooth")
+        self.bt_btn.setFont(QFont("Outfit", 10))
+        self.bt_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.bt_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent; border: none; color: #8B5CF6;
+                padding: 2px 6px; margin-right: 8px;
+            }
+            QPushButton:hover {
+                color: #ffffff;
+                background: rgba(139, 92, 246, 0.12);
+                border-radius: 4px;
+            }
+        """)
+        self.bt_btn.clicked.connect(lambda: self.launch("ms-settings:bluetooth"))
+        layout.addWidget(self.bt_btn)
 
         layout.addWidget(_sep(self))
 
@@ -152,7 +190,9 @@ class OSTaskbar(QWidget):
         self.clock_lbl.setText(f"  {t}  ")
         
         # Display icons alongside CPU & RAM metrics
-        self.status_lbl.setText(f"{self._wifi_status}  •  {self._bt_status}  •  CPU {int(cpu)}%  •  RAM {int(ram)}%")
+        self.status_lbl.setText(f"CPU {int(cpu)}%  •  RAM {int(ram)}%")
+        self.wifi_btn.setText(self._wifi_status)
+        self.bt_btn.setText(self._bt_status)
 
     def launch(self, app, arg=None):
         import os

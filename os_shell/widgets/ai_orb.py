@@ -27,7 +27,7 @@ class AIOrb(QWidget):
     """
     orb_clicked = pyqtSignal()
 
-    SIZE = 145  # Orb diameter
+    SIZE = 175  # Orb diameter
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -173,11 +173,12 @@ class AIOrb(QWidget):
             SPEAKING: "SPEAKING"
         }.get(self.state, "PRIME OS")
 
-        painter.setPen(QPen(QColor(255, 255, 255, 210)))
-        font = QFont("Outfit", 9, QFont.Weight.Bold)
-        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.8)
+        # Highlight status text with the active state color and position it ABOVE the orb
+        painter.setPen(QPen(primary_color))
+        font = QFont("Outfit", 10, QFont.Weight.Bold)
+        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 2.0)
         painter.setFont(font)
-        painter.drawText(int(cx - r_base), int(cy + r_base * 0.40), int(r_base * 2), 25,
+        painter.drawText(int(cx - r_base * 1.5), int(cy - r_base - 38), int(r_base * 3), 25,
                          Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, status_text)
 
     # ── Render Helper: Siri-Style Blobs ────────────────────────────────
