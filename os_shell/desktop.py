@@ -37,11 +37,31 @@ class Particle:
             self.vy *= -1
 
 
+class MatrixColumn:
+    def __init__(self, x, height):
+        self.x = x
+        self.y = random.random() * -height
+        self.speed = random.random() * 3 + 1.5
+        self.chars = [chr(random.randint(33, 126)) for _ in range(25)]
+        self.font_size = random.randint(9, 14)
+        
+    def move(self, height):
+        self.y += self.speed
+        if random.random() < 0.1:
+            self.chars.pop(0)
+            self.chars.append(chr(random.randint(33, 126)))
+        if self.y - (len(self.chars) * self.font_size) > height:
+            self.y = random.random() * -100
+            self.speed = random.random() * 3 + 1.5
+
+
 class IPPrimeOSDesktop(QMainWindow):
     def __init__(self, face_path="assets/logo.png"):
         super().__init__()
         self.face_path = face_path
         self.particles = []
+        self.matrix_columns = []
+        self.wallpaper_style = "stars"  # stars | matrix | plexus | none
         self.launcher = None
         self.theme_engine = OSThemeEngine()
         
@@ -170,11 +190,20 @@ class IPPrimeOSDesktop(QMainWindow):
         for _ in range(70):
             self.particles.append(Particle(width, height))
             
+        # Init Matrix columns
+        self.matrix_columns = []
+        for x in range(0, width, 24):
+            self.matrix_columns.append(MatrixColumn(x, height))
+            
     def update_background(self):
         width = self.width()
         height = self.height()
-        for p in self.particles:
-            p.move(width, height)
+        if self.wallpaper_style in ("stars", "plexus"):
+            for p in self.particles:
+                p.move(width, height)
+        elif self.wallpaper_style == "matrix":
+            for col in self.matrix_columns:
+                col.move(height)
         self.update()
         
     def paintEvent(self, event):
@@ -197,19 +226,58 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRect(0, 0, self.width(), self.height())
         
-        # Draw particles colored by theme accent/primary
-        for p in self.particles:
-            color_hex = t["primary"] if p.glow else t["accent"]
-            color = QColor(color_hex)
-            color.setAlpha(p.alpha)
-            painter.setBrush(QBrush(color))
-            if p.glow:
-                glow_color = QColor(color)
-                glow_color.setAlpha(int(p.alpha * 0.3))
-                painter.setBrush(QBrush(glow_color))
-                painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius * 2), int(p.radius * 2))
+        if self.wallpaper_style in ("stars", "plexus"):
+            # Draw particles colored by theme accent/primary
+            for p in self.particles:
+                color_hex = t["primary"] if p.glow else t["accent"]
+                color = QColor(color_hex)
+                color.setAlpha(p.alpha)
                 painter.setBrush(QBrush(color))
-            painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius), int(p.radius))
+                if p.glow:
+                    glow_color = QColor(color)
+                    glow_color.setAlpha(int(p.alpha * 0.3))
+                    painter.setBrush(QBrush(glow_color))
+                    painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius * 2), int(p.radius * 2))
+                    painter.setBrush(QBrush(color))
+                painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius), int(p.radius))
+                
+            # Plexus connection lines
+            if self.wallpaper_style == "plexus":
+                for i in range(len(self.particles)):
+                    p1 = self.particles[i]
+                    for j in range(i + 1, len(self.particles)):
+                        p2 = self.particles[j]
+                        dx = p1.x - p2.x
+                        dy = p1.y - p2.y
+                        dist = math.sqrt(dx*dx + dy*dy)
+                        if dist < 120:
+                            alpha = int(80 * (1.0 - (dist / 120)))
+                            color = QColor(t["primary"])
+                            color.setAlpha(alpha)
+                            painter.setPen(QPen(color, 1, Qt.PenStyle.SolidLine))
+                            painter.drawLine(QPoint(int(p1.x), int(p1.y)), QPoint(int(p2.x), int(p2.y)))
+                            
+        elif self.wallpaper_style == "matrix":
+            # Matrix code rain
+            for col in self.matrix_columns:
+                font = QFont("Consolas", col.font_size)
+                painter.setFont(font)
+                y_offset = 0
+                for i, char in enumerate(col.chars):
+                    char_y = col.y - y_offset
+                    if char_y < 0 or char_y > self.height():
+                        y_offset += col.font_size
+                        continue
+                    
+                    alpha = int(255 * (1.0 - (i / len(col.chars))))
+                    if i == 0:
+                        color = QColor(255, 255, 255, alpha)
+                    else:
+                        color = QColor(0, 255, 70, alpha)
+                        
+                    painter.setPen(color)
+                    painter.drawText(int(col.x), int(char_y), char)
+                    y_offset += col.font_size
             
     def toggle_launcher(self):
         # Close notification center when opening launcher

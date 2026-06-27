@@ -67,7 +67,7 @@ class NotificationCenterWidget(QWidget):
         theme_lay = QVBoxLayout(theme_box)
         theme_lay.setContentsMargins(10, 10, 10, 10)
         
-        theme_lbl = QLabel("Desktop Customization Theme", self)
+        theme_lbl = QLabel("Desktop Theme", self)
         theme_lbl.setFont(QFont("Outfit", 10, QFont.Weight.Bold))
         theme_lbl.setStyleSheet("color: #27C8F5; border: none; background: transparent;")
         theme_lay.addWidget(theme_lbl)
@@ -82,7 +82,30 @@ class NotificationCenterWidget(QWidget):
             self.theme_combo.setCurrentIndex(idx)
             
         self.theme_combo.currentIndexChanged.connect(self.on_theme_select)
-        self.theme_combo.setStyleSheet("""
+        theme_lay.addWidget(self.theme_combo)
+
+        # Section 1b: Wallpaper Presets
+        wp_lbl = QLabel("Wallpaper Style", self)
+        wp_lbl.setFont(QFont("Outfit", 10, QFont.Weight.Bold))
+        wp_lbl.setStyleSheet("color: #27C8F5; border: none; background: transparent; margin-top: 10px;")
+        theme_lay.addWidget(wp_lbl)
+
+        self.wp_combo = QComboBox(self)
+        self.wp_combo.addItem("Star Field", "stars")
+        self.wp_combo.addItem("Matrix Rain", "matrix")
+        self.wp_combo.addItem("Plexus Net", "plexus")
+        self.wp_combo.addItem("Static Gradient", "none")
+
+        if hasattr(self.parent(), "wallpaper_style"):
+            idx = self.wp_combo.findData(self.parent().wallpaper_style)
+            if idx != -1:
+                self.wp_combo.setCurrentIndex(idx)
+
+        self.wp_combo.currentIndexChanged.connect(self.on_wallpaper_select)
+        theme_lay.addWidget(self.wp_combo)
+
+        # Style Combo Boxes
+        combo_style = """
             QComboBox {
                 background-color: rgba(20, 28, 48, 0.8);
                 border: 1px solid rgba(39, 200, 245, 0.2);
@@ -96,8 +119,9 @@ class NotificationCenterWidget(QWidget):
                 color: #FFFFFF;
                 selection-background-color: #27C8F5;
             }
-        """)
-        theme_lay.addWidget(self.theme_combo)
+        """
+        self.theme_combo.setStyleSheet(combo_style)
+        self.wp_combo.setStyleSheet(combo_style)
         scroll_lay.addWidget(theme_box)
         
         # Section 2: Calendar widget
@@ -175,6 +199,11 @@ class NotificationCenterWidget(QWidget):
         self.theme_engine.save_theme(theme_key)
         self.update_style()
         self.theme_changed.emit(theme_key)
+        
+    def on_wallpaper_select(self, index):
+        wp_style = self.wp_combo.itemData(index)
+        if hasattr(self.parent(), "wallpaper_style"):
+            self.parent().wallpaper_style = wp_style
         
     def save_scratchpad(self):
         import json

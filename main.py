@@ -49,6 +49,99 @@ try:
 except Exception as e:
     print(f"[webbrowser patch] Error applying monkey-patch: {e}")
 
+# Global SpeechRecognition sounddevice fallback monkey-patch
+try:
+    import speech_recognition as sr
+    use_fallback = False
+    try:
+        import pyaudio
+        pa = pyaudio.PyAudio()
+        pa.get_default_input_device_info()
+        pa.terminate()
+    except Exception:
+        use_fallback = True
+
+    if use_fallback:
+        import sounddevice as sd
+        import queue
+
+        print("[IP PRIME] [Microphone] PyAudio not found or not working. Applying sounddevice microphone fallback patch...")
+
+        class SoundDeviceStream:
+            def __init__(self, device=None, sample_rate=16000, chunk_size=1024):
+                self.device = device
+                self.SAMPLE_RATE = sample_rate
+                self.CHUNK = chunk_size
+                self.SAMPLE_WIDTH = 2
+                self.audio_queue = queue.Queue()
+                self.sd_stream = None
+
+            def callback(self, indata, frames, time, status):
+                self.audio_queue.put(bytes(indata))
+
+            def start(self):
+                self.sd_stream = sd.RawInputStream(
+                    samplerate=self.SAMPLE_RATE,
+                    blocksize=self.CHUNK,
+                    device=self.device,
+                    channels=1,
+                    dtype='int16',
+                    callback=self.callback
+                )
+                self.sd_stream.start()
+
+            def stop(self):
+                if self.sd_stream:
+                    self.sd_stream.stop()
+                    self.sd_stream.close()
+                    self.sd_stream = None
+
+            def read(self, size):
+                try:
+                    return self.audio_queue.get(timeout=2.0)
+                except Exception:
+                    return b'\x00' * (size * self.SAMPLE_WIDTH)
+
+        class SoundDeviceMicrophone(sr.AudioSource):
+            def __init__(self, device=None, chunk_size=1024):
+                self.device = device
+                self.CHUNK = chunk_size
+                self.SAMPLE_RATE = 16000
+                self.SAMPLE_WIDTH = 2
+                self.format = None
+                self.stream = None
+
+            def __enter__(self):
+                self.stream = SoundDeviceStream(self.device, self.SAMPLE_RATE, self.CHUNK)
+                self.stream.start()
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                if self.stream:
+                    self.stream.stop()
+                    self.stream = None
+
+        sr.Microphone = SoundDeviceMicrophone
+        print("[IP PRIME] [Microphone] sounddevice Microphone patch successfully applied.")
+except Exception as e:
+    print(f"[IP PRIME] Failed to apply sounddevice Microphone patch: {e}")
+
+# Boot Live HUD Room Server in background thread
+try:
+    from room_server import app
+    import logging
+    # Disable noisy Flask logs in main terminal
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    
+    def run_server():
+        app.run(host="0.0.0.0", port=8765, debug=False, use_reloader=False)
+        
+    threading.Thread(target=run_server, daemon=True, name="FlaskHUDServerThread").start()
+    print("[IP PRIME] [Live HUD] Flask Live HUD Room Server running on http://localhost:8765")
+except Exception as e:
+    print(f"[WARN] Failed to start Live HUD Room Server: {e}")
+
 logger = logging.getLogger("ip_prime.main")
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="google")
