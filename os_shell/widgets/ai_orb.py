@@ -60,6 +60,7 @@ class AIOrb(QWidget):
                 "distance": random.uniform(20, 125),   # Distance from core center
                 "speed": random.uniform(0.4, 1.4) * (1 if random.random() > 0.4 else -1),
                 "size": random.uniform(1.2, 4.0),
+                "alpha": random.uniform(80, 240),
                 "is_star": random.random() > 0.6,      # 40% are 4-point diamond stars
                 "blink_speed": random.uniform(0.04, 0.12),
                 "blink_phase": random.uniform(0, 2 * math.pi),
