@@ -9,6 +9,16 @@ THEME_FILE = CONFIG_DIR / "os_theme.json"
 
 # Theme Palettes
 THEMES = {
+    "windows": {
+        "name": "Fluent Windows",
+        "bg": "#10121a",
+        "panel": "rgba(32, 35, 48, 0.90)",
+        "border": "rgba(96, 205, 255, 0.22)",
+        "primary": "#60cdff",
+        "accent": "#0078d4",
+        "text": "#F3F4F6",
+        "text_muted": "#9CA3AF"
+    },
     "cobalt": {
         "name": "Cobalt Blue",
         "bg": "#040810",
@@ -65,7 +75,7 @@ class OSThemeEngine:
     CONFIG_DIR = CONFIG_DIR
     
     def __init__(self):
-        self.current_theme_key = "cobalt"
+        self.current_theme_key = "windows"
         self.load_theme()
         
     def load_theme(self):
@@ -73,7 +83,7 @@ class OSThemeEngine:
             if THEME_FILE.exists():
                 with open(THEME_FILE, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    key = data.get("theme_key", "cobalt")
+                    key = data.get("theme_key", "windows")
                     if key in THEMES:
                         self.current_theme_key = key
         except Exception as e:
