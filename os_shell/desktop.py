@@ -16,6 +16,7 @@ from PyQt6.QtGui import (
 from os_shell.widgets.clock_widget import ClockWidget
 from os_shell.widgets.system_stats import SystemStatsWidget
 from os_shell.widgets.weather_widget import WeatherWidget
+from os_shell.widgets.ai_orb import AIOrb, IDLE, LISTENING, PROCESSING, SPEAKING
 from os_shell.launcher import AppLauncherWidget
 from os_shell.taskbar import OSTaskbar
 from os_shell.notification_center import NotificationCenterWidget
@@ -279,7 +280,17 @@ class IPPrimeOSDesktop(QMainWindow):
         left_col.addStretch()
         self.work_layout.addLayout(left_col)
 
-        self.work_layout.addStretch()
+        # ── Center column: AI Orb ──
+        center_col = QVBoxLayout()
+        center_col.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+        self.ai_orb = AIOrb(self)
+        self.ai_orb.orb_clicked.connect(self._on_orb_click)
+        _shadow(self.ai_orb, blur=40, alpha=180)
+        center_col.addStretch()
+        center_col.addWidget(self.ai_orb, 0, Qt.AlignmentFlag.AlignHCenter)
+        center_col.addStretch()
+        self.work_layout.addLayout(center_col, 1)
 
         # Right column
         right_col = QVBoxLayout()
@@ -293,20 +304,18 @@ class IPPrimeOSDesktop(QMainWindow):
 
         outer.addLayout(self.work_layout, 1)
 
-        # ── AI Command Bar (bottom center, above taskbar) ──
+        # ── Bottom AI text bar (compact, below orb) ──
         cmd_container = QWidget(self)
         cmd_container.setStyleSheet("background: transparent;")
         cmd_row = QHBoxLayout(cmd_container)
-        cmd_row.setContentsMargins(0, 0, 0, 10)
-
+        cmd_row.setContentsMargins(0, 0, 0, 12)
         cmd_row.addStretch()
         self.ai_bar = AICommandBar(self)
-        self.ai_bar.setFixedWidth(680)
+        self.ai_bar.setFixedWidth(600)
         self.ai_bar.command_submitted.connect(self.on_ai_command)
-        _shadow(self.ai_bar, blur=30, alpha=200)
+        _shadow(self.ai_bar, blur=24, alpha=180)
         cmd_row.addWidget(self.ai_bar)
         cmd_row.addStretch()
-
         outer.addWidget(cmd_container)
 
     # ── Particles ─────────────────────────────
@@ -433,6 +442,7 @@ class IPPrimeOSDesktop(QMainWindow):
     # ── AI Command handling ───────────────────
     def on_ai_command(self, text):
         """Forward typed command directly to the Saturday AI assistant."""
+        self.set_orb_state(PROCESSING)
         try:
             qapp = QApplication.instance()
             for widget in qapp.topLevelWidgets():
@@ -444,6 +454,24 @@ class IPPrimeOSDesktop(QMainWindow):
                     return
         except Exception as e:
             print(f"[AI Bar] Forward failed: {e}")
+        # If no handler found, return to idle
+        QTimer.singleShot(3000, lambda: self.set_orb_state(IDLE))
+
+    def _on_orb_click(self):
+        """Orb clicked — toggle listening state and wake assistant."""
+        if self.ai_orb.state == IDLE:
+            self.set_orb_state(LISTENING)
+            self.ai_bar.input.setFocus()
+            self.trigger_assistant()
+        else:
+            self.set_orb_state(IDLE)
+
+    def set_orb_state(self, state: str):
+        """Public API — call this from any system hook to update orb visuals."""
+        if hasattr(self, "ai_orb"):
+            self.ai_orb.set_state(state)
+
+
 
     def trigger_assistant(self):
         try:

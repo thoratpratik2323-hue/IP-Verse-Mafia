@@ -11,6 +11,7 @@ class OSTaskbar(QWidget):
     assistant_clicked = pyqtSignal()
     files_clicked     = pyqtSignal()
     clock_clicked     = pyqtSignal()
+    orb_state_changed = pyqtSignal(str)   # forwards orb state to desktop
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -77,25 +78,6 @@ class OSTaskbar(QWidget):
             layout.addWidget(btn)
 
         layout.addWidget(_sep(self))
-
-        # ── Ask Prime ──
-        self.mic_btn = QPushButton("🎙 Ask Prime", self)
-        self.mic_btn.setFont(QFont("Outfit", 11, QFont.Weight.Bold))
-        self.mic_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.mic_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(39,200,245,0.10);
-                border: 1px solid rgba(39,200,245,0.30);
-                border-radius: 7px; color: #27C8F5;
-                font-weight: 700; padding: 4px 16px;
-            }
-            QPushButton:hover {
-                background: rgba(39,200,245,0.22);
-                border: 1px solid #27C8F5; color: #fff;
-            }
-        """)
-        self.mic_btn.clicked.connect(self.assistant_clicked.emit)
-        layout.addWidget(self.mic_btn)
 
         # ── Spacer ──
         layout.addStretch()
