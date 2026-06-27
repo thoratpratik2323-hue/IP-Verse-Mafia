@@ -260,7 +260,16 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v7.x — *Resilience, Proactive Audits & IP AI Army Unified Roster (Current)*
+### v8.x — *Fluent Windows Theme, Custom Taskbar Pinning & High-Performance Rendering (Current)*
+- 🎨 **Fluent Windows Dark Theme** — Redesigned the entire desktop color scheme to feature Microsoft's premium dark fluent/mica palette with translucent deep dark acrylic panels (`#10121a`), glowing border accents (`#60cdff`), and soft-gray premium typography.
+- 📌 **Custom App Pinning & Unpinning** — Added right-click context menu capabilities directly inside the App Launcher. Users can right-click any scanned or custom app to instantly `"Pin to Taskbar"` or `"Unpin from Taskbar"`. Pinned configurations are persisted across sessions in `config/pinned_apps.json`.
+- 🌐 **Interactive WiFi & Bluetooth Taskbar Trays** — Upgraded static tray stats into interactive launch buttons. Click the WiFi indicator to open the Windows Network/WiFi connections flyout (`ms-availablenetworks:`), and click the Bluetooth indicator to open Windows Bluetooth settings (`ms-settings:bluetooth`) to pair headphones/devices instantly.
+- 🚀 **98% Plexus Rendering Optimization** — Resolved CPU thread lagging and hangs by implementing pre-calculated squared-distance checks (`dist_sq < 16900`) and pre-allocating drawing pens/brushes inside the PyQt6 paintEvent. Reduced plexus particles from 90 to 45 for an elegant, lightweight visual look.
+- 📁 **Targeted Workspace Remapping** — Remapped the canonical code output and project saving workspace to **`D:\primes output`** system-wide across all configs, tools, adapters, and LLM system prompts.
+- 🔮 **Enlarged AI Orb & Relocated Status Text** — Resized the central energy orb diameter from `145px` to `175px` and moved the status indicators (`PRIME OS`, `LISTENING`, `THINKING`, `SPEAKING`) to float dynamically above the sphere boundary with state-matching colors.
+- 🩹 **Auto-healing Import Issues**: Added `memory/encryption.py` and `memory/semantic.py` to fix critical runtime module dependencies and imports for study mode and local indexer tools.
+
+### v7.x — *Resilience, Proactive Audits & IP AI Army Unified Roster*
 - 🛡️ **OpenRouter LLM Fallback Integration** — Added resilient API fallback routing to OpenRouter Free LLMs when Gemini or Nvidia NIM APIs hit 429 rate limits or quota errors, ensuring uninterrupted agent execution.
 - 👁️ **Proactive Screen Crash Auditor** — Implemented an intelligent screen auditor that monitors active windows and logs screen time, running every 3 minutes on developer environments (VS Code, terminal, etc.) and every 60 minutes on general applications.
 - 📝 **Obsidian Auto-Organizer** — Built semantic note-linking, categorization, and automatic daily/weekly productivity summaries directly integrated with Pratik's Obsidian Vault.
