@@ -152,9 +152,10 @@ class AICommandBar(QWidget):
 #  Main OS Desktop
 # ─────────────────────────────────────────────
 class IPPrimeOSDesktop(QMainWindow):
-    def __init__(self, face_path="assets/logo.png"):
+    def __init__(self, face_path="assets/logo.png", ui_facade=None):
         super().__init__()
         self.face_path = face_path
+        self.ui_facade = ui_facade
         self.particles = []
         self.matrix_columns = []
         self.wallpaper_style = "plexus"   # stars | matrix | plexus | none
@@ -447,9 +448,7 @@ class IPPrimeOSDesktop(QMainWindow):
             qapp = QApplication.instance()
             for widget in qapp.topLevelWidgets():
                 if widget is not self and hasattr(widget, "on_text_command"):
-                    widget.show()
-                    widget.raise_()
-                    widget.activateWindow()
+                    # Silently forward command in the background — no popup!
                     widget.on_text_command(text)
                     return
         except Exception as e:
@@ -459,30 +458,38 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def _on_orb_click(self):
         """Orb clicked — toggle listening state and wake assistant."""
-        if self.ai_orb.state == IDLE:
-            self.set_orb_state(LISTENING)
-            self.ai_bar.input.setFocus()
-            self.trigger_assistant()
+        if self.ui_facade:
+            # Toggling the system's muted state triggers listening dynamically
+            self.ui_facade.muted = not self.ui_facade.muted
+            if not self.ui_facade.muted:
+                self.ai_bar.input.setFocus()
         else:
-            self.set_orb_state(IDLE)
+            # Fallback to local toggle if ui_facade is missing
+            if self.ai_orb.state == IDLE:
+                self.set_orb_state(LISTENING)
+                self.ai_bar.input.setFocus()
+            else:
+                self.set_orb_state(IDLE)
 
     def set_orb_state(self, state: str):
         """Public API — call this from any system hook to update orb visuals."""
         if hasattr(self, "ai_orb"):
             self.ai_orb.set_state(state)
 
-
-
     def trigger_assistant(self):
-        try:
-            qapp = QApplication.instance()
-            for widget in qapp.topLevelWidgets():
-                if widget is not self and hasattr(widget, "show"):
-                    widget.show()
-                    widget.raise_()
-                    widget.activateWindow()
-        except Exception as e:
-            print(f"[OS Shell] Assistant toggle failed: {e}")
+        """Trigger voice assistant (microphone toggle) silently."""
+        if self.ui_facade:
+            self.ui_facade.muted = not self.ui_facade.muted
+        else:
+            try:
+                qapp = QApplication.instance()
+                for widget in qapp.topLevelWidgets():
+                    if widget is not self and hasattr(widget, "on_text_command"):
+                        # If no ui_facade, just toggle mute of SimpleMainWindow directly if possible
+                        if hasattr(widget, "_toggle_mute"):
+                            widget._toggle_mute()
+            except Exception as e:
+                print(f"[OS Shell] Assistant toggle failed: {e}")
 
     def on_launcher_search(self, query):
         self.on_ai_command(query)

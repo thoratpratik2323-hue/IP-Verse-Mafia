@@ -47,7 +47,8 @@ class IPRayUI(_SelectedIPRayUI):
                 from os_shell.shell_manager import show_windows_taskbar
                 
                 print("[IP PRIME] 🖥️ Booting in IP Prime OS Shell mode...")
-                self._os_desktop = IPPrimeOSDesktop(face_path)
+                # Pass self (the IPRayUI instance) so desktop can control/toggle system states
+                self._os_desktop = IPPrimeOSDesktop(face_path, ui_facade=self)
                 self._os_desktop.show()
                 
                 # Ensure taskbar is restored on shutdown
@@ -56,6 +57,12 @@ class IPRayUI(_SelectedIPRayUI):
                 print(f"[IP PRIME OS Error] Failed to boot OS shell: {e}")
                 import traceback
                 traceback.print_exc()
+
+    def set_state(self, state: str):
+        super().set_state(state)
+        # Update the desktop orb visual state
+        if hasattr(self, "_os_desktop") and self._os_desktop:
+            self._os_desktop.set_orb_state(state)
 
     def set_speaking_volume(self, vol: float) -> None:
         try:

@@ -1,9 +1,9 @@
 import math
 import random
-from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtSignal, QPointF
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QPointF
+from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import (
-    QPainter, QColor, QRadialGradient, QConicalGradient,
+    QPainter, QColor, QRadialGradient, QLinearGradient,
     QPen, QBrush, QFont, QPainterPath
 )
 
@@ -16,172 +16,246 @@ SPEAKING   = "speaking"
 
 class AIOrb(QWidget):
     """
-    Central animated AI Orb.
-    Click  → trigger assistant / toggle listening
-    States → idle | listening | processing | speaking
+    Premium Animated AI Orb with a beautiful Circular Soundwave / Visualizer.
+    Design: Glassmorphism center sphere, overlapping translucent liquid energy blobs,
+    and a radial glowing neon circular visualizer ring.
     """
     orb_clicked = pyqtSignal()
 
-    SIZE = 130          # orb diameter
+    SIZE = 140  # Orb diameter
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(self.SIZE + 60, self.SIZE + 60)  # room for glow ring
+        # Give ample room (300x300) for the 140px orb + circular visualizer waves extending outward
+        self.setFixedSize(300, 300)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        self.state     = IDLE
-        self._angle    = 0.0          # spin angle for ring
-        self._pulse    = 0.0          # idle pulse phase
-        self._wave     = [0.0] * 32   # audio waveform bars
-        self._glow_r   = 0.0          # current glow radius offset
-
+        self.state = IDLE
+        self._angle = 0.0          # Spin angle for rotation effects
+        self._pulse = 0.0          # Time/breathing phase variable
+        
+        # Audio bands for the circular visualizer
+        self._num_bands = 64
+        self._bands = [0.0] * self._num_bands
+        self._target_bands = [0.0] * self._num_bands
+        
+        # Animation loop (approx 50 FPS for buttery smooth motion)
         self._tick = QTimer(self)
         self._tick.timeout.connect(self._animate)
-        self._tick.start(30)          # ~33 FPS
+        self._tick.start(20)
 
     # ── Public API ─────────────────────────────
     def set_state(self, state: str):
         if self.state != state:
             self.state = state
 
-    # ── Animation tick ─────────────────────────
+    # ── Animation Tick ─────────────────────────
     def _animate(self):
-        self._pulse += 0.04
-        self._angle  = (self._angle + 1.8) % 360
+        self._pulse += 0.05
+        # Dynamic spin speed based on state
+        spin_speed = 3.0 if self.state == PROCESSING else (1.5 if self.state == LISTENING else 0.8)
+        self._angle = (self._angle + spin_speed) % 360
 
-        if self.state == LISTENING:
-            # Organic wave bars
-            for i in range(len(self._wave)):
-                self._wave[i] = abs(math.sin(self._pulse * 2 + i * 0.4)) * 0.8 + random.random() * 0.2
-            self._glow_r = 10 + 6 * abs(math.sin(self._pulse))
-        elif self.state == PROCESSING:
-            self._glow_r = 14 + 4 * abs(math.sin(self._pulse * 3))
-        elif self.state == SPEAKING:
-            for i in range(len(self._wave)):
-                self._wave[i] = abs(math.sin(self._pulse * 3 + i * 0.6)) * random.uniform(0.4, 1.0)
-            self._glow_r = 8 + 8 * abs(math.sin(self._pulse * 2))
-        else:
-            self._glow_r = 4 + 3 * abs(math.sin(self._pulse * 0.5))
+        # Update targets and smooth bands
+        for i in range(self._num_bands):
+            if self.state == LISTENING:
+                # Active audio spectrum visualization
+                freq_mod = math.sin(self._pulse * 1.5 + i * 0.25)
+                noise = random.uniform(0.1, 0.4) if i % 3 == 0 else random.uniform(0.0, 0.15)
+                target = abs(freq_mod) * 0.75 + noise
+            elif self.state == SPEAKING:
+                # Vocal pattern representation
+                vocal_envelope = math.sin(self._pulse * 2.0 + i * 0.15) * math.cos(self._pulse * 0.5 + i * 0.08)
+                target = max(0.0, vocal_envelope * 0.9 + random.uniform(-0.1, 0.2))
+            elif self.state == PROCESSING:
+                # Pulsing corona/flare activity
+                target = 0.35 + 0.15 * math.sin(self._pulse * 4.0 + i * 0.4)
+            else:
+                # Calm, breathing idle waves
+                target = 0.12 + 0.08 * math.sin(self._pulse * 0.8 + i * 0.2)
+            
+            # Smooth interpolation (ease-out filter)
+            self._bands[i] += (target - self._bands[i]) * 0.25
 
         self.update()
 
     # ── Mouse click ────────────────────────────
     def mousePressEvent(self, event):
-        self.orb_clicked.emit()
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.orb_clicked.emit()
 
     # ── Paint ──────────────────────────────────
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        cx = self.width()  // 2
-        cy = self.height() // 2
-        r  = self.SIZE // 2
+        cx = self.width() / 2.0
+        cy = self.height() / 2.0
+        r_base = self.SIZE / 2.0
 
-        # ── Outer ambient glow ────────────────
-        glow_color = self._state_color(alpha=0)
-        glow_color2 = self._state_color(alpha=55 + int(self._glow_r * 2))
-        glow_r = r + 20 + self._glow_r
-        grd = QRadialGradient(cx, cy, glow_r)
-        grd.setColorAt(0.0, self._state_color(alpha=40 + int(self._glow_r * 1.5)))
-        grd.setColorAt(1.0, QColor(0, 0, 0, 0))
+        # Dynamic state colors
+        core_color = self._get_state_color(1.0)
+        glow_color = self._get_state_color(0.3)
+        accent_color = self._get_accent_color()
+
+        # ── 1. Circular Liquid Blobs (Siri-style glass energy layer) ──
+        self._draw_liquid_blobs(painter, cx, cy, r_base)
+
+        # ── 2. Circular Soundwave Visualizer (Neon Radial Bars) ──
+        self._draw_circular_visualizer(painter, cx, cy, r_base, core_color, accent_color)
+
+        # ── 3. Outer Sphere Ring ──
+        ring_pen = QPen(QColor(255, 255, 255, 30), 1.5)
+        painter.setPen(ring_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(QPointF(cx, cy), r_base + 3, r_base + 3)
+
+        # ── 4. Main Glassmorphic Orb Body ──
+        orb_grad = QRadialGradient(cx - r_base * 0.2, cy - r_base * 0.2, r_base)
+        orb_grad.setColorAt(0.0, QColor(255, 255, 255, 35))
+        orb_grad.setColorAt(0.4, QColor(core_color.red(), core_color.green(), core_color.blue(), 60))
+        orb_grad.setColorAt(0.92, QColor(10, 16, 32, 230))
+        orb_grad.setColorAt(1.0, QColor(4, 6, 12, 255))
+        
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(grd))
-        painter.drawEllipse(int(cx - glow_r), int(cy - glow_r),
-                            int(glow_r * 2), int(glow_r * 2))
+        painter.setBrush(QBrush(orb_grad))
+        painter.drawEllipse(QPointF(cx, cy), r_base, r_base)
 
-        # ── Spinning arc ring ─────────────────
-        if self.state in (PROCESSING, LISTENING, SPEAKING):
-            ring_r = r + 8
-            arc_pen = QPen(self._state_color(alpha=200), 2.5)
-            arc_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            painter.setPen(arc_pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            span = 280 if self.state == PROCESSING else 200
-            painter.drawArc(
-                int(cx - ring_r), int(cy - ring_r),
-                int(ring_r * 2),  int(ring_r * 2),
-                int(self._angle * 16), int(span * 16)
-            )
-            # counter arc
-            arc_pen2 = QPen(self._accent_color(alpha=120), 1.5)
-            painter.setPen(arc_pen2)
-            painter.drawArc(
-                int(cx - ring_r), int(cy - ring_r),
-                int(ring_r * 2),  int(ring_r * 2),
-                int((-self._angle * 0.7 + 90) * 16), int(120 * 16)
-            )
+        # ── 5. Inner Pulsing Core ──
+        core_r = r_base * (0.65 + 0.05 * math.sin(self._pulse * 1.5))
+        core_grad = QRadialGradient(cx, cy, core_r)
+        core_grad.setColorAt(0.0, QColor(255, 255, 255, 220))
+        core_grad.setColorAt(0.2, QColor(core_color.red(), core_color.green(), core_color.blue(), 230))
+        core_grad.setColorAt(0.65, QColor(core_color.red() // 2, core_color.green() // 2, core_color.blue() // 2, 100))
+        core_grad.setColorAt(1.0, QColor(0, 0, 0, 0))
+        
+        painter.setBrush(QBrush(core_grad))
+        painter.drawEllipse(QPointF(cx, cy), core_r, core_r)
 
-        # ── Orb body ─────────────────────────
-        body_grad = QRadialGradient(cx - r * 0.25, cy - r * 0.25, r * 1.1)
-        body_grad.setColorAt(0.0, self._state_color(alpha=255).lighter(130))
-        body_grad.setColorAt(0.5, self._state_color(alpha=220))
-        body_grad.setColorAt(1.0, QColor(4, 8, 20, 240))
-        painter.setBrush(QBrush(body_grad))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawEllipse(int(cx - r), int(cy - r), int(r * 2), int(r * 2))
+        # ── 6. Futuristic Lens Flare / Highlights ──
+        highlight = QRadialGradient(cx - r_base * 0.35, cy - r_base * 0.35, r_base * 0.5)
+        highlight.setColorAt(0.0, QColor(255, 255, 255, 80))
+        highlight.setColorAt(1.0, QColor(255, 255, 255, 0))
+        painter.setBrush(QBrush(highlight))
+        painter.drawEllipse(QPointF(cx - r_base * 0.1, cy - r_base * 0.1), r_base * 0.9, r_base * 0.9)
 
-        # ── Inner highlight gloss ─────────────
-        gloss = QRadialGradient(cx - r * 0.3, cy - r * 0.4, r * 0.55)
-        gloss.setColorAt(0.0, QColor(255, 255, 255, 70))
-        gloss.setColorAt(1.0, QColor(255, 255, 255, 0))
-        painter.setBrush(QBrush(gloss))
-        painter.drawEllipse(int(cx - r), int(cy - r), int(r * 2), int(r * 2))
-
-        # ── Waveform bars (listening / speaking) ─
-        if self.state in (LISTENING, SPEAKING):
-            n = 18
-            bar_w = 3
-            gap = 4
-            total = n * (bar_w + gap) - gap
-            start_x = cx - total // 2
-            max_bar = r * 0.55
-            painter.setPen(Qt.PenStyle.NoPen)
-            for i in range(n):
-                h = int(max_bar * self._wave[i % len(self._wave)])
-                x = start_x + i * (bar_w + gap)
-                bar_col = self._state_color(alpha=180)
-                painter.setBrush(QBrush(bar_col))
-                painter.drawRoundedRect(x, cy - h // 2, bar_w, max(4, h), 1, 1)
-
-        # ── Processing dots spinner ───────────
-        if self.state == PROCESSING:
-            dot_r = r * 0.65
-            n_dots = 8
-            for i in range(n_dots):
-                a = math.radians(self._angle + i * (360 / n_dots))
-                dx = cx + dot_r * math.cos(a)
-                dy = cy + dot_r * math.sin(a)
-                fade = int(220 * (i / n_dots))
-                dc = self._state_color(alpha=fade)
-                painter.setBrush(QBrush(dc))
-                painter.drawEllipse(QPointF(dx, dy), 3, 3)
-
-        # ── State label ───────────────────────
-        painter.setPen(QPen(QColor(255, 255, 255, 200)))
-        font = QFont("Outfit", 9, QFont.Weight.Medium)
-        painter.setFont(font)
-        lbl = {
-            IDLE:       "PRIME",
-            LISTENING:  "LISTENING",
+        # ── 7. Text Status Indicator ──
+        status_text = {
+            IDLE: "PRIME OS",
+            LISTENING: "LISTENING",
             PROCESSING: "THINKING",
-            SPEAKING:   "SPEAKING",
-        }.get(self.state, "PRIME")
-        painter.drawText(0, cy + r - 4, self.width(), 24,
-                         Qt.AlignmentFlag.AlignHCenter, lbl)
+            SPEAKING: "SPEAKING"
+        }.get(self.state, "PRIME OS")
 
-    # ── Color helpers ─────────────────────────
-    def _state_color(self, alpha=255) -> QColor:
+        painter.setPen(QPen(QColor(255, 255, 255, 210)))
+        font = QFont("Outfit", 9, QFont.Weight.Bold)
+        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.5)
+        painter.setFont(font)
+        
+        # Center status text inside the lower half of the orb
+        painter.drawText(int(cx - r_base), int(cy + r_base * 0.35), int(r_base * 2), 25,
+                         Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, status_text)
+
+    # ── Render Helper: Siri-Style Blobs ────────────────────────────────
+    def _draw_liquid_blobs(self, painter, cx, cy, r_base):
+        # We draw 3 layers of translucent morphing shapes
+        num_points = 72
+        layers = [
+            # (multiplier, speed_offset, color, scale_range)
+            (0.18, 0.0, self._get_state_color(0.18), 1.05),
+            (0.12, 2.1, self._get_accent_color(0.15), 1.15),
+            (0.15, 4.2, self._get_state_color(0.12), 0.95)
+        ]
+
+        painter.setPen(Qt.PenStyle.NoPen)
+
+        for i, (amp, phase_off, col, base_scale) in enumerate(layers):
+            path = QPainterPath()
+            first_point = None
+
+            for pt in range(num_points):
+                angle_deg = pt * (360.0 / num_points)
+                rad = math.radians(angle_deg)
+                
+                # Morphing equation using multi-octave sine/cosine
+                wave = math.sin(rad * 3.0 + self._pulse * 1.2 + phase_off) * \
+                       math.cos(rad * 2.0 - self._pulse * 0.8 + phase_off)
+                
+                curr_r = r_base * (base_scale + amp * wave)
+                x = cx + curr_r * math.cos(rad)
+                y = cy + curr_r * math.sin(rad)
+
+                if pt == 0:
+                    path.moveTo(x, y)
+                    first_point = QPointF(x, y)
+                else:
+                    path.lineTo(x, y)
+
+            if first_point:
+                path.lineTo(first_point)
+            
+            path.closeSubpath()
+            painter.setBrush(QBrush(col))
+            painter.drawPath(path)
+
+    # ── Render Helper: Circular Visualizer ────────────────────────────
+    def _draw_circular_visualizer(self, painter, cx, cy, r_base, primary_color, accent_color):
+        base_r = r_base + 6.0
+        max_height = 42.0
+
+        for i in range(self._num_bands):
+            # Dynamic angle with steady rotation
+            angle_deg = i * (360.0 / self._num_bands) + self._angle
+            rad = math.radians(angle_deg)
+            
+            cos_a = math.cos(rad)
+            sin_a = math.sin(rad)
+
+            # Get amplitude for this frequency band
+            amp = self._bands[i]
+            
+            # Start/End points of the radial bar
+            start_x = cx + base_r * cos_a
+            start_y = cy + base_r * sin_a
+            end_x = cx + (base_r + amp * max_height) * cos_a
+            end_y = cy + (base_r + amp * max_height) * sin_a
+
+            # Gradient for the radial visualizer bar
+            grad = QLinearGradient(start_x, start_y, end_x, end_y)
+            grad.setColorAt(0.0, QColor(primary_color.red(), primary_color.green(), primary_color.blue(), 230))
+            grad.setColorAt(0.7, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 180))
+            grad.setColorAt(1.0, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 0))
+
+            # Dynamic bar width based on visualizer activity
+            bar_width = 2.0 + amp * 2.0
+            pen = QPen(QBrush(grad), bar_width)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            
+            painter.setPen(pen)
+            painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
+
+    # ── State Color Palettes ──────────────────────────────────────────
+    def _get_state_color(self, opacity=1.0) -> QColor:
+        # Curated glowing modern palettes (neon & cyber themed)
+        alpha = int(opacity * 255)
         colors = {
-            IDLE:       (39,  200, 245),
-            LISTENING:  (0,   255, 120),
-            PROCESSING: (245, 158,  11),
-            SPEAKING:   (139,  92, 246),
+            IDLE:       (0, 191, 255),    # Deep neon cyan
+            LISTENING:  (0, 245, 120),    # Emerald cyber green
+            PROCESSING: (255, 191, 0),    # Solar bright yellow/amber
+            SPEAKING:   (186, 85, 211),   # Orchid voice violet
         }
-        r, g, b = colors.get(self.state, (39, 200, 245))
+        r, g, b = colors.get(self.state, (0, 191, 255))
         return QColor(r, g, b, alpha)
 
-    def _accent_color(self, alpha=255) -> QColor:
-        r, g, b = (139, 92, 246)
+    def _get_accent_color(self, opacity=1.0) -> QColor:
+        alpha = int(opacity * 255)
+        # Complimentary cyber gradients
+        accents = {
+            IDLE:       (138, 43, 226),   # Cyber purple accent
+            LISTENING:  (0, 255, 235),    # Cyan/Aqua accent
+            PROCESSING: (255, 80, 0),     # Cyberpunk red-orange
+            SPEAKING:   (255, 0, 128),    # Intense hot pink
+        }
+        r, g, b = accents.get(self.state, (138, 43, 226))
         return QColor(r, g, b, alpha)

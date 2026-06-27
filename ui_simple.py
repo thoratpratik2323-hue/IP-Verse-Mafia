@@ -991,12 +991,18 @@ class IPRayUI:
         self._app.setStyle("Fusion")
         self._app.setQuitOnLastWindowClosed(False)
 
-        self._splash = WelcomeSplash()
-        self._splash.show()
-        self._app.processEvents()
+        is_os_mode = "--os-mode" in sys.argv or "--os" in sys.argv
+
+        if not is_os_mode:
+            self._splash = WelcomeSplash()
+            self._splash.show()
+            self._app.processEvents()
+        else:
+            self._splash = None
 
         self._win = SimpleMainWindow(face_path)
-        self._win.show()
+        if not is_os_mode:
+            self._win.show()
         self.root = _RootShim(self._app)
 
     # ── muted ────────────────────────────────────────────────────────────────
