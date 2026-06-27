@@ -119,13 +119,25 @@ class OSTaskbar(QWidget):
         self.status_lbl.setText(f"CPU {int(cpu)}%  •  RAM {int(ram)}%")
 
     def launch(self, app, arg=None):
+        import os
         try:
-            subprocess.Popen([app] + ([arg] if arg else []),
-                             shell=True,
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL)
+            if app == "msedge":
+                # Try opening Edge or fallback to default web browser via URL
+                try:
+                    os.startfile("msedge.exe")
+                except Exception:
+                    os.startfile("https://www.google.com")
+            else:
+                os.startfile(app)
         except Exception as e:
-            print(f"[Taskbar] Launch failed: {e}")
+            # Fallback to cmd-based 'start' command for protocol matching
+            try:
+                import subprocess
+                subprocess.Popen(f"start {app}", shell=True,
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL)
+            except Exception as e2:
+                print(f"[Taskbar] Launch failed: {e} | Fallback: {e2}")
 
     # ── Custom paint — glassmorphism bar ────
     def paintEvent(self, event):
