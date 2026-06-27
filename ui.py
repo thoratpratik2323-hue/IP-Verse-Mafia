@@ -7,6 +7,8 @@ Default theme: cobalt blue (theme_idx 0).
 from __future__ import annotations
 
 import json
+import sys
+import atexit
 
 from ui_simple import CONFIG_DIR, IPRayUI as _SimpleIPRayUI, _load_theme
 
@@ -29,6 +31,23 @@ class IPRayUI(_SimpleIPRayUI):
     def __init__(self, face_path: str, size=None):
         _apply_blue_theme()
         super().__init__(face_path, size)
+        
+        # Check if launching in OS mode
+        if "--os-mode" in sys.argv or "--os" in sys.argv:
+            try:
+                from os_shell.desktop import IPPrimeOSDesktop
+                from os_shell.shell_manager import show_windows_taskbar
+                
+                print("[IP PRIME] 🖥️ Booting in IP Prime OS Shell mode...")
+                self._os_desktop = IPPrimeOSDesktop(face_path)
+                self._os_desktop.show()
+                
+                # Ensure taskbar is restored on shutdown
+                atexit.register(show_windows_taskbar)
+            except Exception as e:
+                print(f"[IP PRIME OS Error] Failed to boot OS shell: {e}")
+                import traceback
+                traceback.print_exc()
 
     def set_speaking_volume(self, vol: float) -> None:
         try:
@@ -38,3 +57,4 @@ class IPRayUI(_SimpleIPRayUI):
 
 
 __all__ = ["IPRayUI"]
+
