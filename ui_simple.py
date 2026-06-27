@@ -806,6 +806,18 @@ class SimpleMainWindow(QMainWindow):
         )
         self._tray.show()
 
+    def setup_safety_guard_connections(self):
+        """Hook called by main.py to wire SafetyGuard signals.
+        SimpleMainWindow wires safety actions through the existing
+        confirm-dialog system — no extra signals needed here."""
+        try:
+            from agent.safety_guard import SafetyGuard
+            SafetyGuard.ui_instance = self
+        except Exception:
+            pass  # SafetyGuard optional — silently ignore
+
+
+
     def _toggle_vis(self):
         if self.isVisible():
             self.hide()

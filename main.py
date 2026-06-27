@@ -1192,10 +1192,15 @@ class IPRayLive:
     def set_speaking(self, value: bool):
         with self._speaking_lock:
             self._is_speaking = value
-        if value:
-            self.ui.set_state("SPEAKING")
-        elif not self.ui.muted:
-            self.ui.set_state("LISTENING")
+        try:
+            if value:
+                self.ui.set_state("SPEAKING")
+            elif not self.ui.muted:
+                self.ui.set_state("LISTENING")
+        except RuntimeError:
+            # Qt widget already deleted (shutdown race) — ignore silently
+            pass
+
 
     def speak(self, text: str):
         if self._quiet_mode:

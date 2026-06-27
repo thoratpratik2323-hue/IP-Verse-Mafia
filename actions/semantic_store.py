@@ -258,46 +258,61 @@ def semantic_search(query: str, limit: int = 5) -> str:
         
     return "\\n".join(formatted_output)
 
+
+# ── Quota cooldown state (module-level, shared across calls) ──
+_quota_exhausted_until: float = 0.0   # epoch seconds
+
 def safe_get_embedding(text: str) -> list:
-    """Generates embedding using Gemini, falls back to Ollama or a mock zero vector on error."""
-    # 1. Try Gemini
-    try:
-        client = _get_gemini_client()
-        return get_embedding(client, text)
-    except Exception as e:
-        print(f"[Semantic Store] Gemini Embedding failed: {e}. Trying local fallback...")
-        
+    """Generates embedding using Gemini, falls back to Ollama or zero vector.
+    After a 429 quota error, Gemini calls are suppressed for 60 seconds."""
+    import time as _time
+
+    global _quota_exhausted_until
+
+    # 1. Try Gemini (skip if quota recently exhausted)
+    if _time.time() >= _quota_exhausted_until:
+        try:
+            client = _get_gemini_client()
+            return get_embedding(client, text)
+        except Exception as e:
+            e_str = str(e)
+            if "429" in e_str or "RESOURCE_EXHAUSTED" in e_str:
+                # Back off for 60 seconds — don't spam the log
+                _quota_exhausted_until = _time.time() + 60
+                print("[Semantic Store] ⚠️ Gemini embedding quota hit — pausing for 60s. Using fallback.")
+            else:
+                print(f"[Semantic Store] Gemini Embedding failed: {e}. Trying local fallback...")
+    # else: silently skip Gemini until cooldown expires
+
     # 2. Try Ollama local embeddings
     try:
         import requests
-        # Load local url
         ollama_url = "http://127.0.0.1:11434"
         feat_path = BASE_DIR / "config" / "prime_features.json"
         if feat_path.exists():
             with open(feat_path, "r", encoding="utf-8") as f:
                 feats = json.load(f)
             ollama_url = feats.get("local_first", {}).get("ollama_url", ollama_url)
-        
-        payload = {
-            "model": "nomic-embed-text",
-            "prompt": text
-        }
-        resp = requests.post(f"{ollama_url.rstrip('/')}/api/embeddings", json=payload, timeout=2)
+
+        payload = {"model": "nomic-embed-text", "prompt": text}
+        resp = requests.post(f"{ollama_url.rstrip('/')}/api/embeddings",
+                             json=payload, timeout=2)
         if resp.status_code == 200:
             emb = resp.json().get("embedding", [])
             if len(emb) == 3072:
                 return emb
             elif len(emb) > 0:
-                # Pad or truncate to 3072
                 if len(emb) < 3072:
                     return emb + [0.0] * (3072 - len(emb))
                 else:
                     return emb[:3072]
-    except Exception as local_e:
-        print(f"[Semantic Store] Ollama Embedding failed: {local_e}")
-        
-    # 3. Fallback to mock zeros vector (length 3072) to prevent crash
+    except Exception:
+        pass  # Ollama not running — silently fall through
+
+    # 3. Zero vector fallback — prevents crash, search still works structurally
     return [0.0] * 3072
+
+
 
 def index_conversation_turn(role: str, content: str, session_id: str = "default") -> bool:
     """Indexes a single turn of conversation (user or assistant) in LanceDB conversations table."""
