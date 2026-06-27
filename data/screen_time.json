@@ -1,7 +1,11 @@
 {
-    "date": "2026-06-23",
+    "date": "2026-06-27",
     "apps": {
-        "python": 200
+        "python": 110,
+        "antigravity": 120,
+        "explorer": 30,
+        "firefox": 30,
+        "cmd": 700
     },
     "limits": {
         "chrome": 7200

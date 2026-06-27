@@ -1499,12 +1499,30 @@
       "tool": "task_planner",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-25T10:31:05",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-27T09:06:15",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-06-27T09:06:30",
+      "tool": "morning_briefer",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 250,
-    "est_tokens": 200000,
-    "est_usd": 0.03
+    "tool_calls": 253,
+    "est_tokens": 202400,
+    "est_usd": 0.03036
   },
   "by_day": {
     "2026-05-29": {
@@ -1558,6 +1576,16 @@
       "est_usd": 0.00636
     },
     "2026-06-23": {
+      "tool_calls": 2,
+      "est_tokens": 1600,
+      "est_usd": 0.00024
+    },
+    "2026-06-25": {
+      "tool_calls": 1,
+      "est_tokens": 800,
+      "est_usd": 0.00012
+    },
+    "2026-06-27": {
       "tool_calls": 2,
       "est_tokens": 1600,
       "est_usd": 0.00024

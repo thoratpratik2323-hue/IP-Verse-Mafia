@@ -2176,5 +2176,167 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-06-25T10:32:15.785761",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the user's current location.",
+        "parameters": {
+          "city": "current_user_location"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Retrieve the morning briefing which includes the schedule breakdown.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List all active alerts.",
+        "parameters": {
+          "action": "active_alerts"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-06-27T09:07:30.630240",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "get_weather_forecast",
+        "description": "Retrieve the weather forecast for today, 2026-06-27, for the user's location.",
+        "parameters": {
+          "date": "2026-06-27"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "get_user_schedule",
+        "description": "Retrieve the user's schedule breakdown for today, 2026-06-27.",
+        "parameters": {
+          "date": "2026-06-27"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "get_active_alerts",
+        "description": "Retrieve any active alerts for the user.",
+        "parameters": {},
+        "critical": true
+      },
+      {
+        "step": 4,
+        "tool": "generate_report",
+        "description": "Compile the retrieved weather forecast, schedule breakdown, and active alerts into a premium morning overview.",
+        "parameters": {
+          "report_type": "premium_morning_overview",
+          "content_sources": [
+            "weather_forecast_data_from_step_1",
+            "schedule_data_from_step_2",
+            "alerts_data_from_step_3"
+          ]
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-06-27T09:23:01.442991",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the current location.",
+        "parameters": {
+          "city": "Mumbai"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Get the daily briefing for the schedule.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List any active alerts or overdue tasks.",
+        "parameters": {
+          "action": "overdue"
+        },
+        "critical": true
+      },
+      {
+        "step": 4,
+        "tool": "system_monitor",
+        "description": "Check for any active system alerts or notifications related to the user's environment or AI operations.",
+        "parameters": {
+          "action": "check_alerts"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-06-27T09:30:14.726922",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather report for the current location.",
+        "parameters": {
+          "city": "New York"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Get the morning briefing including schedule and alerts.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List all active tasks for today.",
+        "parameters": {
+          "action": "list",
+          "goal": "today's schedule"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]
