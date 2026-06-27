@@ -15,6 +15,9 @@ class OSTaskbar(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._wifi_status = "📶 Connected"
+        self._bt_status = "ᛒ Active"
+        self._tick_count = 0
         self.init_ui()
 
     def init_ui(self):
@@ -115,8 +118,41 @@ class OSTaskbar(QWidget):
         t   = datetime.datetime.now().strftime("%I:%M %p")
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
+
+        # Perform network checks asynchronously every 5 ticks (seconds)
+        if self._tick_count % 5 == 0:
+            import threading
+            def bg_network_checks():
+                # WiFi Check
+                import socket
+                try:
+                    socket.setdefaulttimeout(1.0)
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect(("8.8.8.8", 53))
+                    s.close()
+                    self._wifi_status = "📶 Connected"
+                except Exception:
+                    self._wifi_status = "📶 Disconnected"
+
+                # Bluetooth Check
+                try:
+                    import subprocess
+                    # Query bthserv without popping CMD window console
+                    out = subprocess.check_output("sc query bthserv", shell=True, creationflags=0x08000000).decode()
+                    if "RUNNING" in out:
+                        self._bt_status = "ᛒ Active"
+                    else:
+                        self._bt_status = "ᛒ Off"
+                except Exception:
+                    self._bt_status = "ᛒ Off"
+
+            threading.Thread(target=bg_network_checks, daemon=True).start()
+
+        self._tick_count += 1
         self.clock_lbl.setText(f"  {t}  ")
-        self.status_lbl.setText(f"CPU {int(cpu)}%  •  RAM {int(ram)}%")
+        
+        # Display icons alongside CPU & RAM metrics
+        self.status_lbl.setText(f"{self._wifi_status}  •  {self._bt_status}  •  CPU {int(cpu)}%  •  RAM {int(ram)}%")
 
     def launch(self, app, arg=None):
         import os
