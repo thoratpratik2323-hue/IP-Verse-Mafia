@@ -1,12 +1,17 @@
 import sys
 import random
 import math
-from PyQt6.QtCore import Qt, QPoint, QTimer, QSize
+import datetime
+from PyQt6.QtCore import Qt, QPoint, QTimer, QSize, QPropertyAnimation, QEasingCurve, QRect, pyqtSignal
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect,
+    QLineEdit, QFrame, QSizePolicy
 )
-from PyQt6.QtGui import QPainter, QColor, QRadialGradient, QFont, QPen, QBrush
+from PyQt6.QtGui import (
+    QPainter, QColor, QRadialGradient, QLinearGradient,
+    QFont, QPen, QBrush, QPainterPath
+)
 
 from os_shell.widgets.clock_widget import ClockWidget
 from os_shell.widgets.system_stats import SystemStatsWidget
@@ -18,15 +23,19 @@ from os_shell.file_manager import OSFileManagerWidget
 from os_shell.shell_manager import hide_windows_taskbar, show_windows_taskbar
 from os_shell.theme_engine import OSThemeEngine
 
+
+# ─────────────────────────────────────────────
+#  Background Particle
+# ─────────────────────────────────────────────
 class Particle:
     def __init__(self, width, height):
         self.x = random.random() * width
         self.y = random.random() * height
-        self.vx = (random.random() - 0.5) * 0.4
-        self.vy = (random.random() - 0.5) * 0.4
-        self.radius = random.random() * 3 + 1
-        self.alpha = random.randint(30, 150)
-        self.glow = random.choice([True, False])
+        self.vx = (random.random() - 0.5) * 0.5
+        self.vy = (random.random() - 0.5) * 0.5
+        self.radius = random.random() * 2.5 + 0.5
+        self.alpha = random.randint(20, 120)
+        self.glow = random.random() > 0.6
 
     def move(self, width, height):
         self.x += self.vx
@@ -37,6 +46,9 @@ class Particle:
             self.vy *= -1
 
 
+# ─────────────────────────────────────────────
+#  Matrix Rain Column
+# ─────────────────────────────────────────────
 class MatrixColumn:
     def __init__(self, x, height):
         self.x = x
@@ -44,10 +56,10 @@ class MatrixColumn:
         self.speed = random.random() * 3 + 1.5
         self.chars = [chr(random.randint(33, 126)) for _ in range(25)]
         self.font_size = random.randint(9, 14)
-        
+
     def move(self, height):
         self.y += self.speed
-        if random.random() < 0.1:
+        if random.random() < 0.08:
             self.chars.pop(0)
             self.chars.append(chr(random.randint(33, 126)))
         if self.y - (len(self.chars) * self.font_size) > height:
@@ -55,235 +67,333 @@ class MatrixColumn:
             self.speed = random.random() * 3 + 1.5
 
 
+# ─────────────────────────────────────────────
+#  Inline AI Command Bar Widget
+# ─────────────────────────────────────────────
+class AICommandBar(QWidget):
+    command_submitted = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("AICommandBar")
+        self.setFixedHeight(56)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(16, 8, 16, 8)
+        layout.setSpacing(10)
+
+        # Pulse indicator dot
+        self.dot = QLabel("●", self)
+        self.dot.setStyleSheet("color: #00FF88; font-size: 10px; background: transparent;")
+        layout.addWidget(self.dot)
+
+        # Input field
+        self.input = QLineEdit(self)
+        self.input.setPlaceholderText("Ask Prime anything... (Press Enter)")
+        self.input.setStyleSheet("""
+            QLineEdit {
+                background: transparent;
+                border: none;
+                color: #F0F4F8;
+                font-size: 15px;
+                font-family: 'Outfit', 'Segoe UI', sans-serif;
+            }
+            QLineEdit::placeholder { color: rgba(255,255,255,0.3); }
+        """)
+        self.input.returnPressed.connect(self._submit)
+        layout.addWidget(self.input, 1)
+
+        # Send button
+        self.send_btn = QPushButton("→", self)
+        self.send_btn.setFixedSize(32, 32)
+        self.send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.send_btn.clicked.connect(self._submit)
+        self.send_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #27C8F5,stop:1 #8B5CF6);
+                border: none; border-radius: 16px;
+                color: white; font-size: 16px; font-weight: bold;
+            }
+            QPushButton:hover { background: #27C8F5; }
+        """)
+        layout.addWidget(self.send_btn)
+
+        # Pulse animation timer
+        self._pulse_state = True
+        self._pulse_timer = QTimer(self)
+        self._pulse_timer.timeout.connect(self._pulse_dot)
+        self._pulse_timer.start(800)
+
+    def _pulse_dot(self):
+        self._pulse_state = not self._pulse_state
+        color = "#00FF88" if self._pulse_state else "#004422"
+        self.dot.setStyleSheet(f"color: {color}; font-size: 10px; background: transparent;")
+
+    def _submit(self):
+        text = self.input.text().strip()
+        if text:
+            self.command_submitted.emit(text)
+            self.input.clear()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        path = QPainterPath()
+        path.addRoundedRect(0, 0, self.width(), self.height(), 28, 28)
+        painter.fillPath(path, QColor(10, 18, 40, 200))
+        pen = QPen(QColor(39, 200, 245, 60), 1)
+        painter.setPen(pen)
+        painter.drawPath(path)
+
+
+# ─────────────────────────────────────────────
+#  Main OS Desktop
+# ─────────────────────────────────────────────
 class IPPrimeOSDesktop(QMainWindow):
     def __init__(self, face_path="assets/logo.png"):
         super().__init__()
         self.face_path = face_path
         self.particles = []
         self.matrix_columns = []
-        self.wallpaper_style = "stars"  # stars | matrix | plexus | none
+        self.wallpaper_style = "plexus"   # stars | matrix | plexus | none
         self.launcher = None
         self.theme_engine = OSThemeEngine()
-        
+        self._greeting = self._get_greeting()
+
         self.init_ui()
         self.init_particles()
-        
+
+    # ── Greeting ──────────────────────────────
+    def _get_greeting(self):
+        h = datetime.datetime.now().hour
+        if h < 12:
+            return "Good Morning, Pratik"
+        elif h < 17:
+            return "Good Afternoon, Pratik"
+        else:
+            return "Good Evening, Pratik"
+
+    # ── UI Bootstrap ──────────────────────────
     def init_ui(self):
-        # Hide Windows taskbar
         hide_windows_taskbar()
-        
-        # Frameless full screen
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
-        
-        # Center in screen & maximize
         screen_geo = QApplication.primaryScreen().geometry()
         self.setGeometry(screen_geo)
-        
-        # Root widget
+
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName("OSRoot")
         self.central_widget.setStyleSheet("background: transparent;")
         self.setCentralWidget(self.central_widget)
-        
-        # Layouts
+
         self.main_layout = QVBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
-        
-        # Desktop workspace area
+
+        # Workspace
         self.workspace = QWidget(self)
         self.workspace.setStyleSheet("background: transparent;")
         self.main_layout.addWidget(self.workspace, 1)
-        
-        # Taskbar area
+
+        # Taskbar
         self.taskbar = OSTaskbar(self)
         self.taskbar.start_clicked.connect(self.toggle_launcher)
         self.taskbar.assistant_clicked.connect(self.trigger_assistant)
         self.taskbar.files_clicked.connect(self.toggle_file_manager)
         self.taskbar.clock_clicked.connect(self.toggle_notification_center)
         self.main_layout.addWidget(self.taskbar)
-        
-        # Setup workspace widgets
+
         self.setup_workspace_widgets()
-        
-        # Create App Launcher (hidden by default)
+
+        # Overlays
         self.launcher = AppLauncherWidget(self)
         self.launcher.hide()
         self.launcher.search_triggered.connect(self.on_launcher_search)
-        
-        # Create Notification Center (hidden by default)
+
         self.notification_center = NotificationCenterWidget(self)
         self.notification_center.hide()
         self.notification_center.theme_changed.connect(self.on_theme_changed)
-        
-        # Create Custom File Explorer Widget (hidden by default)
+
         self.file_manager = OSFileManagerWidget(self)
         self.file_manager.hide()
         self.file_manager.setFixedSize(800, 520)
-        
-        # Reposition all absolute overlay widgets
+
         self.update_overlay_geometries()
-        
-        # Animation timer for background particles (30 FPS)
+
+        # 30 FPS animation
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self.update_background)
         self.anim_timer.start(33)
-        
-        # Apply style sheets
+
         self.apply_theme_styles()
-        
+
+    # ── Workspace Layout ──────────────────────
     def setup_workspace_widgets(self):
-        # Workspace layout
-        self.work_layout = QHBoxLayout(self.workspace)
-        self.work_layout.setContentsMargins(40, 40, 40, 20)
-        
-        # Left column: Stats & Weather
-        left_column = QVBoxLayout()
-        left_column.setSpacing(20)
-        
-        self.stats_widget = SystemStatsWidget(self)
-        self.stats_widget.setFixedWidth(280)
-        left_column.addWidget(self.stats_widget)
-        
-        # Adding a drop shadow to stats
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 150))
-        shadow.setOffset(0, 4)
-        self.stats_widget.setGraphicsEffect(shadow)
-        
-        self.weather_widget = WeatherWidget(self)
-        self.weather_widget.setFixedWidth(280)
-        left_column.addWidget(self.weather_widget)
-        
-        # Drop shadow to weather
-        shadow_w = QGraphicsDropShadowEffect(self)
-        shadow_w.setBlurRadius(20)
-        shadow_w.setColor(QColor(0, 0, 0, 150))
-        shadow_w.setOffset(0, 4)
-        self.weather_widget.setGraphicsEffect(shadow_w)
-        
-        left_column.addStretch()
-        self.work_layout.addLayout(left_column)
-        
-        # Spacer
-        self.work_layout.addStretch()
-        
-        # Right column: Clock & branding
-        right_column = QVBoxLayout()
-        
-        self.clock_widget = ClockWidget(self)
-        right_column.addWidget(self.clock_widget)
-        
-        # Branding info
+        outer = QVBoxLayout(self.workspace)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        # ── Top bar: greeting ──
+        greeting_bar = QWidget(self)
+        greeting_bar.setStyleSheet("background: transparent;")
+        greeting_bar.setFixedHeight(52)
+        gb_layout = QHBoxLayout(greeting_bar)
+        gb_layout.setContentsMargins(36, 8, 36, 0)
+
+        self.greeting_lbl = QLabel(self._greeting, self)
+        self.greeting_lbl.setFont(QFont("Outfit", 17, QFont.Weight.Medium))
+        self.greeting_lbl.setStyleSheet("color: rgba(255,255,255,0.70); background: transparent; letter-spacing: 1px;")
+        gb_layout.addWidget(self.greeting_lbl)
+        gb_layout.addStretch()
+
         self.brand_lbl = QLabel(self)
-        self.brand_lbl.setText("<div style='text-align:right;'><span style='font-size:24px; font-weight:800; color:#27C8F5; letter-spacing:4px;'>IP PRIME OS</span><br><span style='font-size:11px; color:#8899A6; letter-spacing:2px;'>INTELLIGENT WORKSPACE v1.0</span></div>")
+        self.brand_lbl.setText(
+            "<div style='text-align:right;'>"
+            "<span style='font-size:20px; font-weight:800; color:#27C8F5; letter-spacing:4px;'>IP PRIME OS</span>"
+            "<br><span style='font-size:10px; color:rgba(136,153,166,0.8); letter-spacing:2px;'>INTELLIGENT WORKSPACE v2.0</span>"
+            "</div>"
+        )
         self.brand_lbl.setStyleSheet("background: transparent;")
-        right_column.addWidget(self.brand_lbl)
-        
-        right_column.addStretch()
-        self.work_layout.addLayout(right_column)
-        
+        gb_layout.addWidget(self.brand_lbl)
+        outer.addWidget(greeting_bar)
+
+        # ── Main row: left widgets | center space | right clock ──
+        self.work_layout = QHBoxLayout()
+        self.work_layout.setContentsMargins(36, 12, 36, 12)
+        self.work_layout.setSpacing(0)
+
+        # Left column
+        left_col = QVBoxLayout()
+        left_col.setSpacing(16)
+
+        self.stats_widget = SystemStatsWidget(self)
+        self.stats_widget.setFixedWidth(268)
+        _shadow(self.stats_widget)
+        left_col.addWidget(self.stats_widget)
+
+        self.weather_widget = WeatherWidget(self)
+        self.weather_widget.setFixedWidth(268)
+        _shadow(self.weather_widget)
+        left_col.addWidget(self.weather_widget)
+
+        left_col.addStretch()
+        self.work_layout.addLayout(left_col)
+
+        self.work_layout.addStretch()
+
+        # Right column
+        right_col = QVBoxLayout()
+        right_col.setSpacing(8)
+        right_col.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+
+        self.clock_widget = ClockWidget(self)
+        right_col.addWidget(self.clock_widget)
+        right_col.addStretch()
+        self.work_layout.addLayout(right_col)
+
+        outer.addLayout(self.work_layout, 1)
+
+        # ── AI Command Bar (bottom center, above taskbar) ──
+        cmd_container = QWidget(self)
+        cmd_container.setStyleSheet("background: transparent;")
+        cmd_row = QHBoxLayout(cmd_container)
+        cmd_row.setContentsMargins(0, 0, 0, 10)
+
+        cmd_row.addStretch()
+        self.ai_bar = AICommandBar(self)
+        self.ai_bar.setFixedWidth(680)
+        self.ai_bar.command_submitted.connect(self.on_ai_command)
+        _shadow(self.ai_bar, blur=30, alpha=200)
+        cmd_row.addWidget(self.ai_bar)
+        cmd_row.addStretch()
+
+        outer.addWidget(cmd_container)
+
+    # ── Particles ─────────────────────────────
     def init_particles(self):
-        width = self.width() if self.width() > 0 else 1920
-        height = self.height() if self.height() > 0 else 1080
-        for _ in range(70):
-            self.particles.append(Particle(width, height))
-            
-        # Init Matrix columns
-        self.matrix_columns = []
-        for x in range(0, width, 24):
-            self.matrix_columns.append(MatrixColumn(x, height))
-            
+        w = self.width() if self.width() > 0 else 1920
+        h = self.height() if self.height() > 0 else 1080
+        for _ in range(90):
+            self.particles.append(Particle(w, h))
+        for x in range(0, w, 22):
+            self.matrix_columns.append(MatrixColumn(x, h))
+
     def update_background(self):
-        width = self.width()
-        height = self.height()
+        w, h = self.width(), self.height()
         if self.wallpaper_style in ("stars", "plexus"):
             for p in self.particles:
-                p.move(width, height)
+                p.move(w, h)
         elif self.wallpaper_style == "matrix":
             for col in self.matrix_columns:
-                col.move(height)
+                col.move(h)
         self.update()
-        
+
+    # ── Paint ─────────────────────────────────
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
+
         t = self.theme_engine.current
-        # Draw background gradient dynamically from active theme colors
-        grad = QRadialGradient(
-            self.width() / 2, self.height() / 2,
-            max(self.width(), self.height()) * 0.8
-        )
-        grad.setColorAt(0.0, QColor(t["bg"]))
-        # Generate slightly lighter middle gradient step
-        mid_color = QColor(t["bg"]).lighter(110)
-        grad.setColorAt(0.5, mid_color)
-        grad.setColorAt(1.0, QColor("#010205"))
-        
+
+        # Deep space background — multi-stop radial
+        grad = QRadialGradient(self.width() * 0.5, self.height() * 0.4,
+                               max(self.width(), self.height()) * 0.85)
+        grad.setColorAt(0.0,  QColor(t["bg"]).lighter(115))
+        grad.setColorAt(0.45, QColor(t["bg"]))
+        grad.setColorAt(1.0,  QColor("#010207"))
         painter.setBrush(QBrush(grad))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRect(0, 0, self.width(), self.height())
-        
+
         if self.wallpaper_style in ("stars", "plexus"):
-            # Draw particles colored by theme accent/primary
             for p in self.particles:
-                color_hex = t["primary"] if p.glow else t["accent"]
-                color = QColor(color_hex)
+                c_hex = t["primary"] if p.glow else t["accent"]
+                color = QColor(c_hex)
                 color.setAlpha(p.alpha)
-                painter.setBrush(QBrush(color))
+                painter.setPen(Qt.PenStyle.NoPen)
                 if p.glow:
-                    glow_color = QColor(color)
-                    glow_color.setAlpha(int(p.alpha * 0.3))
-                    painter.setBrush(QBrush(glow_color))
-                    painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius * 2), int(p.radius * 2))
-                    painter.setBrush(QBrush(color))
-                painter.drawEllipse(QPoint(int(p.x), int(p.y)), int(p.radius), int(p.radius))
-                
-            # Plexus connection lines
+                    gc = QColor(c_hex)
+                    gc.setAlpha(int(p.alpha * 0.25))
+                    painter.setBrush(QBrush(gc))
+                    painter.drawEllipse(QPoint(int(p.x), int(p.y)),
+                                        int(p.radius * 3), int(p.radius * 3))
+                painter.setBrush(QBrush(color))
+                painter.drawEllipse(QPoint(int(p.x), int(p.y)),
+                                    int(p.radius), int(p.radius))
+
             if self.wallpaper_style == "plexus":
-                for i in range(len(self.particles)):
-                    p1 = self.particles[i]
-                    for j in range(i + 1, len(self.particles)):
-                        p2 = self.particles[j]
-                        dx = p1.x - p2.x
-                        dy = p1.y - p2.y
+                pts = self.particles
+                for i in range(len(pts)):
+                    for j in range(i + 1, len(pts)):
+                        dx = pts[i].x - pts[j].x
+                        dy = pts[i].y - pts[j].y
                         dist = math.sqrt(dx*dx + dy*dy)
-                        if dist < 120:
-                            alpha = int(80 * (1.0 - (dist / 120)))
-                            color = QColor(t["primary"])
-                            color.setAlpha(alpha)
-                            painter.setPen(QPen(color, 1, Qt.PenStyle.SolidLine))
-                            painter.drawLine(QPoint(int(p1.x), int(p1.y)), QPoint(int(p2.x), int(p2.y)))
-                            
+                        if dist < 130:
+                            alpha = int(65 * (1.0 - dist / 130))
+                            lc = QColor(t["primary"])
+                            lc.setAlpha(alpha)
+                            painter.setPen(QPen(lc, 0.8, Qt.PenStyle.SolidLine))
+                            painter.drawLine(QPoint(int(pts[i].x), int(pts[i].y)),
+                                             QPoint(int(pts[j].x), int(pts[j].y)))
+
         elif self.wallpaper_style == "matrix":
-            # Matrix code rain
             for col in self.matrix_columns:
                 font = QFont("Consolas", col.font_size)
                 painter.setFont(font)
-                y_offset = 0
-                for i, char in enumerate(col.chars):
-                    char_y = col.y - y_offset
-                    if char_y < 0 or char_y > self.height():
-                        y_offset += col.font_size
-                        continue
-                    
-                    alpha = int(255 * (1.0 - (i / len(col.chars))))
-                    if i == 0:
-                        color = QColor(255, 255, 255, alpha)
-                    else:
-                        color = QColor(0, 255, 70, alpha)
-                        
-                    painter.setPen(color)
-                    painter.drawText(int(col.x), int(char_y), char)
-                    y_offset += col.font_size
-            
+                y_off = 0
+                for i, ch in enumerate(col.chars):
+                    cy = col.y - y_off
+                    if 0 < cy < self.height():
+                        a = int(255 * (1.0 - i / len(col.chars)))
+                        color = QColor(255, 255, 255, a) if i == 0 else QColor(0, 255, 70, a)
+                        painter.setPen(color)
+                        painter.drawText(int(col.x), int(cy), ch)
+                    y_off += col.font_size
+
+    # ── Overlay Toggles ───────────────────────
     def toggle_launcher(self):
-        # Close notification center when opening launcher
         if self.notification_center.isVisible():
             self.notification_center.hide()
-            
         if self.launcher.isVisible():
             self.launcher.hide()
         else:
@@ -291,272 +401,204 @@ class IPPrimeOSDesktop(QMainWindow):
             self.launcher.show()
             self.launcher.raise_()
             self.launcher.search_bar.setFocus()
-            
+
     def toggle_notification_center(self):
-        # Close launcher when opening control center
         if self.launcher.isVisible():
             self.launcher.hide()
-            
         if self.notification_center.isVisible():
             self.notification_center.hide()
         else:
             self.update_overlay_geometries()
             self.notification_center.show()
             self.notification_center.raise_()
-            
+
     def toggle_file_manager(self):
         if self.file_manager.isVisible():
             self.file_manager.hide()
         else:
-            # Centered on desktop workspace
-            w_width = self.width()
-            w_height = self.workspace.height()
-            fm_w = self.file_manager.width()
-            fm_h = self.file_manager.height()
+            fw, fh = self.file_manager.width(), self.file_manager.height()
             self.file_manager.setGeometry(
-                (w_width - fm_w) // 2,
-                (w_height - fm_h) // 2,
-                fm_w,
-                fm_h
+                (self.width() - fw) // 2,
+                (self.workspace.height() - fh) // 2,
+                fw, fh
             )
             self.file_manager.show()
             self.file_manager.raise_()
-            
+
     def update_overlay_geometries(self):
-        # Launcher placement above start button
         t_top = self.taskbar.geometry().top()
-        self.launcher.setGeometry(10, t_top - 500 - 10, 380, 500)
-        
-        # Notification Center slider placement on the right
-        self.notification_center.setGeometry(self.width() - 320, 0, 320, t_top)
-        
+        self.launcher.setGeometry(10, t_top - 510, 380, 500)
+        self.notification_center.setGeometry(self.width() - 330, 0, 330, t_top)
+
+    # ── AI Command handling ───────────────────
+    def on_ai_command(self, text):
+        """Forward typed command directly to the Saturday AI assistant."""
+        try:
+            qapp = QApplication.instance()
+            for widget in qapp.topLevelWidgets():
+                if widget is not self and hasattr(widget, "on_text_command"):
+                    widget.show()
+                    widget.raise_()
+                    widget.activateWindow()
+                    widget.on_text_command(text)
+                    return
+        except Exception as e:
+            print(f"[AI Bar] Forward failed: {e}")
+
     def trigger_assistant(self):
-        print("OS Shell: Assistant trigger requested.")
         try:
             qapp = QApplication.instance()
             for widget in qapp.topLevelWidgets():
-                if widget != self and hasattr(widget, "show"):
+                if widget is not self and hasattr(widget, "show"):
                     widget.show()
                     widget.raise_()
                     widget.activateWindow()
         except Exception as e:
-            print(f"Failed to find assistant widget: {e}")
-            
+            print(f"[OS Shell] Assistant toggle failed: {e}")
+
     def on_launcher_search(self, query):
-        print(f"OS Shell: Launcher forward search -> {query}")
-        try:
-            qapp = QApplication.instance()
-            for widget in qapp.topLevelWidgets():
-                if widget != self and hasattr(widget, "_chat") and hasattr(widget, "on_text_command"):
-                    widget.show()
-                    widget.raise_()
-                    widget.activateWindow()
-                    if widget.on_text_command:
-                        widget.on_text_command(query)
-        except Exception as e:
-            print(f"Failed to forward search: {e}")
-            
+        self.on_ai_command(query)
+
+    # ── Theme ─────────────────────────────────
     def apply_theme_styles(self):
         t = self.theme_engine.current
-        # Update colors on branding label
-        self.brand_lbl.setText(f"<div style='text-align:right;'><span style='font-size:24px; font-weight:800; color:{t['primary']}; letter-spacing:4px;'>IP PRIME OS</span><br><span style='font-size:11px; color:{t['text_muted']}; letter-spacing:2px;'>INTELLIGENT WORKSPACE v1.0</span></div>")
-        
-        # Update widget styles
+
+        self.greeting_lbl.setStyleSheet("color: rgba(255,255,255,0.70); background: transparent; letter-spacing:1px;")
+        self.brand_lbl.setText(
+            f"<div style='text-align:right;'>"
+            f"<span style='font-size:20px; font-weight:800; color:{t['primary']}; letter-spacing:4px;'>IP PRIME OS</span>"
+            f"<br><span style='font-size:10px; color:{t['text_muted']}; letter-spacing:2px;'>INTELLIGENT WORKSPACE v2.0</span>"
+            f"</div>"
+        )
         self.clock_widget.date_label.setStyleSheet(f"color: {t['primary']}; background: transparent;")
-        
-        self.stats_widget.setStyleSheet(f"""
-            QWidget#StatsWidget {{
-                background-color: {t['panel']};
-                border: 1px solid {t['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {t['text']};
-                background: transparent;
-            }}
+
+        _apply_panel_style(self.stats_widget, "StatsWidget", t, extras=f"""
             QProgressBar {{
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 5px;
-                text-align: center;
-                color: #FFFFFF;
-                background-color: rgba(20, 28, 48, 0.5);
-                height: 12px;
+                border: 1px solid rgba(255,255,255,0.08); border-radius:5px;
+                text-align:center; color:#FFF;
+                background-color: rgba(20,28,48,0.5); height:12px;
             }}
             QProgressBar::chunk {{
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {t['primary']}, stop:1 {t['accent']});
-                border-radius: 4px;
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {t['primary']},stop:1 {t['accent']});
+                border-radius:4px;
             }}
         """)
-        
-        self.weather_widget.setStyleSheet(f"""
-            QWidget#WeatherWidget {{
-                background-color: {t['panel']};
-                border: 1px solid {t['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {t['text']};
-                background: transparent;
-            }}
-        """)
+        _apply_panel_style(self.weather_widget, "WeatherWidget", t)
         self.weather_widget.city_lbl.setStyleSheet(f"color: {t['primary']};")
-        
+
         self.taskbar.setStyleSheet(f"""
             QWidget#Taskbar {{
                 background-color: {t['panel']};
                 border-top: 1px solid {t['border']};
             }}
             QPushButton#StartButton {{
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {t['primary']}, stop:1 {t['accent']});
-                border: none;
-                border-radius: 18px;
-                color: #FFFFFF;
-                font-weight: bold;
-                font-size: 14px;
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 {t['primary']},stop:1 {t['accent']});
+                border:none; border-radius:18px; color:#FFF; font-weight:bold; font-size:14px;
             }}
             QPushButton#StartButton:hover {{
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {t['accent']}, stop:1 {t['primary']});
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 {t['accent']},stop:1 {t['primary']});
             }}
             QPushButton#AppShortcut {{
-                background-color: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                color: {t['text']};
-                font-size: 11px;
-                padding: 4px 10px;
-                min-width: 60px;
+                background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+                border-radius:6px; color:{t['text']}; font-size:11px; padding:4px 10px; min-width:60px;
             }}
             QPushButton#AppShortcut:hover {{
-                background-color: rgba(255, 255, 255, 0.12);
-                border: 1px solid {t['primary']};
+                background: rgba(255,255,255,0.12); border:1px solid {t['primary']};
             }}
             QLabel#TrayClock {{
-                color: {t['text']};
-                font-size: 12px;
-                font-weight: bold;
-                background: transparent;
-                margin-right: 15px;
+                color:{t['text']}; font-size:12px; font-weight:bold;
+                background:transparent; margin-right:15px;
             }}
-            QLabel#TrayClock:hover {{
-                color: {t['primary']};
-            }}
+            QLabel#TrayClock:hover {{ color:{t['primary']}; }}
             QLabel#SysStatusLabel {{
-                color: {t['text_muted']};
-                font-size: 11px;
-                background: transparent;
-                margin-right: 10px;
+                color:{t['text_muted']}; font-size:11px; background:transparent; margin-right:10px;
             }}
         """)
-        
+
         self.launcher.setStyleSheet(f"""
             QWidget#Launcher {{
-                background-color: {t['panel']};
-                border: 1px solid {t['border']};
-                border-radius: 16px;
+                background:{t['panel']}; border:1px solid {t['border']}; border-radius:16px;
             }}
             QLineEdit {{
-                background-color: rgba(20, 28, 48, 0.8);
-                border: 1px solid {t['border']};
-                border-radius: 8px;
-                color: #FFFFFF;
-                padding: 10px 15px;
-                font-size: 14px;
+                background:rgba(20,28,48,0.8); border:1px solid {t['border']};
+                border-radius:8px; color:#FFF; padding:10px 15px; font-size:14px;
             }}
-            QLineEdit:focus {{
-                border: 1px solid {t['primary']};
-            }}
-            QListWidget {{
-                background: transparent;
-                border: none;
-                color: {t['text']};
-            }}
+            QLineEdit:focus {{ border:1px solid {t['primary']}; }}
+            QListWidget {{ background:transparent; border:none; color:{t['text']}; }}
             QListWidget::item {{
-                background-color: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 6px;
-                margin: 4px 8px;
-                padding: 10px;
+                background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);
+                border-radius:6px; margin:4px 8px; padding:10px;
             }}
             QListWidget::item:hover {{
-                background-color: rgba(255, 255, 255, 0.08);
-                border: 1px solid {t['primary']};
+                background:rgba(255,255,255,0.08); border:1px solid {t['primary']};
             }}
             QListWidget::item:selected {{
-                background-color: rgba(139, 92, 246, 0.2);
-                border: 1px solid {t['accent']};
-                color: #FFFFFF;
+                background:rgba(139,92,246,0.2); border:1px solid {t['accent']}; color:#FFF;
             }}
-            QLabel {{
-                color: {t['text']};
-                background: transparent;
-            }}
+            QLabel {{ color:{t['text']}; background:transparent; }}
         """)
-        self.launcher.info_label.setStyleSheet(f"color: {t['primary']}; margin-left: 8px;")
-        
+        self.launcher.info_label.setStyleSheet(f"color:{t['primary']}; margin-left:8px;")
+
         self.file_manager.setStyleSheet(f"""
             QWidget#FileManager {{
-                background-color: {t['panel']};
-                border: 1px solid {t['border']};
-                border-radius: 12px;
+                background:{t['panel']}; border:1px solid {t['border']}; border-radius:12px;
             }}
-            QListWidget {{
-                background: transparent;
-                border: none;
-                color: {t['text']};
-            }}
+            QListWidget {{ background:transparent; border:none; color:{t['text']}; }}
             QListWidget::item {{
-                background-color: rgba(255, 255, 255, 0.02);
-                border: 1px solid rgba(255, 255, 255, 0.04);
-                border-radius: 6px;
-                margin: 3px 6px;
-                padding: 8px;
+                background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);
+                border-radius:6px; margin:3px 6px; padding:8px;
             }}
             QListWidget::item:hover {{
-                background-color: rgba(255, 255, 255, 0.08);
-                border: 1px solid {t['primary']};
+                background:rgba(255,255,255,0.08); border:1px solid {t['primary']};
             }}
             QListWidget::item:selected {{
-                background-color: rgba(139, 92, 246, 0.15);
-                border: 1px solid {t['accent']};
-                color: #FFFFFF;
+                background:rgba(139,92,246,0.15); border:1px solid {t['accent']}; color:#FFF;
             }}
             QLineEdit {{
-                background-color: rgba(20, 28, 48, 0.8);
-                border: 1px solid {t['border']};
-                border-radius: 8px;
-                color: #FFFFFF;
-                padding: 6px 12px;
-                font-size: 13px;
+                background:rgba(20,28,48,0.8); border:1px solid {t['border']};
+                border-radius:8px; color:#FFF; padding:6px 12px; font-size:13px;
             }}
             QPushButton {{
-                background-color: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                color: {t['text']};
-                padding: 6px 12px;
-                font-size: 12px;
+                background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+                border-radius:6px; color:{t['text']}; padding:6px 12px; font-size:12px;
             }}
-            QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.12);
-                border: 1px solid {t['primary']};
-            }}
-            QLabel {{
-                color: {t['text']};
-                background: transparent;
-            }}
+            QPushButton:hover {{ background:rgba(255,255,255,0.12); border:1px solid {t['primary']}; }}
+            QLabel {{ color:{t['text']}; background:transparent; }}
         """)
-        self.file_manager.title_bar.setStyleSheet(f"background-color: rgba(255,255,255,0.02); border-radius: 6px;")
-        
+        self.file_manager.title_bar.setStyleSheet("background:rgba(255,255,255,0.02); border-radius:6px;")
+
     def on_theme_changed(self, theme_key):
-        print(f"OS Shell: Theme changed to -> {theme_key}")
         self.theme_engine.load_theme()
         self.apply_theme_styles()
         self.update()
-        
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.update_overlay_geometries()
-        
+
     def closeEvent(self, event):
         show_windows_taskbar()
         super().closeEvent(event)
+
+
+# ─────────────────────────────────────────────
+#  Helpers
+# ─────────────────────────────────────────────
+def _shadow(widget, blur=20, alpha=160, offset_y=4):
+    s = QGraphicsDropShadowEffect(widget)
+    s.setBlurRadius(blur)
+    s.setColor(QColor(0, 0, 0, alpha))
+    s.setOffset(0, offset_y)
+    widget.setGraphicsEffect(s)
+
+
+def _apply_panel_style(widget, obj_name, t, extras=""):
+    widget.setStyleSheet(f"""
+        QWidget#{obj_name} {{
+            background-color: {t['panel']};
+            border: 1px solid {t['border']};
+            border-radius: 14px;
+        }}
+        QLabel {{ color: {t['text']}; background: transparent; }}
+        {extras}
+    """)

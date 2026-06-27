@@ -1,157 +1,169 @@
 import sys
-from PyQt6.QtCore import Qt, QTime, QDate, QTimer, pyqtSignal, QPoint
+import subprocess
+from PyQt6.QtCore import Qt, QTime, QDate, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QFrame
+    QWidget, QHBoxLayout, QLabel, QPushButton, QFrame, QSizePolicy
 )
-from PyQt6.QtGui import QFont, QColor
+from PyQt6.QtGui import QFont, QColor, QPainter, QLinearGradient, QBrush, QPainterPath
 
 class OSTaskbar(QWidget):
-    # Signals
-    start_clicked = pyqtSignal()
+    start_clicked     = pyqtSignal()
     assistant_clicked = pyqtSignal()
-    files_clicked = pyqtSignal()
-    clock_clicked = pyqtSignal()
-    
+    files_clicked     = pyqtSignal()
+    clock_clicked     = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.init_ui()
-        
+
     def init_ui(self):
-        self.setFixedHeight(48)
+        self.setFixedHeight(52)
         self.setObjectName("Taskbar")
-        self.setStyleSheet("""
-            QWidget#Taskbar {
-                background-color: rgba(8, 14, 28, 0.95);
-                border-top: 1px solid rgba(39, 200, 245, 0.2);
-            }
-            QPushButton#StartButton {
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #27C8F5, stop:1 #8B5CF6);
-                border: none;
-                border-radius: 18px;
-                color: #FFFFFF;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton#StartButton:hover {
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #8B5CF6, stop:1 #27C8F5);
-            }
-            QPushButton#AppShortcut {
-                background-color: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                color: #F0F4F8;
-                font-size: 11px;
-                padding: 4px 10px;
-                min-width: 60px;
-            }
-            QPushButton#AppShortcut:hover {
-                background-color: rgba(39, 200, 245, 0.15);
-                border: 1px solid rgba(39, 200, 245, 0.3);
-            }
-            QLabel#TrayClock {
-                color: #F0F4F8;
-                font-size: 12px;
-                font-weight: bold;
-                background: transparent;
-                margin-right: 15px;
-            }
-            QLabel#TrayClock:hover {
-                color: #27C8F5;
-            }
-            QLabel#SysStatusLabel {
-                color: #8899A6;
-                font-size: 11px;
-                background: transparent;
-                margin-right: 10px;
-            }
-        """)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(10, 0, 10, 0)
-        layout.setSpacing(8)
-        self.setLayout(layout)
-        
-        # Start button / Prime Orb trigger
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(14, 0, 14, 0)
+        layout.setSpacing(6)
+
+        # ── IP Orb (Start) ──
         self.start_btn = QPushButton("IP", self)
         self.start_btn.setObjectName("StartButton")
-        self.start_btn.setFixedSize(36, 36)
+        self.start_btn.setFixedSize(38, 38)
+        self.start_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.start_btn.setFont(QFont("Outfit", 12, QFont.Weight.Bold))
+        self.start_btn.setStyleSheet("""
+            QPushButton#StartButton {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #27C8F5,stop:1 #8B5CF6);
+                border: none; border-radius: 19px;
+                color: #fff; font-weight: 800;
+            }
+            QPushButton#StartButton:hover {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #8B5CF6,stop:1 #27C8F5);
+            }
+        """)
         self.start_btn.clicked.connect(self.start_clicked.emit)
         layout.addWidget(self.start_btn)
-        
-        # Separator line
-        sep = QFrame(self)
-        sep.setFrameShape(QFrame.Shape.VLine)
-        sep.setFrameShadow(QFrame.Shadow.Sunken)
-        sep.setStyleSheet("color: rgba(255, 255, 255, 0.1); max-height: 24px;")
-        layout.addWidget(sep)
-        
-        # App Shortcuts
-        self.shortcut_browser = QPushButton("Browser", self)
-        self.shortcut_browser.setObjectName("AppShortcut")
-        self.shortcut_browser.clicked.connect(lambda: self.launch_app("explorer.exe", "https://google.com"))
-        layout.addWidget(self.shortcut_browser)
-        
-        self.shortcut_files = QPushButton("Files", self)
-        self.shortcut_files.setObjectName("AppShortcut")
-        self.shortcut_files.clicked.connect(self.files_clicked.emit)
-        layout.addWidget(self.shortcut_files)
 
-        self.shortcut_cmd = QPushButton("Terminal", self)
-        self.shortcut_cmd.setObjectName("AppShortcut")
-        self.shortcut_cmd.clicked.connect(lambda: self.launch_app("cmd.exe"))
-        layout.addWidget(self.shortcut_cmd)
-        
-        # Mic / Assistant quick trigger
-        self.mic_btn = QPushButton("🎙️ Ask Prime", self)
-        self.mic_btn.setObjectName("AppShortcut")
+        # ── Separator ──
+        layout.addWidget(_sep(self))
+
+        # ── Shortcuts ──
+        shortcuts = [
+            ("🌐 Browser", lambda: self.launch("msedge")),
+            ("📁 Files",   self.files_clicked.emit),
+            ("⌨️  Terminal", lambda: self.launch("wt.exe")),
+            ("📝 Notes",   lambda: self.launch("notepad.exe")),
+            ("⚙️  Settings",lambda: self.launch("ms-settings:")),
+        ]
+        for label, fn in shortcuts:
+            btn = QPushButton(label, self)
+            btn.setObjectName("AppShortcut")
+            btn.setFont(QFont("Outfit", 10))
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton#AppShortcut {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.09);
+                    border-radius: 7px; color: #D0D8E8;
+                    font-size: 11px; padding: 4px 12px;
+                }
+                QPushButton#AppShortcut:hover {
+                    background: rgba(39,200,245,0.12);
+                    border: 1px solid rgba(39,200,245,0.35);
+                    color: #fff;
+                }
+            """)
+            btn.clicked.connect(fn)
+            layout.addWidget(btn)
+
+        layout.addWidget(_sep(self))
+
+        # ── Ask Prime ──
+        self.mic_btn = QPushButton("🎙 Ask Prime", self)
+        self.mic_btn.setFont(QFont("Outfit", 11, QFont.Weight.Bold))
+        self.mic_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.mic_btn.setStyleSheet("""
-            QPushButton#AppShortcut {
-                color: #27C8F5;
-                font-weight: bold;
-                border: 1px solid rgba(39, 200, 245, 0.3);
+            QPushButton {
+                background: rgba(39,200,245,0.10);
+                border: 1px solid rgba(39,200,245,0.30);
+                border-radius: 7px; color: #27C8F5;
+                font-weight: 700; padding: 4px 16px;
+            }
+            QPushButton:hover {
+                background: rgba(39,200,245,0.22);
+                border: 1px solid #27C8F5; color: #fff;
             }
         """)
         self.mic_btn.clicked.connect(self.assistant_clicked.emit)
         layout.addWidget(self.mic_btn)
-        
-        # Spacer
+
+        # ── Spacer ──
         layout.addStretch()
-        
-        # System status text
+
+        # ── System status ──
         self.status_lbl = QLabel(self)
         self.status_lbl.setObjectName("SysStatusLabel")
+        self.status_lbl.setFont(QFont("Outfit", 10))
+        self.status_lbl.setStyleSheet("color: rgba(136,153,166,0.9); background: transparent; margin-right: 8px;")
         layout.addWidget(self.status_lbl)
-        
-        # Tray Clock
+
+        layout.addWidget(_sep(self))
+
+        # ── Tray Clock (click → Control Center) ──
         self.clock_lbl = QLabel(self)
         self.clock_lbl.setObjectName("TrayClock")
+        self.clock_lbl.setFont(QFont("Outfit", 11, QFont.Weight.Bold))
+        self.clock_lbl.setStyleSheet("""
+            QLabel { color: #E8EEF8; background: transparent;
+                     padding: 0 14px; letter-spacing: 0.5px; }
+            QLabel:hover { color: #27C8F5; }
+        """)
         self.clock_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.clock_lbl.mousePressEvent = lambda e: self.clock_clicked.emit()
+        self.clock_lbl.mousePressEvent = lambda _: self.clock_clicked.emit()
         layout.addWidget(self.clock_lbl)
-        
-        # Timers
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_tray)
         self.timer.start(1000)
-        
         self.update_tray()
-        
+
+    # ── Tray update ─────────────────────────
     def update_tray(self):
-        current_time = QTime.currentTime().toString("hh:mm A")
-        self.clock_lbl.setText(current_time)
-        
-        # System summary
-        import psutil
+        import psutil, datetime
+        t   = datetime.datetime.now().strftime("%I:%M %p")
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
-        self.status_lbl.setText(f"CPU: {int(cpu)}% | RAM: {int(ram)}%")
-        
-    def launch_app(self, app_name, arg=None):
-        import subprocess
+        self.clock_lbl.setText(f"  {t}  ")
+        self.status_lbl.setText(f"CPU {int(cpu)}%  •  RAM {int(ram)}%")
+
+    def launch(self, app, arg=None):
         try:
-            if arg:
-                subprocess.Popen([app_name, arg])
-            else:
-                subprocess.Popen(app_name)
+            subprocess.Popen([app] + ([arg] if arg else []),
+                             shell=True,
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
         except Exception as e:
-            print(f"Failed to launch shortcut: {e}")
+            print(f"[Taskbar] Launch failed: {e}")
+
+    # ── Custom paint — glassmorphism bar ────
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # Glass background
+        painter.fillRect(self.rect(), QColor(6, 12, 28, 220))
+        # Top accent line
+        grad = QLinearGradient(0, 0, self.width(), 0)
+        grad.setColorAt(0.0, QColor(39, 200, 245, 0))
+        grad.setColorAt(0.3, QColor(39, 200, 245, 140))
+        grad.setColorAt(0.7, QColor(139, 92, 246, 140))
+        grad.setColorAt(1.0, QColor(139, 92, 246, 0))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QBrush(grad))
+        painter.drawRect(0, 0, self.width(), 1)
+
+
+def _sep(parent):
+    f = QFrame(parent)
+    f.setFrameShape(QFrame.Shape.VLine)
+    f.setStyleSheet("color: rgba(255,255,255,0.08); max-height: 26px;")
+    return f
