@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>S.A.T.U.R.D.A.Y — Voice Room</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan: #00e5ff;
+      --cyan-dim: #00b8d4;
+      --amber: #ffab00;
+      --green: #00e676;
+      --red: #ff1744;
+      --purple: #7c4dff;
+      --bg: #020912;
+      --surface: rgba(0, 229, 255, 0.04);
+      --border: rgba(0, 229, 255, 0.15);
+      --text: #e0f7fa;
+      --text-dim: #546e7a;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridMove 20s linear infinite;
+      z-index: 0;
+    }
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 40px; }
+    }
+
+    /* Glow background */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 100vh;
+      padding: 24px 20px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      width: 100%;
+    }
+    .header .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(11px, 3vw, 14px);
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .header .title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(20px, 6vw, 28px);
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: #fff;
+      margin-top: 4px;
+      text-shadow: 0 0 30px rgba(0,229,255,0.5);
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      transition: all 0.4s ease;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: all 0.4s ease;
+    }
+    .status-badge.idle .status-dot { background: var(--text-dim); }
+    .status-badge.connecting .status-dot { background: var(--amber); animation: pulse 1s ease infinite; }
+    .status-badge.listening .status-dot { background: var(--cyan); animation: pulse 1.5s ease infinite; }
+    .status-badge.speaking .status-dot { background: var(--green); animation: pulse 0.8s ease infinite; }
+    .status-badge.error .status-dot { background: var(--red); }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+
+    /* ── Orb ── */
+    .orb-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .orb-wrapper {
+      position: relative;
+      width: 200px; height: 200px;
+    }
+
+    .orb {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,
+        rgba(0,229,255,0.3) 0%,
+        rgba(0,100,140,0.2) 40%,
+        rgba(0,20,40,0.9) 100%);
+      border: 1.5px solid rgba(0,229,255,0.3);
+      box-shadow:
+        0 0 40px rgba(0,229,255,0.15),
+        0 0 80px rgba(0,229,255,0.08),
+        inset 0 0 40px rgba(0,229,255,0.05);
+      transition: all 0.4s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .orb.idle { border-color: rgba(0,229,255,0.2); }
+    .orb.connecting {
+      border-color: var(--amber);
+      box-shadow: 0 0 40px rgba(255,171,0,0.3), 0 0 80px rgba(255,171,0,0.1);
+      animation: orbPulse 1s ease infinite;
+    }
+    .orb.listening {
+      border-color: var(--cyan);
+      box-shadow: 0 0 50px rgba(0,229,255,0.4), 0 0 100px rgba(0,229,255,0.2);
+    }
+    .orb.speaking {
+      border-color: var(--green);
+      box-shadow: 0 0 50px rgba(0,230,118,0.4), 0 0 100px rgba(0,230,118,0.15);
+      animation: orbBreath 1.5s ease-in-out infinite;
+    }
+    .orb.error {
+      border-color: var(--red);
+      box-shadow: 0 0 40px rgba(255,23,68,0.3);
+    }
+
+    @keyframes orbPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    @keyframes orbBreath {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    /* Orb rings */
+    .orb-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.1);
+      animation: ringExpand 3s ease-out infinite;
+    }
+    .orb-ring:nth-child(1) { width: 220px; height: 220px; top: -10px; left: -10px; }
+    .orb-ring:nth-child(2) { width: 250px; height: 250px; top: -25px; left: -25px; animation-delay: 1s; }
+    .orb-ring:nth-child(3) { width: 280px; height: 280px; top: -40px; left: -40px; animation-delay: 2s; }
+    @keyframes ringExpand {
+      0% { opacity: 0.4; transform: scale(0.95); }
+      100% { opacity: 0; transform: scale(1.1); }
+    }
+
+    /* Waveform inside orb */
+    .waveform {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 50px;
+    }
+    .wave-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--cyan);
+      transition: height 0.1s ease;
+      min-height: 4px;
+    }
+    .orb-icon {
+      font-size: 48px;
+      opacity: 0.6;
+      user-select: none;
+    }
+
+    /* Orb label */
+    .orb-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      opacity: 0.7;
+      min-height: 20px;
+      transition: all 0.3s ease;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-connect {
+      width: 100%;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1.5px solid var(--cyan);
+      background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(0,100,200,0.1));
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-connect::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,229,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .btn-connect:hover::before { opacity: 1; }
+    .btn-connect:active { transform: scale(0.98); }
+    .btn-connect:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--text-dim);
+      color: var(--text-dim);
+    }
+    .btn-connect.connected {
+      border-color: var(--red);
+      color: var(--red);
+      background: linear-gradient(135deg, rgba(255,23,68,0.1), rgba(180,0,40,0.1));
+    }
+
+    .btn-mute {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: none;
+    }
+    .btn-mute.visible { display: block; }
+    .btn-mute.muted {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(255,171,0,0.08);
+    }
+
+    /* Log panel */
+    .log-panel {
+      width: 100%;
+      max-height: 80px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+      font-family: 'Inter', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .log-entry { color: var(--text-dim); }
+    .log-entry.info { color: var(--cyan); }
+    .log-entry.success { color: var(--green); }
+    .log-entry.error { color: var(--red); }
+    .log-entry.warn { color: var(--amber); }
+
+    /* Footer */
+    .footer {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">IP Verse AI System</div>
+    <div class="title">S.A.T.U.R.D.A.Y</div>
+    <div class="status-badge idle" id="statusBadge">
+      <div class="status-dot"></div>
+      <span id="statusText">OFFLINE</span>
+    </div>
+  </div>
+
+  <!-- Orb -->
+  <div class="orb-container">
+    <div class="orb-wrapper">
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb idle" id="orb">
+        <div class="waveform" id="waveform" style="display:none">
+          <!-- bars injected by JS -->
+        </div>
+        <div class="orb-icon" id="orbIcon">🤖</div>
+      </div>
+    </div>
+    <div class="orb-label" id="orbLabel">TAP TO CONNECT</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn-connect" id="btnConnect" onclick="toggleConnect()">
+      CONNECT TO SATURDAY
+    </button>
+    <button class="btn-mute" id="btnMute" onclick="toggleMute()">
+      🎙️ Mic Active — Tap to Mute
+    </button>
+    <div class="log-panel" id="logPanel">
+      <div class="log-entry">Saturday AI — Voice Room Client v1.0</div>
+    </div>
+  </div>
+
+  <div class="footer">Saturday AI &copy; Pratik Thorat</div>
+</div>
+
+<!-- LiveKit Client SDK -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+
+<script>
+  // ── State ──
+  let room = null;
+  let localTrack = null;
+  let connected = false;
+  let muted = false;
+  let waveAnimFrame = null;
+  let analyser = null;
+  let audioCtx = null;
+
+  const NUM_BARS = 12;
+  const waveformEl = document.getElementById('waveform');
+  const bars = [];
+
+  // Build waveform bars
+  for (let i = 0; i < NUM_BARS; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.height = '4px';
+    waveformEl.appendChild(bar);
+    bars.push(bar);
+  }
+
+  // ── Logging ──
+  function log(msg, type = '') {
+    const panel = document.getElementById('logPanel');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const time = new Date().toLocaleTimeString('en-IN', { hour12: false });
+    entry.textContent = `[${time}] ${msg}`;
+    panel.appendChild(entry);
+    panel.scrollTop = panel.scrollHeight;
+  }
+
+  // ── State UI ──
+  function setState(state, label) {
+    const orb = document.getElementById('orb');
+    const badge = document.getElementById('statusBadge');
+    const icon = document.getElementById('orbIcon');
+    const orbLabel = document.getElementById('orbLabel');
+
+    orb.className = `orb ${state}`;
+    badge.className = `status-badge ${state}`;
+    document.getElementById('statusText').textContent = label.toUpperCase();
+    orbLabel.textContent = label.toUpperCase();
+
+    const icons = { idle:'🤖', connecting:'⚡', listening:'🎙️', speaking:'🔊', error:'⚠️' };
+    icon.textContent = icons[state] || '🤖';
+
+    const showWave = state === 'speaking' || state === 'listening';
+    waveformEl.style.display = showWave ? 'flex' : 'none';
+    icon.style.display = showWave ? 'none' : 'block';
+  }
+
+  // ── Waveform animation ──
+  function startWaveform(stream) {
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      function draw() {
+        analyser.getByteFrequencyData(data);
+        const step = Math.floor(data.length / NUM_BARS);
+        bars.forEach((bar, i) => {
+          const val = data[i * step] || 0;
+          const h = Math.max(4, (val / 255) * 44);
+          bar.style.height = h + 'px';
+          bar.style.background = val > 100 ? '#00e676' : '#00e5ff';
+        });
+        waveAnimFrame = requestAnimationFrame(draw);
+      }
+      draw();
+    } catch(e) { log('Waveform unavailable: ' + e.message, 'warn'); }
+  }
+
+  function stopWaveform() {
+    if (waveAnimFrame) { cancelAnimationFrame(waveAnimFrame); waveAnimFrame = null; }
+    bars.forEach(bar => { bar.style.height = '4px'; });
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  }
+
+  // ── Connect ──
+  async function toggleConnect() {
+    if (connected) { await disconnect(); }
+    else { await connect(); }
+  }
+
+  async function connect() {
+    const btn = document.getElementById('btnConnect');
+    btn.disabled = true;
+    setState('connecting', 'Connecting...');
+    log('Requesting access token...', 'info');
+
+    try {
+      // Get token from our server
+      const res = await fetch('/token');
+      if (!res.ok) throw new Error(`Token server error: ${res.status}`);
+      const { token, url, room: roomName, identity } = await res.json();
+      log(`Token received. Identity: ${identity}`, 'success');
+
+      // Create room
+      room = new LivekitClient.Room({
+        adaptiveStream: true,
+        dynacast: true,
+        audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+
+      // Room events
+      room.on(LivekitClient.RoomEvent.Connected, () => {
+        connected = true;
+        setState('listening', 'Listening...');
+        log(`Connected to room: ${roomName}`, 'success');
+        btn.textContent = 'DISCONNECT';
+        btn.className = 'btn-connect connected';
+        btn.disabled = false;
+        document.getElementById('btnMute').className = 'btn-mute visible';
+      });
+
+      room.on(LivekitClient.RoomEvent.Disconnected, () => {
+        connected = false;
+        setState('idle', 'Tap to Connect');
+        log('Disconnected from room.', 'warn');
+        btn.textContent = 'CONNECT TO SATURDAY';
+        btn.className = 'btn-connect';
+        btn.disabled = false;
+        document.getElementById('btnMute').className = 'btn-mute';
+        stopWaveform();
+      });
+
+      room.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
+        log(`Agent joined: ${participant.identity}`, 'info');
+      });
+
+      room.on(LivekitClient.RoomEvent.ParticipantDisconnected, (participant) => {
+        log(`Participant left: ${participant.identity}`, 'warn');
+      });
+
+      // Detect when Saturday speaks (remote audio track published)
+      room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
+        if (track.kind === LivekitClient.Track.Kind.Audio) {
+          setState('speaking', 'Saturday Speaking...');
+          log(`Audio from: ${participant.identity}`, 'info');
+          const audioEl = track.attach();
+          audioEl.autoplay = true;
+          document.body.appendChild(audioEl);
+        }
+      });
+
+      room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
+        if (track.kind === LivekitClient.Track.Kind.Audio) {
+          setState('listening', 'Listening...');
+          track.detach();
+        }
+      });
+
+      // Connect to LiveKit
+      await room.connect(url, token);
+
+      // Publish microphone
+      await room.localParticipant.setMicrophoneEnabled(true);
+      const micTrack = room.localParticipant.getTrackPublication(LivekitClient.Track.Source.Microphone);
+      if (micTrack && micTrack.track) {
+        localTrack = micTrack.track;
+        const mediaStream = new MediaStream([localTrack.mediaStreamTrack]);
+        startWaveform(mediaStream);
+      }
+
+      log('Microphone active. Say something!', 'success');
+
+    } catch (err) {
+      setState('error', 'Connection Failed');
+      log(`Error: ${err.message}`, 'error');
+      console.error(err);
+      btn.textContent = 'RETRY CONNECTION';
+      btn.className = 'btn-connect';
+      btn.disabled = false;
+    }
+  }
+
+  async function disconnect() {
+    if (room) {
+      await room.disconnect();
+      room = null;
+    }
+    stopWaveform();
+  }
+
+  // ── Mute ──
+  function toggleMute() {
+    if (!room) return;
+    muted = !muted;
+    room.localParticipant.setMicrophoneEnabled(!muted);
+    const btn = document.getElementById('btnMute');
+    btn.textContent = muted ? '🔇 Mic Muted — Tap to Unmute' : '🎙️ Mic Active — Tap to Mute';
+    btn.className = 'btn-mute visible' + (muted ? ' muted' : '');
+    log(muted ? 'Microphone muted.' : 'Microphone active.', 'warn');
+  }
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => { if (room) room.disconnect(); });
+
+  log('Room client ready. Tap CONNECT to start.', 'info');
+</script>
+</body>
+</html>

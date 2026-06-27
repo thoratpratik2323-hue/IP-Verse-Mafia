@@ -1,0 +1,76 @@
+--- /tmp/ui_orig.py	2026-06-25 04:41:21.716292377 +0000
++++ ui.py	2026-06-25 04:40:43.984292470 +0000
+@@ -2502,6 +2502,10 @@
+         sc_full.activated.connect(self._toggle_fullscreen)
+         sc_console = QShortcut(QKeySequence("F2"), self)
+         sc_console.activated.connect(lambda: self._toggle_console())
++        sc_saturday_os = QShortcut(QKeySequence("F9"), self)
++        sc_saturday_os.activated.connect(self._toggle_saturday_os_mode)
++        sc_saturday_os_esc = QShortcut(QKeySequence("Esc"), self)
++        sc_saturday_os_esc.activated.connect(self._exit_saturday_os_mode_if_active)
+ 
+         self._setup_tray_icon(face_path)
+ 
+@@ -2692,6 +2696,8 @@
+                 (cw.height() - oh) // 2,
+                 ow, oh,
+             )
++        if hasattr(self, "_saturday_browser_panel") and self._saturday_browser_panel.isVisible():
++            self._saturday_browser_panel.setGeometry(self.rect())
+ 
+ 
+     def _toggle_fullscreen(self):
+@@ -2700,6 +2706,53 @@
+         else:
+             self.showFullScreen()
+ 
++    # ------------------------------------------------------------------ #
++    # SaturdayOS Mode — turns this window into a taskbar-free, fullscreen
++    # "operating system" feel, with its own embedded browser screen for
++    # any action that would otherwise open a real system browser window.
++    # Toggle with F9. No VM, no separate session — just this window.
++    # ------------------------------------------------------------------ #
++    def _ensure_saturday_browser_panel(self):
++        if not hasattr(self, "_saturday_browser_panel"):
++            from os_shell_windows.embedded_browser import EmbeddedBrowserPanel
++            self._saturday_browser_panel = EmbeddedBrowserPanel(
++                on_close=self._hide_saturday_browser_panel, parent=self
++            )
++            self._saturday_browser_panel.hide()
++        return self._saturday_browser_panel
++
++    def _show_saturday_browser_panel(self, url: str):
++        panel = self._ensure_saturday_browser_panel()
++        panel.setGeometry(self.rect())
++        panel.navigate(url)
++        panel.show()
++        panel.raise_()
++
++    def _hide_saturday_browser_panel(self):
++        if hasattr(self, "_saturday_browser_panel"):
++            self._saturday_browser_panel.hide()
++
++    def _exit_saturday_os_mode_if_active(self):
++        from os_shell_windows import kiosk, browser_bridge
++        if kiosk.is_active():
++            kiosk.exit(self)
++            browser_bridge.uninstall()
++            self._hide_saturday_browser_panel()
++            self.write_log("SYS: SaturdayOS Mode off (Esc) — back to Windows.")
++
++    def _toggle_saturday_os_mode(self):
++        from os_shell_windows import kiosk, browser_bridge
++        if kiosk.is_active():
++            kiosk.exit(self)
++            browser_bridge.uninstall()
++            self._hide_saturday_browser_panel()
++            self.write_log("SYS: SaturdayOS Mode off — back to Windows.")
++        else:
++            kiosk.enter(self)
++            browser_bridge.register_panel(self._show_saturday_browser_panel)
++            browser_bridge.install()
++            self.write_log("SYS: SaturdayOS Mode on — press F9 anytime to exit.")
++
+ 
+     def _update_metrics(self):
+         snap = _metrics.snapshot()

@@ -10,7 +10,7 @@ import json
 import sys
 import atexit
 
-from ui_simple import CONFIG_DIR, IPRayUI as _SimpleIPRayUI, _load_theme
+from ui_simple import CONFIG_DIR, _load_theme
 
 # 0 = cobalt blue · 4 = neon cyan-blue (electric orb)
 BLUE_THEME_IDX = 0
@@ -25,7 +25,15 @@ def _apply_blue_theme() -> None:
     _load_theme()
 
 
-class IPRayUI(_SimpleIPRayUI):
+# Dynamically select UI skin
+if "--sat-mode" in sys.argv or "--orb-skin" in sys.argv:
+    from ui_sat import IPRayUI as _SelectedIPRayUI
+    print("[IP PRIME] 🔮 Loading Saturday Orb UI skin...")
+else:
+    from ui_simple import IPRayUI as _SelectedIPRayUI
+
+
+class IPRayUI(_SelectedIPRayUI):
     """Public facade for main.py — same API as ui_simple.IPRayUI."""
 
     def __init__(self, face_path: str, size=None):
@@ -57,4 +65,5 @@ class IPRayUI(_SimpleIPRayUI):
 
 
 __all__ = ["IPRayUI"]
+
 
