@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Browser",
+        "cmd": "msedge",
+        "icon": "\ud83c\udf10"
+    },
+    {
+        "name": "Files",
+        "cmd": "files",
+        "icon": "\ud83d\udcc1"
+    },
+    {
+        "name": "Terminal",
+        "cmd": "wt.exe",
+        "icon": "\ud83d\udcbb"
+    },
+    {
+        "name": "Notes",
+        "cmd": "notepad.exe",
+        "icon": "\ud83d\udcdd"
+    },
+    {
+        "name": "Settings",
+        "cmd": "ms-settings:",
+        "icon": "\u2699\ufe0f"
+    },
+    {
+        "name": "Antigravity",
+        "cmd": "C:\\Users\\thora\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Antigravity.lnk",
+        "icon": "\ud83d\ude80"
+    }
+]
