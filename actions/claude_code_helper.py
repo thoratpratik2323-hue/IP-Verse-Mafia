@@ -34,7 +34,7 @@ def check_and_install_dependencies():
     except ImportError:
         print("[Claude Code Helper] Installing required python libraries...")
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "httpx", "python-dotenv"],
+            [sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "httpx", "python-dotenv", "loguru"],
             capture_output=True,
             text=True
         )

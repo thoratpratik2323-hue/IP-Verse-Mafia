@@ -10,12 +10,27 @@ from prime_platform.config import load_prime_config
 def _docker_cmd(*args: str, timeout: int = 30) -> subprocess.CompletedProcess:
     cfg = load_prime_config()
     docker = cfg.get("homelab", {}).get("docker_path", "docker")
-    return subprocess.run(
-        [docker, *args],
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
+    try:
+        return subprocess.run(
+            [docker, *args],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except FileNotFoundError:
+        return subprocess.CompletedProcess(
+            args=[docker, *args],
+            returncode=127,
+            stdout="",
+            stderr=f"Docker command not found: '{docker}' is not installed or not in PATH."
+        )
+    except Exception as e:
+        return subprocess.CompletedProcess(
+            args=[docker, *args],
+            returncode=1,
+            stdout="",
+            stderr=str(e)
+        )
 
 
 def docker_status() -> str:
