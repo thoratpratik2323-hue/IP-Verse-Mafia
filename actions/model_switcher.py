@@ -54,6 +54,21 @@ def load_model_preference() -> dict[str, Any]:
             logger.error("Error reading model_config.json: %s", e)
     return default_data
 
+def get_preferred_model(purpose: str = "fast") -> str:
+    """
+    Returns the preferred model name based on model preferences.
+    """
+    try:
+        cfg = load_model_preference()
+        if purpose == "coding":
+            return cfg.get("coding_model", "gemini-2.5-flash")
+        active_model = cfg.get("active_model")
+        if active_model:
+            return active_model
+    except Exception:
+        pass
+    return "gemini-2.5-flash"
+
 def save_model_preference_dict(data: dict[str, Any]) -> bool:
     """Saves complete model selection dictionary in configuration file."""
     _ensure_config_dir()

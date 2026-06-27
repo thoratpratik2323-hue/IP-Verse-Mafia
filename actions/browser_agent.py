@@ -4,7 +4,7 @@ import os
 import sys
 import logging
 import subprocess
-from config import get_api_key
+from actions.prime_utils import get_api_key
 
 logger = logging.getLogger("saturday.browser_agent")
 
