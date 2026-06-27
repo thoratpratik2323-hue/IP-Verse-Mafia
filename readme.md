@@ -2,10 +2,10 @@
  
 <img src="assets/ip_prime_logo.png" alt="IP Prime Logo" width="220" style="border-radius: 50%;">
 
-# 🤖 IP Prime
-### *Intelligent Partner Prime*
+# 🤖 IP Prime OS
+### *Intelligent Partner Prime OS Shell*
 
-**The Ultimate Cross-Platform Personal AI Desktop Assistant**
+**The Ultimate AI-Powered Desktop OS Shell & Personal Assistant**
 *Custom-built for Pratik Thorat*
 
 <br>
@@ -17,19 +17,19 @@
 
 <br>
 
-> *"Not just an assistant — an extension of your digital life."*
+> *"Not just an assistant — a complete AI-driven Operating System desktop shell environment."*
 
 </div>
 
 ---
 
-## 🌟 What is IP Prime?
+## 🌟 What is IP Prime OS?
 
-**IP Prime** *(Intelligent Partner Prime)* is a real-time, voice-driven AI desktop assistant that can **hear**, **see**, **think**, and **act** — all from your local machine. No subscriptions. No cloud lock-in. Pure autonomy.
+**IP Prime OS** is a real-time, voice-driven **AI Desktop Operating System Shell** and agentic workspace that can **hear**, **see**, **think**, and **act** — all running directly on top of your local system. No subscriptions. No cloud lock-in. Pure autonomy.
 
-Built on Google's **Gemini AI**, IP Prime bridges the gap between human intent and operating system execution. It speaks with you, watches your screen, controls your computer, writes code, manages your files, browses the web, and much more — all in one seamless, always-on assistant.
+Built on Google's **Gemini AI**, IP Prime OS bridges the gap between human intent and native OS execution. It replaces or overlays standard desktop environments with a beautiful glassmorphic shell, featuring custom taskbars, interactive WiFi/Bluetooth trays, a system Control Center flyout, an always-on log terminal, gesture controls, and a background cleaner daemon. It speaks with you, watches your screen, controls your computer, writes code, manages files, and hosts an elite team of **12 specialized autonomous AI agents** (the IP Army).
 
-Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool.
+Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digital cockpit.
 
 ---
 
