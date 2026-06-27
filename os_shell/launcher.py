@@ -14,6 +14,7 @@ class AppLauncherWidget(QFrame):
     # Signals
     app_launched = pyqtSignal(str)
     search_triggered = pyqtSignal(str)  # Send query to assistant if not an app
+    pinned_changed = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -87,6 +88,8 @@ class AppLauncherWidget(QFrame):
         # Apps List
         self.apps_list = QListWidget(self)
         self.apps_list.itemDoubleClicked.connect(self.launch_selected_item)
+        self.apps_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.apps_list.customContextMenuRequested.connect(self.show_context_menu)
         main_layout.addWidget(self.apps_list)
         
         # Load local apps dynamically
@@ -188,3 +191,117 @@ class AppLauncherWidget(QFrame):
             
         self.search_bar.clear()
         self.close()
+
+    def show_context_menu(self, pos):
+        item = self.apps_list.itemAt(pos)
+        if not item:
+            return
+        
+        app_name = item.text()
+        app_path = item.data(Qt.ItemDataRole.UserRole)
+        
+        from PyQt6.QtWidgets import QMenu
+        menu = QMenu(self)
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: #10121a;
+                border: 1px solid rgba(96, 205, 255, 0.25);
+                border-radius: 8px;
+                color: #F3F4F6;
+                padding: 4px;
+            }
+            QMenu::item {
+                padding: 6px 20px;
+                border-radius: 4px;
+            }
+            QMenu::item:selected {
+                background-color: rgba(96, 205, 255, 0.15);
+                color: #60cdff;
+            }
+        """)
+        
+        pinned = self._load_pinned_apps()
+        is_pinned = any(p["name"].lower() == app_name.lower() or p["cmd"].lower() == app_path.lower() for p in pinned)
+        
+        if is_pinned:
+            action = menu.addAction("📌 Unpin from Taskbar")
+            action.triggered.connect(lambda: self.unpin_app(app_name, app_path))
+        else:
+            action = menu.addAction("📌 Pin to Taskbar")
+            action.triggered.connect(lambda: self.pin_app(app_name, app_path))
+            
+        menu.exec(self.apps_list.mapToGlobal(pos))
+
+    def pin_app(self, name, path):
+        pinned = self._load_pinned_apps()
+        # Deduplicate
+        if any(p["name"].lower() == name.lower() or p["cmd"].lower() == path.lower() for p in pinned):
+            return
+            
+        # Detect appropriate emoji icon based on name
+        icon = "🚀"
+        name_lower = name.lower()
+        if "chrome" in name_lower or "browser" in name_lower or "edge" in name_lower or "firefox" in name_lower:
+            icon = "🌐"
+        elif "file" in name_lower or "explorer" in name_lower or "folder" in name_lower:
+            icon = "📁"
+        elif "cmd" in name_lower or "terminal" in name_lower or "powershell" in name_lower or "bash" in name_lower:
+            icon = "💻"
+        elif "note" in name_lower or "editor" in name_lower or "write" in name_lower or "word" in name_lower:
+            icon = "📝"
+        elif "setting" in name_lower or "control" in name_lower or "config" in name_lower:
+            icon = "⚙️"
+        elif "music" in name_lower or "spotify" in name_lower or "player" in name_lower:
+            icon = "🎵"
+        elif "calc" in name_lower:
+            icon = "🧮"
+        elif "paint" in name_lower or "draw" in name_lower:
+            icon = "🎨"
+            
+        pinned.append({"name": name, "cmd": path, "icon": icon})
+        self._save_pinned_apps(pinned)
+        self.pinned_changed.emit()
+
+    def unpin_app(self, name, path):
+        pinned = self._load_pinned_apps()
+        pinned = [p for p in pinned if p["name"].lower() != name.lower() and p["cmd"].lower() != path.lower()]
+        self._save_pinned_apps(pinned)
+        self.pinned_changed.emit()
+
+    def _get_pinned_file_path(self):
+        import json
+        from pathlib import Path
+        base_dir = Path(__file__).resolve().parent.parent
+        config_dir = base_dir / "config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        return config_dir / "pinned_apps.json"
+
+    def _load_pinned_apps(self):
+        import json
+        path = self._get_pinned_file_path()
+        if path.exists():
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        
+        # Fallback default
+        default_pinned = [
+            {"name": "Browser", "cmd": "msedge", "icon": "🌐"},
+            {"name": "Files", "cmd": "files", "icon": "📁"},
+            {"name": "Terminal", "cmd": "wt.exe", "icon": "💻"},
+            {"name": "Notes", "cmd": "notepad.exe", "icon": "📝"},
+            {"name": "Settings", "cmd": "ms-settings:", "icon": "⚙️"}
+        ]
+        self._save_pinned_apps(default_pinned)
+        return default_pinned
+
+    def _save_pinned_apps(self, data):
+        import json
+        path = self._get_pinned_file_path()
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print(f"Failed to save pinned apps: {e}")

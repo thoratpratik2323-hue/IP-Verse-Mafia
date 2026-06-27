@@ -211,6 +211,7 @@ class IPPrimeOSDesktop(QMainWindow):
         self.launcher = AppLauncherWidget(self)
         self.launcher.hide()
         self.launcher.search_triggered.connect(self.on_launcher_search)
+        self.launcher.pinned_changed.connect(self.taskbar.reload_shortcuts)
 
         self.notification_center = NotificationCenterWidget(self)
         self.notification_center.hide()

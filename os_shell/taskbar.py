@@ -49,38 +49,17 @@ class OSTaskbar(QWidget):
         layout.addWidget(self.start_btn)
 
         # ── Separator ──
-        layout.addWidget(_sep(self))
-
-        # ── Shortcuts ──
-        shortcuts = [
-            ("🌐 Browser", lambda: self.launch("msedge")),
-            ("📁 Files",   self.files_clicked.emit),
-            ("⌨️  Terminal", lambda: self.launch("wt.exe")),
-            ("📝 Notes",   lambda: self.launch("notepad.exe")),
-            ("⚙️  Settings",lambda: self.launch("ms-settings:")),
-        ]
-        for label, fn in shortcuts:
-            btn = QPushButton(label, self)
-            btn.setObjectName("AppShortcut")
-            btn.setFont(QFont("Outfit", 10))
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet("""
-                QPushButton#AppShortcut {
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.09);
-                    border-radius: 7px; color: #D0D8E8;
-                    font-size: 11px; padding: 4px 12px;
-                }
-                QPushButton#AppShortcut:hover {
-                    background: rgba(39,200,245,0.12);
-                    border: 1px solid rgba(39,200,245,0.35);
-                    color: #fff;
-                }
-            """)
-            btn.clicked.connect(fn)
-            layout.addWidget(btn)
+        # ── Shortcuts Layout Container ──
+        self.shortcuts_container = QWidget(self)
+        self.shortcuts_container.setStyleSheet("background: transparent; border: none;")
+        self.shortcuts_layout = QHBoxLayout(self.shortcuts_container)
+        self.shortcuts_layout.setContentsMargins(0, 0, 0, 0)
+        self.shortcuts_layout.setSpacing(8)
+        layout.addWidget(self.shortcuts_container)
 
         layout.addWidget(_sep(self))
+        
+        self.reload_shortcuts()
 
         # ── Spacer ──
         layout.addStretch()
@@ -214,6 +193,72 @@ class OSTaskbar(QWidget):
                                  stderr=subprocess.DEVNULL)
             except Exception as e2:
                 print(f"[Taskbar] Launch failed: {e} | Fallback: {e2}")
+
+    def reload_shortcuts(self):
+        # Clear existing shortcuts
+        while self.shortcuts_layout.count():
+            item = self.shortcuts_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        # Load from config
+        import json
+        from pathlib import Path
+        base_dir = Path(__file__).resolve().parent.parent
+        path = base_dir / "config" / "pinned_apps.json"
+        
+        pinned = []
+        if path.exists():
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    pinned = json.load(f)
+            except Exception:
+                pass
+        
+        if not pinned:
+            # Default fallback pinned
+            pinned = [
+                {"name": "Browser", "cmd": "msedge", "icon": "🌐"},
+                {"name": "Files", "cmd": "files", "icon": "📁"},
+                {"name": "Terminal", "cmd": "wt.exe", "icon": "💻"},
+                {"name": "Notes", "cmd": "notepad.exe", "icon": "📝"},
+                {"name": "Settings", "cmd": "ms-settings:", "icon": "⚙️"}
+            ]
+
+        # Re-create shortcut buttons (icons only!)
+        for app in pinned:
+            icon_char = app.get("icon", "🚀")
+            cmd = app.get("cmd", "")
+            name = app.get("name", "")
+            
+            btn = QPushButton(icon_char, self)
+            btn.setObjectName("AppShortcut")
+            btn.setToolTip(name)
+            btn.setFixedSize(36, 36)
+            btn.setFont(QFont("Outfit", 14)) # Large emoji icon
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton#AppShortcut {
+                    background: rgba(255,255,255,0.06);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                    color: #FFFFFF;
+                }
+                QPushButton#AppShortcut:hover {
+                    background: rgba(96, 205, 255, 0.15);
+                    border: 1px solid rgba(96, 205, 255, 0.45);
+                }
+            """)
+            
+            # Connect execution slot
+            if cmd == "files":
+                btn.clicked.connect(self.files_clicked.emit)
+            else:
+                # Capture variables in closure using default args
+                btn.clicked.connect(lambda checked=False, c=cmd: self.launch(c))
+                
+            self.shortcuts_layout.addWidget(btn)
 
     # ── Custom paint — glassmorphism bar ────
     def paintEvent(self, event):
