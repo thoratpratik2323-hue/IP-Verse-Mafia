@@ -9,6 +9,8 @@ class OSTaskbar(QWidget):
     # Signals
     start_clicked = pyqtSignal()
     assistant_clicked = pyqtSignal()
+    files_clicked = pyqtSignal()
+    clock_clicked = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -53,6 +55,9 @@ class OSTaskbar(QWidget):
                 background: transparent;
                 margin-right: 15px;
             }
+            QLabel#TrayClock:hover {
+                color: #27C8F5;
+            }
             QLabel#SysStatusLabel {
                 color: #8899A6;
                 font-size: 11px;
@@ -88,7 +93,7 @@ class OSTaskbar(QWidget):
         
         self.shortcut_files = QPushButton("Files", self)
         self.shortcut_files.setObjectName("AppShortcut")
-        self.shortcut_files.clicked.connect(lambda: self.launch_app("explorer.exe"))
+        self.shortcut_files.clicked.connect(self.files_clicked.emit)
         layout.addWidget(self.shortcut_files)
 
         self.shortcut_cmd = QPushButton("Terminal", self)
@@ -120,6 +125,8 @@ class OSTaskbar(QWidget):
         # Tray Clock
         self.clock_lbl = QLabel(self)
         self.clock_lbl.setObjectName("TrayClock")
+        self.clock_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.clock_lbl.mousePressEvent = lambda e: self.clock_clicked.emit()
         layout.addWidget(self.clock_lbl)
         
         # Timers
