@@ -184,10 +184,26 @@ class AIOrb(QWidget):
     # ── Render Helper: Siri-Style Blobs ────────────────────────────────
     def _draw_liquid_blobs(self, painter, cx, cy, r_base):
         num_points = 64
+        
+        # State-based modifiers for Siri-style wave dynamics
+        state_lower = self.state.lower()
+        if "speak" in state_lower:
+            amp_mult = 2.6
+            speed_mult = 2.4
+        elif "listen" in state_lower:
+            amp_mult = 1.8
+            speed_mult = 1.6
+        elif "think" in state_lower or "process" in state_lower:
+            amp_mult = 2.0
+            speed_mult = 2.0
+        else: # IDLE
+            amp_mult = 0.55
+            speed_mult = 0.7
+            
         layers = [
-            (0.18, 0.0, self._get_state_color(0.14), 1.05),
-            (0.14, 2.0, self._get_accent_color(0.12), 1.12),
-            (0.16, 4.0, self._get_state_color(0.10), 0.96)
+            (0.18 * amp_mult, 0.0, self._get_state_color(0.16), 1.05),
+            (0.14 * amp_mult, 2.0, self._get_accent_color(0.14), 1.12),
+            (0.16 * amp_mult, 4.0, self._get_state_color(0.12), 0.96)
         ]
         painter.setPen(Qt.PenStyle.NoPen)
         for amp, phase_off, col, base_scale in layers:
@@ -196,8 +212,8 @@ class AIOrb(QWidget):
             for pt in range(num_points):
                 angle_deg = pt * (360.0 / num_points)
                 rad = math.radians(angle_deg)
-                wave = math.sin(rad * 3.0 + self._pulse * 1.4 + phase_off) * \
-                       math.cos(rad * 2.0 - self._pulse * 0.9 + phase_off)
+                wave = math.sin(rad * 3.0 + self._pulse * 1.4 * speed_mult + phase_off) * \
+                       math.cos(rad * 2.0 - self._pulse * 0.9 * speed_mult + phase_off)
                 
                 curr_r = r_base * (base_scale + amp * wave)
                 x = cx + curr_r * math.cos(rad)

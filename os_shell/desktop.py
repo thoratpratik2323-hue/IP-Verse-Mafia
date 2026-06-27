@@ -23,6 +23,9 @@ from os_shell.notification_center import NotificationCenterWidget
 from os_shell.file_manager import OSFileManagerWidget
 from os_shell.shell_manager import hide_windows_taskbar, show_windows_taskbar
 from os_shell.theme_engine import OSThemeEngine
+from os_shell.control_center import ControlCenterWidget
+from os_shell.cleaner_daemon import WorkspaceCleanerDaemon
+from os_shell.widgets.terminal_widget import VocalTerminalWidget
 
 
 # ─────────────────────────────────────────────
@@ -158,7 +161,8 @@ class IPPrimeOSDesktop(QMainWindow):
         self.ui_facade = ui_facade
         self.particles = []
         self.matrix_columns = []
-        self.wallpaper_style = "plexus"   # stars | matrix | plexus | none
+        self.wallpaper_style = "plexus"   # stars | matrix | plexus | aurora | none
+        self.aurora_pulse = 0.0
         self.launcher = None
         self.theme_engine = OSThemeEngine()
         self._greeting = self._get_greeting()
@@ -202,7 +206,7 @@ class IPPrimeOSDesktop(QMainWindow):
         self.taskbar.start_clicked.connect(self.toggle_launcher)
         self.taskbar.assistant_clicked.connect(self.trigger_assistant)
         self.taskbar.files_clicked.connect(self.toggle_file_manager)
-        self.taskbar.clock_clicked.connect(self.toggle_notification_center)
+        self.taskbar.clock_clicked.connect(self.toggle_control_center)
         self.main_layout.addWidget(self.taskbar)
 
         self.setup_workspace_widgets()
@@ -213,6 +217,17 @@ class IPPrimeOSDesktop(QMainWindow):
         self.launcher.search_triggered.connect(self.on_launcher_search)
         self.launcher.pinned_changed.connect(self.taskbar.reload_shortcuts)
 
+        self.control_center = ControlCenterWidget(self)
+        self.control_center.hide()
+        self.control_center.notifications_requested.connect(self.show_notifications_and_hide_cc)
+        self.control_center.theme_changed.connect(self.on_theme_changed)
+
+        self.vocal_terminal = VocalTerminalWidget(self)
+        self.vocal_terminal.show()
+
+        if self.ui_facade and hasattr(self.ui_facade, "_win") and self.ui_facade._win:
+            self.ui_facade._win._log_sig.connect(self.write_log_to_terminal)
+
         self.notification_center = NotificationCenterWidget(self)
         self.notification_center.hide()
         self.notification_center.theme_changed.connect(self.on_theme_changed)
@@ -220,6 +235,10 @@ class IPPrimeOSDesktop(QMainWindow):
         self.file_manager = OSFileManagerWidget(self)
         self.file_manager.hide()
         self.file_manager.setFixedSize(800, 520)
+
+        # Start workspace cleaner daemon
+        self.cleaner_thread = WorkspaceCleanerDaemon(self)
+        self.cleaner_thread.start()
 
         self.update_overlay_geometries()
 
@@ -302,6 +321,8 @@ class IPPrimeOSDesktop(QMainWindow):
         elif self.wallpaper_style == "matrix":
             for col in self.matrix_columns:
                 col.move(h)
+        elif self.wallpaper_style == "aurora":
+            self.aurora_pulse += 0.008
         self.update()
 
     # ── Paint ─────────────────────────────────
@@ -368,11 +389,46 @@ class IPPrimeOSDesktop(QMainWindow):
                         painter.setPen(color)
                         painter.drawText(int(col.x), int(cy), ch)
                     y_off += col.font_size
+        elif self.wallpaper_style == "aurora":
+            # Dark base background
+            painter.fillRect(self.rect(), QColor("#080a10"))
+            
+            # Aurora Layer 1: Neon Cyan Glow shifting
+            x1 = self.width() * (0.35 + 0.15 * math.sin(self.aurora_pulse))
+            y1 = self.height() * (0.4 + 0.1 * math.cos(self.aurora_pulse * 1.3))
+            grad1 = QRadialGradient(x1, y1, self.width() * 0.6)
+            grad1.setColorAt(0.0, QColor(96, 205, 255, 30))  # Translucent cyan
+            grad1.setColorAt(0.5, QColor(96, 205, 255, 6))
+            grad1.setColorAt(1.0, QColor(0, 0, 0, 0))
+            painter.setBrush(QBrush(grad1))
+            painter.drawRect(self.rect())
+            
+            # Aurora Layer 2: Cobalt/Violet Glow shifting
+            x2 = self.width() * (0.65 + 0.15 * math.cos(self.aurora_pulse * 0.8))
+            y2 = self.height() * (0.3 + 0.12 * math.sin(self.aurora_pulse * 1.1))
+            grad2 = QRadialGradient(x2, y2, self.width() * 0.55)
+            grad2.setColorAt(0.0, QColor(139, 92, 246, 24))  # Translucent purple
+            grad2.setColorAt(0.5, QColor(139, 92, 246, 4))
+            grad2.setColorAt(1.0, QColor(0, 0, 0, 0))
+            painter.setBrush(QBrush(grad2))
+            painter.drawRect(self.rect())
+            
+            # Aurora Layer 3: Deep Emerald Glow shifting
+            x3 = self.width() * (0.5 + 0.1 * math.sin(self.aurora_pulse * 1.5))
+            y3 = self.height() * (0.75 + 0.12 * math.cos(self.aurora_pulse * 0.9))
+            grad3 = QRadialGradient(x3, y3, self.width() * 0.5)
+            grad3.setColorAt(0.0, QColor(16, 185, 129, 15))  # Translucent green
+            grad3.setColorAt(0.6, QColor(16, 185, 129, 2))
+            grad3.setColorAt(1.0, QColor(0, 0, 0, 0))
+            painter.setBrush(QBrush(grad3))
+            painter.drawRect(self.rect())
 
     # ── Overlay Toggles ───────────────────────
     def toggle_launcher(self):
         if self.notification_center.isVisible():
             self.notification_center.hide()
+        if self.control_center.isVisible():
+            self.control_center.hide()
         if self.launcher.isVisible():
             self.launcher.hide()
         else:
@@ -384,12 +440,34 @@ class IPPrimeOSDesktop(QMainWindow):
     def toggle_notification_center(self):
         if self.launcher.isVisible():
             self.launcher.hide()
+        if self.control_center.isVisible():
+            self.control_center.hide()
         if self.notification_center.isVisible():
             self.notification_center.hide()
         else:
             self.update_overlay_geometries()
             self.notification_center.show()
             self.notification_center.raise_()
+
+    def toggle_control_center(self):
+        if self.launcher.isVisible():
+            self.launcher.hide()
+        if self.notification_center.isVisible():
+            self.notification_center.hide()
+        if self.control_center.isVisible():
+            self.control_center.hide()
+        else:
+            self.update_overlay_geometries()
+            self.control_center.show()
+            self.control_center.raise_()
+
+    def show_notifications_and_hide_cc(self):
+        self.control_center.hide()
+        self.toggle_notification_center()
+
+    def write_log_to_terminal(self, text):
+        if hasattr(self, "vocal_terminal") and self.vocal_terminal:
+            self.vocal_terminal.append_text(text)
 
     def toggle_file_manager(self):
         if self.file_manager.isVisible():
@@ -408,6 +486,8 @@ class IPPrimeOSDesktop(QMainWindow):
         t_top = self.taskbar.geometry().top()
         self.launcher.setGeometry(10, t_top - 510, 380, 500)
         self.notification_center.setGeometry(self.width() - 330, 0, 330, t_top)
+        self.control_center.setGeometry(self.width() - 390, t_top - 360, 380, 350)
+        self.vocal_terminal.setGeometry(15, t_top - 235, 380, 220)
 
     # ── AI Command handling ───────────────────
     def on_ai_command(self, text):
@@ -584,7 +664,47 @@ class IPPrimeOSDesktop(QMainWindow):
         super().resizeEvent(event)
         self.update_overlay_geometries()
 
+    def keyPressEvent(self, event):
+        modifiers = event.modifiers()
+        key = event.key()
+        
+        # Check Ctrl + Shift modifiers
+        if (modifiers & Qt.KeyboardModifier.ControlModifier) and (modifiers & Qt.KeyboardModifier.ShiftModifier):
+            if key == Qt.Key.Key_P:
+                self.toggle_launcher()
+                event.accept()
+                return
+            elif key == Qt.Key.Key_L:
+                self.toggle_control_center()
+                event.accept()
+                return
+            elif key == Qt.Key.Key_T:
+                if hasattr(self, "vocal_terminal") and self.vocal_terminal:
+                    if self.vocal_terminal.isVisible():
+                        self.vocal_terminal.hide()
+                    else:
+                        self.vocal_terminal.show()
+                        self.vocal_terminal.raise_()
+                event.accept()
+                return
+            elif key == Qt.Key.Key_C:
+                if hasattr(self, "control_center") and self.control_center:
+                    self.toggle_control_center()
+                event.accept()
+                return
+        
+        # F1 -> Launcher
+        if key == Qt.Key.Key_F1:
+            self.toggle_launcher()
+            event.accept()
+            return
+            
+        super().keyPressEvent(event)
+
     def closeEvent(self, event):
+        if hasattr(self, "cleaner_thread") and self.cleaner_thread:
+            self.cleaner_thread.stop()
+            self.cleaner_thread.wait()
         show_windows_taskbar()
         super().closeEvent(event)
 
