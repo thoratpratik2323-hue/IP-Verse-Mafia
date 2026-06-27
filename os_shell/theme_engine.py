@@ -62,6 +62,8 @@ THEMES = {
 }
 
 class OSThemeEngine:
+    CONFIG_DIR = CONFIG_DIR
+    
     def __init__(self):
         self.current_theme_key = "cobalt"
         self.load_theme()

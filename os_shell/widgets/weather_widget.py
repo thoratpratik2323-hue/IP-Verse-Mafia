@@ -67,6 +67,12 @@ class WeatherWidget(QWidget):
     def refresh_weather(self):
         threading.Thread(target=self._fetch_weather_async, daemon=True).start()
         
+    def safe_emit(self, data):
+        try:
+            self.weather_updated.emit(data)
+        except RuntimeError:
+            pass
+        
     def _fetch_weather_async(self):
         city = "Pune"
         try:
@@ -83,7 +89,7 @@ class WeatherWidget(QWidget):
                 wcode = current.get("weathercode", 0)
                 condition = self._map_weather_code(wcode)
                 
-                self.weather_updated.emit({"temp": temp, "condition": condition, "city": city})
+                self.safe_emit({"temp": temp, "condition": condition, "city": city})
                 return
         except Exception as e:
             print(f"Weather API failed: {e}")
@@ -97,7 +103,7 @@ class WeatherWidget(QWidget):
                 if len(parts) >= 2:
                     temp = parts[0]
                     cond = " ".join(parts[1:])
-                    self.weather_updated.emit({"temp": temp, "condition": cond, "city": city})
+                    self.safe_emit({"temp": temp, "condition": cond, "city": city})
                     return
         except Exception:
             pass
@@ -106,13 +112,13 @@ class WeatherWidget(QWidget):
         import datetime
         hour = datetime.datetime.now().hour
         if 6 <= hour < 12:
-            self.weather_updated.emit({"temp": "24°C", "condition": "Clear Morning", "city": city})
+            self.safe_emit({"temp": "24°C", "condition": "Clear Morning", "city": city})
         elif 12 <= hour < 17:
-            self.weather_updated.emit({"temp": "31°C", "condition": "Sunny Skies", "city": city})
+            self.safe_emit({"temp": "31°C", "condition": "Sunny Skies", "city": city})
         elif 17 <= hour < 21:
-            self.weather_updated.emit({"temp": "26°C", "condition": "Cool Evening", "city": city})
+            self.safe_emit({"temp": "26°C", "condition": "Cool Evening", "city": city})
         else:
-            self.weather_updated.emit({"temp": "22°C", "condition": "Clear Night", "city": city})
+            self.safe_emit({"temp": "22°C", "condition": "Clear Night", "city": city})
             
     def _map_weather_code(self, code):
         # Open-Meteo WMO weather codes
