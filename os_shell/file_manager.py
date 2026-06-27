@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont, QIcon
 
-class OSFileManagerWidget(QWidget):
+class OSFileManagerWidget(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_dir = Path(os.path.expanduser("~"))
@@ -20,7 +20,7 @@ class OSFileManagerWidget(QWidget):
     def init_ui(self):
         self.setObjectName("FileManager")
         self.setStyleSheet("""
-            QWidget#FileManager {
+            #FileManager {
                 background-color: rgba(8, 14, 28, 0.98);
                 border: 1px solid rgba(39, 200, 245, 0.3);
                 border-radius: 12px;

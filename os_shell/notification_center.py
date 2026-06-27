@@ -8,7 +8,7 @@ from PyQt6.QtGui import QFont, QColor
 
 from os_shell.theme_engine import OSThemeEngine, THEMES
 
-class NotificationCenterWidget(QWidget):
+class NotificationCenterWidget(QFrame):
     # Signals
     theme_changed = pyqtSignal(str)
     
@@ -188,7 +188,7 @@ class NotificationCenterWidget(QWidget):
     def update_style(self):
         t = self.theme_engine.current
         self.setStyleSheet(f"""
-            QWidget#NotificationCenter {{
+            #NotificationCenter {{
                 background-color: {t['panel']};
                 border-left: 1px solid {t['border']};
             }}

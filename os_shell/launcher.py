@@ -5,11 +5,12 @@ from pathlib import Path
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem,
-    QLabel, QPushButton, QGridLayout, QScrollArea, QGraphicsOpacityEffect
+    QLabel, QPushButton, QGridLayout, QScrollArea, QGraphicsOpacityEffect,
+    QFrame
 )
 from PyQt6.QtGui import QFont, QIcon, QColor
 
-class AppLauncherWidget(QWidget):
+class AppLauncherWidget(QFrame):
     # Signals
     app_launched = pyqtSignal(str)
     search_triggered = pyqtSignal(str)  # Send query to assistant if not an app

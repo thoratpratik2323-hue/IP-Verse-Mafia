@@ -252,36 +252,25 @@ class IPPrimeOSDesktop(QMainWindow):
         self.brand_lbl.setText(
             "<div style='text-align:right;'>"
             "<span style='font-size:20px; font-weight:800; color:#27C8F5; letter-spacing:4px;'>IP PRIME OS</span>"
-            "<br><span style='font-size:10px; color:rgba(136,153,166,0.8); letter-spacing:2px;'>INTELLIGENT WORKSPACE v2.0</span>"
+            "<br><span style='font-size:10px; color:rgba(136,153,166,0.8); letter-spacing:2px;'>IP VERSE VERIFIED</span>"
             "</div>"
         )
         self.brand_lbl.setStyleSheet("background: transparent;")
         gb_layout.addWidget(self.brand_lbl)
         outer.addWidget(greeting_bar)
 
-        # ── Main row: left widgets | center space | right clock ──
+        # ── Main row: center space containing only the AI Orb ──
         self.work_layout = QHBoxLayout()
         self.work_layout.setContentsMargins(36, 12, 36, 12)
         self.work_layout.setSpacing(0)
 
-        # Left column
-        left_col = QVBoxLayout()
-        left_col.setSpacing(16)
+        # Set unused widgets to None to avoid AttributeError
+        self.stats_widget = None
+        self.weather_widget = None
+        self.clock_widget = None
+        self.ai_bar = None
 
-        self.stats_widget = SystemStatsWidget(self)
-        self.stats_widget.setFixedWidth(268)
-        _shadow(self.stats_widget)
-        left_col.addWidget(self.stats_widget)
-
-        self.weather_widget = WeatherWidget(self)
-        self.weather_widget.setFixedWidth(268)
-        _shadow(self.weather_widget)
-        left_col.addWidget(self.weather_widget)
-
-        left_col.addStretch()
-        self.work_layout.addLayout(left_col)
-
-        # ── Center column: AI Orb ──
+        # Center column: AI Orb
         center_col = QVBoxLayout()
         center_col.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
@@ -293,31 +282,7 @@ class IPPrimeOSDesktop(QMainWindow):
         center_col.addStretch()
         self.work_layout.addLayout(center_col, 1)
 
-        # Right column
-        right_col = QVBoxLayout()
-        right_col.setSpacing(8)
-        right_col.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
-
-        self.clock_widget = ClockWidget(self)
-        right_col.addWidget(self.clock_widget)
-        right_col.addStretch()
-        self.work_layout.addLayout(right_col)
-
         outer.addLayout(self.work_layout, 1)
-
-        # ── Bottom AI text bar (compact, below orb) ──
-        cmd_container = QWidget(self)
-        cmd_container.setStyleSheet("background: transparent;")
-        cmd_row = QHBoxLayout(cmd_container)
-        cmd_row.setContentsMargins(0, 0, 0, 12)
-        cmd_row.addStretch()
-        self.ai_bar = AICommandBar(self)
-        self.ai_bar.setFixedWidth(600)
-        self.ai_bar.command_submitted.connect(self.on_ai_command)
-        _shadow(self.ai_bar, blur=24, alpha=180)
-        cmd_row.addWidget(self.ai_bar)
-        cmd_row.addStretch()
-        outer.addWidget(cmd_container)
 
     # ── Particles ─────────────────────────────
     def init_particles(self):
@@ -461,13 +426,14 @@ class IPPrimeOSDesktop(QMainWindow):
         if self.ui_facade:
             # Toggling the system's muted state triggers listening dynamically
             self.ui_facade.muted = not self.ui_facade.muted
-            if not self.ui_facade.muted:
+            if not self.ui_facade.muted and self.ai_bar:
                 self.ai_bar.input.setFocus()
         else:
             # Fallback to local toggle if ui_facade is missing
             if self.ai_orb.state == IDLE:
                 self.set_orb_state(LISTENING)
-                self.ai_bar.input.setFocus()
+                if self.ai_bar:
+                    self.ai_bar.input.setFocus()
             else:
                 self.set_orb_state(IDLE)
 
@@ -502,24 +468,27 @@ class IPPrimeOSDesktop(QMainWindow):
         self.brand_lbl.setText(
             f"<div style='text-align:right;'>"
             f"<span style='font-size:20px; font-weight:800; color:{t['primary']}; letter-spacing:4px;'>IP PRIME OS</span>"
-            f"<br><span style='font-size:10px; color:{t['text_muted']}; letter-spacing:2px;'>INTELLIGENT WORKSPACE v2.0</span>"
+            f"<br><span style='font-size:10px; color:{t['text_muted']}; letter-spacing:2px;'>IP VERSE VERIFIED</span>"
             f"</div>"
         )
-        self.clock_widget.date_label.setStyleSheet(f"color: {t['primary']}; background: transparent;")
+        if self.clock_widget:
+            self.clock_widget.date_label.setStyleSheet(f"color: {t['primary']}; background: transparent;")
 
-        _apply_panel_style(self.stats_widget, "StatsWidget", t, extras=f"""
-            QProgressBar {{
-                border: 1px solid rgba(255,255,255,0.08); border-radius:5px;
-                text-align:center; color:#FFF;
-                background-color: rgba(20,28,48,0.5); height:12px;
-            }}
-            QProgressBar::chunk {{
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {t['primary']},stop:1 {t['accent']});
-                border-radius:4px;
-            }}
-        """)
-        _apply_panel_style(self.weather_widget, "WeatherWidget", t)
-        self.weather_widget.city_lbl.setStyleSheet(f"color: {t['primary']};")
+        if self.stats_widget:
+            _apply_panel_style(self.stats_widget, "StatsWidget", t, extras=f"""
+                QProgressBar {{
+                    border: 1px solid rgba(255,255,255,0.08); border-radius:5px;
+                    text-align:center; color:#FFF;
+                    background-color: rgba(20,28,48,0.5); height:12px;
+                }}
+                QProgressBar::chunk {{
+                    background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {t['primary']},stop:1 {t['accent']});
+                    border-radius:4px;
+                }}
+            """)
+        if self.weather_widget:
+            _apply_panel_style(self.weather_widget, "WeatherWidget", t)
+            self.weather_widget.city_lbl.setStyleSheet(f"color: {t['primary']};")
 
         self.taskbar.setStyleSheet(f"""
             QWidget#Taskbar {{
@@ -551,7 +520,7 @@ class IPPrimeOSDesktop(QMainWindow):
         """)
 
         self.launcher.setStyleSheet(f"""
-            QWidget#Launcher {{
+            #Launcher {{
                 background:{t['panel']}; border:1px solid {t['border']}; border-radius:16px;
             }}
             QLineEdit {{
@@ -575,7 +544,7 @@ class IPPrimeOSDesktop(QMainWindow):
         self.launcher.info_label.setStyleSheet(f"color:{t['primary']}; margin-left:8px;")
 
         self.file_manager.setStyleSheet(f"""
-            QWidget#FileManager {{
+            #FileManager {{
                 background:{t['panel']}; border:1px solid {t['border']}; border-radius:12px;
             }}
             QListWidget {{ background:transparent; border:none; color:{t['text']}; }}
