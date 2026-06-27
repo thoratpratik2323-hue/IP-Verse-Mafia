@@ -9,6 +9,8 @@ import sys
 import json
 import io
 import base64
+import os
+import threading
 from pathlib import Path
 
 def get_base_dir() -> Path:
@@ -17,18 +19,55 @@ def get_base_dir() -> Path:
         return Path(sys.executable).parent
     return Path(__file__).resolve().parent.parent
 
+def load_env_file():
+    """Loads environment variables from .env file securely."""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+    
+    base_dir = get_base_dir()
+    dot_env_path = base_dir / ".env"
+    if dot_env_path.exists():
+        try:
+            with open(dot_env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k:
+                            os.environ[k] = v
+        except Exception as e:
+            print(f"[Prime Utils] Error reading .env fallback: {e}")
+
+# Load .env variables on import
+load_env_file()
+
 _current_key_index = 0
 
 def get_all_gemini_keys() -> list[str]:
-    """Loads primary and backup Gemini API keys from config/api_keys.json."""
-    path = get_base_dir() / "config" / "api_keys.json"
+    """Loads primary and backup Gemini API keys prioritizing env variables, then config/api_keys.json."""
     keys = []
+    
+    # Priority 1: Environment variables
+    env_gemini = os.environ.get("GEMINI_API_KEY", "").strip()
+    env_coding = os.environ.get("CODING_API_KEY", "").strip()
+    if env_gemini:
+        keys.append(env_gemini)
+    if env_coding and env_coding not in keys:
+        keys.append(env_coding)
+        
+    # Priority 2: config/api_keys.json
+    path = get_base_dir() / "config" / "api_keys.json"
     if path.exists():
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             primary = data.get("gemini_api_key") or data.get("coding_api_key") or ""
-            if primary:
+            if primary and primary not in keys:
                 keys.append(primary)
             backups = data.get("gemini_api_key_backups", [])
             for bk in backups:
@@ -37,6 +76,31 @@ def get_all_gemini_keys() -> list[str]:
         except Exception as e:
             print(f"[Prime Utils] Error loading keys for rotation: {e}")
     return keys
+
+def confirm_dangerous_action(action_name: str, details: str, player=None) -> bool:
+    """
+    Blocks and prompts the user for confirmation via PyQt's thread-safe confirmation signal.
+    Returns True if user clicked Yes/Confirm, False otherwise.
+    """
+    msg = (
+        f"🛡️ SECURITY GATE 🛡️\n\n"
+        f"Pratik Sir, an autonomous tool wants to run a potentially dangerous action:\n\n"
+        f"• Action: {action_name}\n"
+        f"• Details: {details}\n\n"
+        f"Do you want to authorize this execution?"
+    )
+    print(f"[Security Gate] Prompting confirmation: {action_name} - {details}")
+    if player and hasattr(player, "confirm_action"):
+        return player.confirm_action(msg)
+    
+    print("[Security Gate] WARNING: No player/GUI context found to show confirmation prompt.")
+    if sys.stdin.isatty():
+        try:
+            ans = input(f"{msg}\nAuthorize? (yes/no): ").strip().lower()
+            return ans in ("yes", "y", "confirm")
+        except Exception:
+            pass
+    return False
 
 def get_api_key() -> str:
     """Returns the currently active Gemini API key from the rotation list."""

@@ -430,7 +430,7 @@ def save_shutdown_summary() -> bool:
     LAST_SESSION_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     # Save to local Second Brain daily log if directory exists (Context Persistence)
-    second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+    second_brain_dir = Path.home() / "Documents" / "SecondBrain"
     if second_brain_dir.exists():
         try:
             daily_dir = second_brain_dir / "daily"

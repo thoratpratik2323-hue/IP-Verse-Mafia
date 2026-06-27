@@ -924,6 +924,9 @@ def computer_control(
             goal = params.get("goal", params.get("text", ""))
             if not goal:
                 return "ui_tars_agent: 'goal' or 'text' parameter is required."
+            from actions.prime_utils import confirm_dangerous_action
+            if not confirm_dangerous_action("UI-TARS Automation Agent Loop", f"Goal: {goal}", player):
+                return "UI-TARS agent execution aborted by user confirmation reject."
             return _execute_ui_tars_agent(goal, player)
 
         return f"Unknown action: '{action}'"

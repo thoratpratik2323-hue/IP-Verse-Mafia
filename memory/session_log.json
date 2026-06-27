@@ -1,46 +1,6 @@
 {
-  "last_updated": "2026-06-27 19:15",
+  "last_updated": "2026-06-27 20:10",
   "turns": [
-    {
-      "user": ".",
-      "assistant": "Ab check karo bhai, ab toh pakka",
-      "ts": "2026-06-03 09:33"
-    },
-    {
-      "user": ".",
-      "assistant": "Ekdum perfect, khul gayi file! Maze karo, Pratik bhai.",
-      "ts": "2026-06-03 09:33"
-    },
-    {
-      "user": "O kay now close it.",
-      "assistant": "",
-      "ts": "2026-06-03 09:33"
-    },
-    {
-      "user": "co py that part.",
-      "assistant": "Path copied, bhai! Clipboard mein ready hai.",
-      "ts": "2026-06-03 09:33"
-    },
-    {
-      "user": "can gi ve my C PU is this be cause my lap top is hanging a lot.",
-      "assistant": "Check kiya maine, bhai! System diagnostics toh bol rahe hain ki sab kuch theek chal raha hai. CPU Load bhi normal hai (38.2%), aur Memory bhi 58.5% used hai. Koi major bottleneck nahi dikh raha. Phir bhi, laptop hang kyun kar raha hai? Ek baar 'pc_cleaner' chala ke dekhein?",
-      "ts": "2026-06-03 09:34"
-    },
-    {
-      "user": "ब्रो कै न दि स टेल मी हाउ म च स्टो रे ज रि मेन ऑन माय लैपटॉप",
-      "assistant": "Haan, bilkul! Tumhare laptop mein C drive mein `47.2 GB` space bacha hai (of 117.6 GB). Aur D drive toh almost poora khaali hai, `119.7 GB` free hai. Kaafi space hai abhi!",
-      "ts": "2026-06-03 09:35"
-    },
-    {
-      "user": "तो ये बता ओ लै पटॉप है तो वो स्टो रेज की प्रॉ ब्लम होती है या रै म की प्रॉब्लम होती है",
-      "assistant": "Hmm, Pratik bhai, yeh dono reasons ho sakte hain. Agar tumhara storage almost full hai, toh system slow ho sakta hai. Aur RAM kam hogi, toh multitasking mein dikkat aayegi. Maine tumhara RAM usage bhi check kiya, woh 58.5% pe hai, jo ki theek hai. Kya tum koi heavy apps chala rahe ho?",
-      "ts": "2026-06-03 09:35"
-    },
-    {
-      "user": "मे रा रै म सि र्फ 6 0 % ए और सि क्स 6 G B रै म है मेरा 1 6 G B रैम है मे रा लैपटॉप का",
-      "assistant": "Achcha, 16GB RAM hai? Phir toh 60%",
-      "ts": "2026-06-03 09:35"
-    },
     {
       "user": "स्टो रे ज भी बहुत सारा है ग म भी क्यों है होता है बार-बार",
       "assistant": "Hmm, yeh thoda strange hai Pratik bhai. Agar RAM aur storage dono theek hain, toh hang hone ke doosre kaaran ho sakte hain: jaise ki outdated drivers, ya phir background mein chal rahe bahut saare programs, ya kabhi kabhi malware bhi. Ek kaam karein, main tumhare system ko 'pc_cleaner' se optimize kar deta hoon?",
@@ -2500,7 +2460,47 @@
       "user": "నెక్స్ట్",
       "assistant": "Next kya karna hai bhai? Context batao - koi task, media, ya kuch aur?",
       "ts": "2026-06-27 19:15"
+    },
+    {
+      "user": "",
+      "assistant": "Welcome, Pratik Sir. Mainframe initialized successfully. How can I assist you today?",
+      "ts": "2026-06-27 20:02"
+    },
+    {
+      "user": ".",
+      "assistant": "",
+      "ts": "2026-06-27 20:07"
+    },
+    {
+      "user": "<noise>",
+      "assistant": "",
+      "ts": "2026-06-27 20:07"
+    },
+    {
+      "user": "<noise>",
+      "assistant": "Arey bhai, kya bol rahe ho? Awaaz clear nahi aa rahi yaar,",
+      "ts": "2026-06-27 20:07"
+    },
+    {
+      "user": "ยัง ไม่",
+      "assistant": "Arey Pratik, tumhari aawaz clear nahi aa rahi hai! Network issue lagta hai. Kya tum dobara bol sakte ho, dost?",
+      "ts": "2026-06-27 20:07"
+    },
+    {
+      "user": ". . . .",
+      "assistant": "Haha, Pratik, tumhari aawaz cut rahi hai! Lagta hai network prank kar raha hai. Kya tum please dobara bata sakte ho kya keh rahe ho?",
+      "ts": "2026-06-27 20:08"
+    },
+    {
+      "user": ".",
+      "assistant": "Arey Pratik, phir se voice break ho rahi hai, yaar. Shayad connection unstable hai. Please ek baar clear karke batao kya direction de rahe ho?",
+      "ts": "2026-06-27 20:10"
+    },
+    {
+      "user": ".",
+      "assistant": "Arey bhai, lagta hai network kaafi tang kar raha hai! Tumhari aawaz theek se sunai nahi de rahi hai. Kya tum text karoge ya main connection check karoon?",
+      "ts": "2026-06-27 20:10"
     }
   ],
-  "summary": "User: प्रा इम आ र्वेबल जो नेशनली | IP Prime: Arey bhai, yeh 'Prime Arreval jo nationally' kya bol rahe ho? Thoda clear karke batao Pratik, samajh nahi aa raha mujhe. | User: हा ड वीबल टुडे सर मी | User: Ah, | IP Prime: Haan Pratik, main totally sun sakta hoon! Bolo, kya keh rahe ho? | User: All right, let's stop | IP Prime: Okay Pratik, theek hai. Stop karte hain. Kuch aur kaam hai? | User: నెక్స్ట్ | IP Prime: Next kya karna hai bhai? Context batao - koi task, media, ya kuch aur?"
+  "summary": "User: <noise> | IP Prime: Arey bhai, kya bol rahe ho? Awaaz clear nahi aa rahi yaar, | User: ยัง ไม่ | IP Prime: Arey Pratik, tumhari aawaz clear nahi aa rahi hai! Network issue lagta hai. Kya tum dobara bol sakte ho, dost? | User: . . . . | IP Prime: Haha, Pratik, tumhari aawaz cut rahi hai! Lagta hai network prank kar raha hai. Kya tum please dobara bata sakte ho kya keh rahe ho? | User: . | IP Prime: Arey Pratik, phir se voice break ho rahi hai, yaar. Shayad connection unstable hai. Please ek baar clear karke batao kya direction de rahe ho? | User: . | IP Prime: Arey bhai, lagta hai network kaafi tang kar raha hai! Tumhari aawaz theek se sunai nahi de rahi hai. Kya tum text karoge ya main connection check karoon?"
 }

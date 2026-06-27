@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Any
 from google import genai
 
-VAULT_DIR = Path("c:/Users/thora/Documents/SecondBrain")
+VAULT_DIR = Path.home() / "Documents" / "SecondBrain"
 NOTES_DIR = VAULT_DIR / "notes"
 
 def save_voice_note(content: str, player: Optional[Any] = None) -> str:

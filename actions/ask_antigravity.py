@@ -16,7 +16,7 @@ def ask_antigravity(parameters: dict = None, player = None) -> str:
         with open(api_config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
         
-        cli_path = config.get("antigravity_cli_path", r"C:\Users\thora\.gemini\antigravity\bin\agentapi.bat")
+        cli_path = config.get("antigravity_cli_path", str(Path.home() / ".gemini" / "antigravity" / "bin" / "agentapi.bat"))
         conv_id = config.get("antigravity_conversation_id", "ae8ed04c-75cf-4526-b6f4-93c19b13b36b")
     except Exception as e:
         return f"Failed to load Antigravity IPC configuration: {e}"

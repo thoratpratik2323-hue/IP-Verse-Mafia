@@ -81,6 +81,10 @@ FINISHED: <a concise summary in Hinglish explaining what you accomplished and th
             if any(d in cmd.lower() for d in destructive):
                 return f"Safety block: Aborted autonomous step due to highly dangerous command: {cmd}"
 
+            from actions.prime_utils import confirm_dangerous_action
+            if not confirm_dangerous_action("Autonomous Shell Command", f"Step {step}/{max_steps} execution: {cmd}", player):
+                return "Autonomous loop aborted by user confirmation reject."
+
             print(f"[ANUS CLI] Step {step} — Executing: {cmd}")
             if player:
                 player.write_log(f"[ANUS CLI] Step {step} — Executing: {cmd}")

@@ -11,7 +11,7 @@ SAFE_ROOTS = [
     Path.home() / "Documents",
     Path.home() / "Desktop",
     Path(os.environ.get("TEMP", "/tmp")),
-    Path("c:/Users/thora/.gemini/antigravity/scratch"),
+    Path.home() / ".gemini" / "antigravity" / "scratch",
 ]
 
 def is_safe_path(target_path: Path) -> bool:

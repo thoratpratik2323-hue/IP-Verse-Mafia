@@ -148,7 +148,7 @@ def adb_take_screenshot(save_path: str = '', player=None) -> str:
     dest = save_path
     if not dest:
         # Default destination: Downloads
-        dest_dir = Path(r"C:\Users\thora\Downloads")
+        dest_dir = Path.home() / "Downloads"
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest = str(dest_dir / f"phone_screenshot_{int(time.time())}.png")
         

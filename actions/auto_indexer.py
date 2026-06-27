@@ -98,7 +98,7 @@ class AutoIndexerThread(threading.Thread):
             if vault_path.exists() and vault_path.is_dir():
                 paths_to_index.append(vault_path)
                 
-        second_brain = Path("c:/Users/thora/Documents/SecondBrain")
+        second_brain = Path.home() / "Documents" / "SecondBrain"
         if second_brain.exists() and second_brain.is_dir():
             paths_to_index.append(second_brain)
 

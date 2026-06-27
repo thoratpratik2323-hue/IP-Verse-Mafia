@@ -15,8 +15,8 @@ class FileClassifierThread(threading.Thread):
         super().__init__(name="FileClassifierThread", daemon=True)
         self.check_interval_seconds = check_interval_seconds
         self._stop_event = threading.Event()
-        self.downloads_dir = Path("c:/Users/thora/Downloads")
-        self.second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+        self.downloads_dir = Path.home() / "Downloads"
+        self.second_brain_dir = Path.home() / "Documents" / "SecondBrain"
         
     def stop(self):
         self._stop_event.set()

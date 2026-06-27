@@ -1,35 +1,5 @@
 [
     {
-        "timestamp": "2026-06-27 14:25",
-        "input": ". . . .",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-27 14:26",
-        "input": ".",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-27 14:28",
-        "input": "બંધ થઈ ગઈ",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-27 14:28",
-        "input": "બંધ થઈ ગઈ",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-27 14:29",
-        "input": "બંધ થઈ ગઈ",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-06-27 14:29",
-        "input": "lucki.",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-06-27 14:30",
         "input": "पिज्जा खाली असताना त्याला म्हणतात",
         "mood": "neutral"
@@ -247,6 +217,36 @@
     {
         "timestamp": "2026-06-27 19:15",
         "input": "All right, let's stop",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:07",
+        "input": "ยัง ไม่",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:07",
+        "input": "ยัง ไม่",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:08",
+        "input": ". . . .",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:08",
+        "input": ". . . .",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:09",
+        "input": ". . . .",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-06-27 20:10",
+        "input": ".",
         "mood": "neutral"
     }
 ]

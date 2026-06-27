@@ -10,7 +10,7 @@ from datetime import datetime
 class HabitsEngine:
     """Core habit engine managing HABITS.md vault file."""
     def __init__(self):
-        self.second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+        self.second_brain_dir = Path.home() / "Documents" / "SecondBrain"
         self.habits_file = self.second_brain_dir / "HABITS.md"
         
     def init_habits(self):

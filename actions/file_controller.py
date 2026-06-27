@@ -1,4 +1,4 @@
-﻿"""
+"""
 file_controller.py — Direct filesystem manager executing moves, copies, deletions, and updates.
 
 This is a standard action module for the IP Prime personal assistant suite.
@@ -522,6 +522,9 @@ def file_controller(
             return create_folder(path, name=name)
 
         elif action == "delete":
+            from actions.prime_utils import confirm_dangerous_action
+            if not confirm_dangerous_action("Delete File/Folder", f"Target: {name or path}", player):
+                return "Delete action aborted by user for safety."
             return delete_file(path, name=name)
 
         elif action == "move":

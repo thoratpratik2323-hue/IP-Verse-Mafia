@@ -6,7 +6,7 @@ from datetime import datetime
 from google import genai
 from config import get_config
 
-DEFAULT_VAULT = Path("C:/Users/thora/Documents/SecondBrain")
+DEFAULT_VAULT = Path.home() / "Documents" / "SecondBrain"
 
 def obsidian_action(parameters: dict, player=None, session_memory=None) -> str:
     """

@@ -18,6 +18,9 @@ from pathlib import Path
 
 logger = logging.getLogger("ip_prime.session")
 
+from actions.prime_utils import load_env_file
+load_env_file()
+
 
 # ---------------------------------------------------------------------------
 # Path helpers (avoid circular import from path_config by resolving locally)
@@ -251,8 +254,7 @@ def _load_system_prompt() -> str:
 
     directives_block: str = "\n".join(directives)
 
-    # 4.5 Load Second Brain Vault context dynamically if present
-    second_brain_dir = Path("c:/Users/thora/Documents/SecondBrain")
+    second_brain_dir = Path.home() / "Documents" / "SecondBrain"
     second_brain_context = ""
     if second_brain_dir.exists():
         try:

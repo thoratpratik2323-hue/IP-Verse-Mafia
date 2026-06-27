@@ -2373,5 +2373,42 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-06-27T20:06:21.312336",
+    "goal": "Recommend resource optimization and suggest closing high-memory application instances.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "computer_settings",
+        "description": "Get current CPU and memory usage to understand the extent of the resource issue.",
+        "parameters": {
+          "action": "get_usage"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "computer_settings",
+        "description": "Identify applications consuming significant memory that can be closed to free up resources.",
+        "parameters": {
+          "action": "get_top_memory_processes"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "send_message",
+        "description": "Inform the user about the high resource usage and suggest closing memory-intensive applications.",
+        "parameters": {
+          "receiver": "Pratik Thorat",
+          "message_text": "High CPU and memory usage detected. Suggest closing high-memory applications. Current CPU: [CPU Usage from Step 1]%, Memory: [Memory Usage from Step 1]%. Top memory-consuming applications: [List of applications from Step 2].",
+          "platform": "Slack"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]
