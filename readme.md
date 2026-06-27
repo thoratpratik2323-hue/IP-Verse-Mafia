@@ -142,6 +142,11 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse tool
 | Dashboard | Integrated HTML web dashboard |
 | GUI Window Switcher | Switch to any running window's GUI view |
 | Desktop Preview | Live desktop preview in assistant |
+| **🎛️ Control Center Flyout** | **Premium panel containing volume and brightness sliders, DND toggle, and system quick actions** |
+| **📟 Vocal Terminal HUD** | **Glassmorphic floating terminal console streaming live logger output directly in the workspace** |
+| **🔮 Dynamic Multi-Wave Orb** | **Redesigned orb waves with 4 phase-shifted sine layers and dynamic floating particles** |
+| **🌌 Aurora Wallpaper** | **Animated layered radial gradient background shifting dynamically in real-time** |
+| **⌨️ Global OS Hotkeys** | **Quick overlays toggling via Keyboard shortcuts: Ctrl+Shift+P/L/T/C and F1** |
 
 ### 👥 The IP AI Army
 IP Prime coordinates an elite team of **12 specialized autonomous agents** (the IP Army) to execute system-level operations, research, coding, and debugging tasks:
@@ -260,7 +265,14 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v8.x — *Fluent Windows Theme, Custom Taskbar Pinning & High-Performance Rendering (Current)*
+### v9.x — *Dynamic Multi-Wave Orb, Control Center Flyout, Vocal Terminal logs HUD & Background Cleaner (Current)*
+- 🔮 **Dynamic Multi-Wave Orb & Particle FX** — Completely redesigned the central energy orb to render 4 independent phase-shifted translucent waves with frequency and amplitude modulations matching assistant states (Idle vs. Listening vs. Processing), coupled with a floating particle emission field.
+- 🎛️ **Premium Control Center Flyout** — Implemented a control panel overlay containing system volume sliders (powered by core-audio `pycaw`), system brightness sliders (WMI queries under `root\wmi`), DND persistence state toggling, and instant quick-launch actions (Lock PC, Screenshot, Task Manager, Fullscreen).
+- 📟 **Vocal Terminal Log Console** — Created a glassmorphic floating panel on the desktop that binds directly to Saturday's system logger output via PyQt custom signals, displaying real-time system logs.
+- 🧹 **Workspace Cleaner Daemon** — Built an asynchronous background scanner thread running every 60 seconds that cleans temporary garbage, redundant log logs, and empty cache directories.
+- 🌌 **Aurora Wallpaper & Global Hotkeys** — Added animated radial gradient overlays dynamically shifting to resemble the aurora borealis, alongside global OS hotkeys: `Ctrl+Shift+P` (App Launcher), `Ctrl+Shift+L` (Control Center), `Ctrl+Shift+T` (Vocal Terminal), and `Ctrl+Shift+C` (Control Center panel toggle).
+
+### v8.x — *Fluent Windows Theme, Custom Taskbar Pinning & High-Performance Rendering*
 - 🎨 **Fluent Windows Dark Theme** — Redesigned the entire desktop color scheme to feature Microsoft's premium dark fluent/mica palette with translucent deep dark acrylic panels (`#10121a`), glowing border accents (`#60cdff`), and soft-gray premium typography.
 - 📌 **Custom App Pinning & Unpinning** — Added right-click context menu capabilities directly inside the App Launcher. Users can right-click any scanned or custom app to instantly `"Pin to Taskbar"` or `"Unpin from Taskbar"`. Pinned configurations are persisted across sessions in `config/pinned_apps.json`.
 - 🌐 **Interactive WiFi & Bluetooth Taskbar Trays** — Upgraded static tray stats into interactive launch buttons. Click the WiFi indicator to open the Windows Network/WiFi connections flyout (`ms-availablenetworks:`), and click the Bluetooth indicator to open Windows Bluetooth settings (`ms-settings:bluetooth`) to pair headphones/devices instantly.
