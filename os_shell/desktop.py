@@ -62,6 +62,7 @@ class IPPrimeOSDesktop(QMainWindow):
         # Root widget
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName("OSRoot")
+        self.central_widget.setStyleSheet("background: transparent;")
         self.setCentralWidget(self.central_widget)
         
         # Layouts
