@@ -20,7 +20,7 @@ try:
     from core.path_config import IP_GIVEN_CODE_DIR
     OUTPUT_DIR = IP_GIVEN_CODE_DIR
 except Exception:
-    OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS\code")
+    OUTPUT_DIR = Path(r"D:\primes output\code")
 
 def _ensure_output_dir():
     try:

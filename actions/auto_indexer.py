@@ -107,7 +107,7 @@ class AutoIndexerThread(threading.Thread):
             from prime_platform.ip_given_workspace import get_ip_given_root
             coding_projects = get_ip_given_root()
         except Exception:
-            coding_projects = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
+            coding_projects = Path(r"D:\primes output")
 
         if coding_projects.exists() and coding_projects.is_dir():
             paths_to_index.append(coding_projects)

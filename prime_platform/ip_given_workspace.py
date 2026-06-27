@@ -7,7 +7,7 @@ from pathlib import Path
 
 from prime_platform.config import load_prime_config, save_prime_config
 
-DEFAULT_ROOT = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
+DEFAULT_ROOT = Path(r"D:\primes output")
 
 SUBDIRS = {
     "code": "code",

@@ -747,7 +747,7 @@ def file_explorer(parameters: dict, player=None) -> str:
     action = params.get("action", "browse").lower().strip()
 
     # Default workspace root — always CODING PROJECTS
-    _CP = r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS"
+    _CP = r"D:\primes output"
 
     if player:
         player.write_log(f"[FileExplorer] {action}")

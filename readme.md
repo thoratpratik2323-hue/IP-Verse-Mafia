@@ -276,7 +276,7 @@ ip-prime/
 - ⚡ **Brain Startup Initialization** — Schema creation + archive compression runs automatically on every IP Prime session connect.
 
 ### v5.x — *CODING PROJECTS Workspace & Nvidia NIM Optimization*
-- 📁 **Canonical CODING PROJECTS Workspace** — Remapped all default save directories, JSON configurations, system instructions, and tool descriptions in `core/tool_registry.py` to the new canonical `C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS` directory. No more path mismatches or saving to old folders!
+- 📁 **Canonical CODING PROJECTS Workspace** — Remapped all default save directories, JSON configurations, system instructions, and tool descriptions in `core/tool_registry.py` to the new canonical `D:\primes output` directory. No more path mismatches or saving to old folders!
 - 🧹 **UTF-8 BOM Clean & Self-Healing** — Cleaned all **24 JSON files** in the `memory/` and `config/` folders to remove UTF-8 Byte Order Marks (BOM), permanently preventing `JSONDecodeError` decodability crashes on startup.
 - 🔗 **Nvidia NIM completions 404 Routing Fix** — Patched `actions/prime_utils.py` to intelligently intercept explicit `"gemini"` model queries (such as `"gemini-2.5-flash"`) and route them straight to the Gemini SDK, preventing 404 errors on Nvidia completions endpoint.
 - 👁️ **Proactive Llama-3.2-Vision NIM Integration** — Updated `agent/vision_loop.py` to pass `model=None` to the unified model adapter. Proactive vision screenshot diagnostics now automatically load the user's configured Nvidia NIM vision model (`meta/llama-3.2-11b-vision-instruct`), cleanly integrating Nvidia NIM power into daily workflow!

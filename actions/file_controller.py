@@ -18,7 +18,7 @@ except ImportError:
 
 _OS = platform.system()  # "Windows" | "Darwin" | "Linux"
 
-IP_OUTPUT_DIR = Path(r"C:\Users\thora\.gemini\antigravity\scratch\IP Prime\CODING PROJECTS")
+IP_OUTPUT_DIR = Path(r"D:\primes output")
 
 _SAFE_ROOTS: list[Path] = [
     Path.home(),

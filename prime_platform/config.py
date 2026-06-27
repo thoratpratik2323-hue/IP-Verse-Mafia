@@ -61,7 +61,7 @@ _DEFAULT = {
         "note": "PyQt6 remains primary UI; see desktop-tauri/README.md",
     },
     "workspace": {
-        "root": r"C:\\Users\\thora\\.gemini\\antigravity\\scratch\\IP Prime\\CODING PROJECTS",
+        "root": r"D:\\primes output",
         "auto_save_all": True,
     },
 }
