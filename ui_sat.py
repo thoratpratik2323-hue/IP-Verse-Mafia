@@ -2554,7 +2554,7 @@ class WidgetsSidebar(QWidget):
         
         # 2. System Monitor Card
         sys_card = QWidget()
-        sys_card.setStyleSheet(f"background: {hex_to_rgba_str(C.DARK, 0.35)}; border: 1px solid {C.BORDER}; border-radius: 8px;")
+        sys_card.setStyleSheet("background: rgba(10, 15, 30, 0.35); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;")
         s_lay = QVBoxLayout(sys_card)
         s_lay.setContentsMargins(10, 10, 10, 10)
         s_lay.setSpacing(6)
@@ -2570,7 +2570,10 @@ class WidgetsSidebar(QWidget):
         self._cpu_bar = QProgressBar()
         self._cpu_bar.setFixedHeight(6)
         self._cpu_bar.setTextVisible(False)
-        self._cpu_bar.setStyleSheet(f"QProgressBar {{ background: {C.BORDER}; border-radius: 3px; border: none; }} QProgressBar::chunk {{ background: {C.PRI}; border-radius: 3px; }}")
+        self._cpu_bar.setStyleSheet(
+            f"QProgressBar {{ background: rgba(255, 255, 255, 0.05); border: none; border-radius: 3px; }} "
+            f"QProgressBar::chunk {{ background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 {C.PRI}, stop:1 {C.ACC}); border-radius: 3px; }}"
+        )
         self._cpu_lbl_val = QLabel("0%"); self._cpu_lbl_val.setFont(QFont("Courier New", 7)); self._cpu_lbl_val.setStyleSheet("color: white; border: none; background: transparent;")
         cpu_box.addWidget(cpu_lbl)
         cpu_box.addWidget(self._cpu_bar)
@@ -2583,7 +2586,10 @@ class WidgetsSidebar(QWidget):
         self._ram_bar = QProgressBar()
         self._ram_bar.setFixedHeight(6)
         self._ram_bar.setTextVisible(False)
-        self._ram_bar.setStyleSheet(f"QProgressBar {{ background: {C.BORDER}; border-radius: 3px; border: none; }} QProgressBar::chunk {{ background: {C.ACC2}; border-radius: 3px; }}")
+        self._ram_bar.setStyleSheet(
+            f"QProgressBar {{ background: rgba(255, 255, 255, 0.05); border: none; border-radius: 3px; }} "
+            f"QProgressBar::chunk {{ background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 {C.ACC2}, stop:1 {C.ACC}); border-radius: 3px; }}"
+        )
         self._ram_lbl_val = QLabel("0%"); self._ram_lbl_val.setFont(QFont("Courier New", 7)); self._ram_lbl_val.setStyleSheet("color: white; border: none; background: transparent;")
         ram_box.addWidget(ram_lbl)
         ram_box.addWidget(self._ram_bar)
@@ -2593,7 +2599,7 @@ class WidgetsSidebar(QWidget):
         
         # 3. Quick Notes Card
         notes_card = QWidget()
-        notes_card.setStyleSheet(f"background: {hex_to_rgba_str(C.DARK, 0.35)}; border: 1px solid {C.BORDER}; border-radius: 8px;")
+        notes_card.setStyleSheet("background: rgba(10, 15, 30, 0.35); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;")
         n_lay = QVBoxLayout(notes_card)
         n_lay.setContentsMargins(10, 10, 10, 10)
         n_lay.setSpacing(6)
@@ -2995,13 +3001,18 @@ class VirtualOSWorkspace(QWidget):
                 color: white;
             }}
             QListWidget::item {{
-                padding: 6px;
-                border-bottom: 1px solid {hex_to_rgba_str(C.BORDER, 0.2)};
+                padding: 8px 12px;
+                border-radius: 6px;
+                margin-bottom: 4px;
+            }}
+            QListWidget::item:hover {{
+                background: rgba(6, 182, 212, 0.1);
+                color: {C.PRI};
             }}
             QListWidget::item:selected {{
-                background: {C.PRI_GHO};
+                background: rgba(6, 182, 212, 0.2);
                 color: {C.PRI};
-                border-radius: 4px;
+                border-left: 3px solid {C.PRI};
             }}
         """)
         self.file_list.itemSelectionChanged.connect(self._on_file_selected)
@@ -3013,14 +3024,15 @@ class VirtualOSWorkspace(QWidget):
         refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         refresh_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent;
-                border: 1px solid {C.PRI_DIM};
-                border-radius: 4px;
+                background: rgba(6, 182, 212, 0.08);
+                border: 1px solid rgba(6, 182, 212, 0.3);
+                border-radius: 6px;
                 color: {C.PRI};
                 padding: 6px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO};
+                background: rgba(6, 182, 212, 0.2);
+                border: 1px solid {C.PRI};
             }}
         """)
         refresh_btn.clicked.connect(self.scan_workspace)
@@ -3032,14 +3044,15 @@ class VirtualOSWorkspace(QWidget):
         back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         back_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent;
-                border: 1px solid {C.PRI_DIM};
-                border-radius: 4px;
-                color: {C.PRI};
+                background: rgba(244, 63, 94, 0.08);
+                border: 1px solid rgba(244, 63, 94, 0.3);
+                border-radius: 6px;
+                color: {C.ACC2};
                 padding: 6px;
             }}
             QPushButton:hover {{
-                background: {C.PRI_GHO};
+                background: rgba(244, 63, 94, 0.2);
+                border: 1px solid {C.ACC2};
             }}
         """)
         back_btn.clicked.connect(lambda: self.main_win._stacked_widget.setCurrentIndex(0))
@@ -3644,6 +3657,7 @@ class MainWindow(QMainWindow):
         central.setObjectName("CentralWidget")
         self.setCentralWidget(central)
         self._apply_central_bg_style()
+        self._apply_acrylic_backdrop()
  
         root = QVBoxLayout(central)
         root.setContentsMargins(0, 0, 0, 0)
@@ -5266,16 +5280,34 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"[UI] ⚠️ Failed to notify SaturdayLive: {e}")
 
+    def _apply_acrylic_backdrop(self):
+        try:
+            import ctypes
+            from ctypes import windll, byref, c_int, sizeof
+            
+            hwnd = int(self.winId())
+            
+            # Enable dark mode title bar attribute (DWMWA_USE_IMMERSIVE_DARK_MODE = 20)
+            dark_mode = c_int(1)
+            windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, byref(dark_mode), sizeof(dark_mode))
+            
+            # Enable acrylic backdrop attribute (DWMWA_SYSTEMBACKDROP_TYPE = 38)
+            # DWMSBT_ACRYLIC = 3
+            backdrop = c_int(3)
+            windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, byref(backdrop), sizeof(backdrop))
+        except Exception as e:
+            print(f"[UI] ⚠️ Failed to apply native Windows backdrop blur: {e}")
+
     def _apply_central_bg_style(self):
         is_hacker = self._hacker_btn.isChecked() if hasattr(self, "_hacker_btn") else False
         if is_hacker:
             bg_style = f"""
                 QWidget#CentralWidget {{
                     background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
-                                                stop:0 rgba(18, 0, 2, 0.45), 
-                                                stop:0.5 rgba(6, 0, 1, 0.55), 
-                                                stop:1 rgba(26, 0, 4, 0.45));
-                    border: 1px solid {C.BORDER};
+                                                stop:0 rgba(30, 0, 5, 0.15), 
+                                                stop:0.5 rgba(10, 0, 2, 0.25), 
+                                                stop:1 rgba(40, 0, 8, 0.15));
+                    border: 1px solid rgba(244, 63, 94, 0.2);
                     border-radius: 12px;
                 }}
             """
@@ -5283,10 +5315,10 @@ class MainWindow(QMainWindow):
             bg_style = f"""
                 QWidget#CentralWidget {{
                     background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
-                                                stop:0 rgba(0, 12, 24, 0.45), 
-                                                stop:0.5 rgba(0, 5, 10, 0.55), 
-                                                stop:1 rgba(0, 18, 34, 0.45));
-                    border: 1px solid {C.BORDER};
+                                                stop:0 rgba(15, 23, 42, 0.15), 
+                                                stop:0.5 rgba(30, 41, 59, 0.25), 
+                                                stop:1 rgba(15, 23, 42, 0.15));
+                    border: 1px solid rgba(255, 255, 255, 0.08);
                     border-radius: 12px;
                 }}
             """
@@ -5299,19 +5331,20 @@ class MainWindow(QMainWindow):
 
         # 2. Main frames / panels
         self._apply_central_bg_style()
-        dark_trans = hex_to_rgba_str(C.DARK, 0.55)
-        dark_headers = hex_to_rgba_str(C.DARK, 0.70)
+        dark_trans = "rgba(10, 15, 30, 0.15)"
+        dark_headers = "rgba(10, 15, 30, 0.35)"
+        border_col = "rgba(255, 255, 255, 0.08)"
         
         if hasattr(self, "_left_panel") and self._left_panel:
-            self._left_panel.setStyleSheet(f"background: {dark_trans}; border-right: 1px solid {C.BORDER};")
-        self._header_shim.setStyleSheet(f"background: {dark_headers}; border-bottom: 1px solid {C.BORDER_B}; border-top-left-radius: 12px; border-top-right-radius: 12px;")
-        self._right_panel.setStyleSheet(f"background: {dark_trans}; border-left: 1px solid {C.BORDER};")
+            self._left_panel.setStyleSheet(f"background: {dark_trans}; border-right: 1px solid {border_col};")
+        self._header_shim.setStyleSheet(f"background: {dark_headers}; border-bottom: 1px solid {border_col}; border-top-left-radius: 12px; border-top-right-radius: 12px;")
+        self._right_panel.setStyleSheet(f"background: {dark_trans}; border-left: 1px solid {border_col};")
         if hasattr(self, "_left_sidebar") and self._left_sidebar:
-            self._left_sidebar.setStyleSheet(f"background: {dark_trans}; border-right: 1px solid {C.BORDER};")
+            self._left_sidebar.setStyleSheet(f"background: {dark_trans}; border-right: 1px solid {border_col};")
         self._footer.setStyleSheet(f"""
             QWidget {{
-                background: {hex_to_rgba_str(C.DARK, 0.70)};
-                border: 1px solid {C.BORDER};
+                background: rgba(10, 15, 30, 0.45);
+                border: 1px solid {border_col};
                 border-radius: 20px;
             }}
         """)
