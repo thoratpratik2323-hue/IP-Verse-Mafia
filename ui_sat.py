@@ -29,7 +29,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QPushButton, QScrollArea, QSizePolicy, QTextEdit,
     QVBoxLayout, QWidget, QProgressBar, QSystemTrayIcon, QMenu, QStyle,
     QDialog, QCheckBox, QListWidget, QComboBox, QStackedWidget, QGridLayout,
-    QTreeView, QHeaderView,
+    QTreeView, QHeaderView, QTabWidget,
 )
 from PyQt6.QtMultimedia import QSoundEffect
 
