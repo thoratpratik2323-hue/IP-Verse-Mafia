@@ -1330,7 +1330,7 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "web_search_quick":
             query = args.get("query", "")
-            r = await loop.run_in_executor(None, lambda: quick_web_search(query=query, player=player))
+            r = await loop.run_in_executor(None, lambda: quick_web_search(query=query))
             result = r or "Search complete, Sir."
 
         elif name == "autonomy_engine":
