@@ -38,7 +38,7 @@ def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = lancedb.connect(str(DB_PATH))
     
-    if "documents" not in db.table_names():
+    if "documents" not in db.list_tables():
         schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
@@ -48,7 +48,7 @@ def init_db():
         ])
         db.create_table("documents", schema=schema)
         
-    if "conversations" not in db.table_names():
+    if "conversations" not in db.list_tables():
         conv_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("role", pa.string()),
@@ -58,7 +58,7 @@ def init_db():
         ])
         db.create_table("conversations", schema=conv_schema)
         
-    if "code_reviews" not in db.table_names():
+    if "code_reviews" not in db.list_tables():
         rev_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
@@ -438,10 +438,10 @@ def compact_memory() -> str:
     try:
         db = init_db()
         reports = []
-        for name in db.table_names():
+        for name in db.list_tables():
             try:
                 tbl = db.open_table(name)
-                tbl.compact_files()
+                tbl.optimize()
                 tbl.cleanup_old_versions()
                 reports.append(f"✓ {name} compacted")
             except Exception as tbl_err:
