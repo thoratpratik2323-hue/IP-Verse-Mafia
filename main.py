@@ -950,6 +950,26 @@ class IPRayLive:
             else:
                 return
 
+        # Check for vocal personality commands
+        if "be jarvis" in txt_l or "act like jarvis" in txt_l:
+            self._custom_personality = "jarvis"
+            self.ui.set_mood("normal") # blue theme
+            self.speak("Jarvis personality initialized, sir. Standing by for instructions.")
+            self.ui.write_log("SYS: Jarvis personality activated.")
+            return
+        elif "be sarcastic" in txt_l or "act sarcastic" in txt_l:
+            self._custom_personality = "sarcastic"
+            self.ui.set_mood("relax") # purple theme
+            self.speak("Oh, great. Sarcastic personality initialized. Try not to amaze me with your coding errors, sir.")
+            self.ui.write_log("SYS: Sarcastic personality activated.")
+            return
+        elif "be normal" in txt_l or "normal mode" in txt_l:
+            self._custom_personality = "normal"
+            self.ui.set_mood("normal") # default theme
+            self.speak("Normal assistant personality restored, sir.")
+            self.ui.write_log("SYS: Normal personality restored.")
+            return
+
         if txt_l in ["full screen", "fullscreen"]:
             self.ui.write_log("SYS: Intercepted 'full screen' command.")
             self.ui.set_fullscreen(True)
@@ -1693,6 +1713,19 @@ class IPRayLive:
                 parts.append(inf)
         except Exception:
             pass
+        custom_pers = getattr(self, "_custom_personality", "normal")
+        if custom_pers == "jarvis":
+            sys_prompt = (
+                "You are Jarvis, a highly sophisticated AI butler. Address Pratik as 'Sir'. "
+                "Be extremely polite, formal, efficient, and systems-oriented. Call yourself Jarvis. Speak in a mix of Hindi and English (Hinglish).\n"
+            ) + sys_prompt
+        elif custom_pers == "sarcastic":
+            sys_prompt = (
+                "You are a highly sarcastic, witty, and slightly rebellious AI assistant. "
+                "Use dry humor, banter with Pratik, make lighthearted fun of bugs, but still be helpful. "
+                "Be witty and funny in Hinglish/English.\n"
+            ) + sys_prompt
+
         parts.append(sys_prompt)
 
         # MCP tools (cached once — reconnect was re-scanning servers every time)
@@ -1917,6 +1950,13 @@ class IPRayLive:
                         self.out_queue.put_nowait,
                         {"data": data, "mime_type": "audio/pcm"}
                     )
+                    try:
+                        audio_samples = indata.flatten()
+                        rms = np.sqrt(np.mean(audio_samples.astype(np.float64) ** 2)) if len(audio_samples) > 0 else 0.0
+                        norm_level = min(1.0, rms / 4000.0)
+                        loop.call_soon_threadsafe(self.ui.set_audio_level, norm_level)
+                    except Exception:
+                        pass
         try:
             with sd.InputStream(
                 samplerate=SEND_SAMPLE_RATE,
@@ -2093,6 +2133,26 @@ class IPRayLive:
                                             self.ui.write_log("SYS: Awaiting quiet duration input...")
                                     continue
                                 
+                                # Check for vocal personality commands
+                                if "be jarvis" in txt_l or "act like jarvis" in txt_l:
+                                    self._custom_personality = "jarvis"
+                                    self.ui.set_mood("normal") # blue theme
+                                    self.speak("Jarvis personality initialized, sir. Standing by for instructions.")
+                                    self.ui.write_log("SYS: Jarvis personality activated via voice.")
+                                    continue
+                                elif "be sarcastic" in txt_l or "act sarcastic" in txt_l:
+                                    self._custom_personality = "sarcastic"
+                                    self.ui.set_mood("relax") # purple theme
+                                    self.speak("Oh, great. Sarcastic personality initialized. Try not to amaze me with your coding errors, sir.")
+                                    self.ui.write_log("SYS: Sarcastic personality activated via voice.")
+                                    continue
+                                elif "be normal" in txt_l or "normal mode" in txt_l:
+                                    self._custom_personality = "normal"
+                                    self.ui.set_mood("normal") # default theme
+                                    self.speak("Normal assistant personality restored, sir.")
+                                    self.ui.write_log("SYS: Normal personality restored via voice.")
+                                    continue
+
                                 if "full screen" in txt_l or "fullscreen" in txt_l:
                                     self.ui.write_log("SYS: Vocal fullscreen trigger detected.")
                                     self.ui.set_fullscreen(True)
@@ -2370,7 +2430,15 @@ class IPRayLive:
                     continue
 
                 self.set_speaking(True)
-                stream.write(self._amplify_pcm(chunk, gain))
+                amplified = self._amplify_pcm(chunk, gain)
+                stream.write(amplified)
+                try:
+                    samples = np.frombuffer(amplified, dtype=np.int16)
+                    rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2)) if len(samples) > 0 else 0.0
+                    norm_level = min(1.0, rms / 4000.0)
+                    self._loop.call_soon_threadsafe(self.ui.set_audio_level, norm_level)
+                except Exception:
+                    pass
         except Exception as e:
             print(f"[IP PRIME] ❌ Play thread error: {e}")
         finally:

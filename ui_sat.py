@@ -1539,11 +1539,26 @@ class LogWidget(QTextEdit):
     def _enqueue(self, text: str):
         if text.startswith("[TERM_OUTPUT]"):
             clean = text.replace("[TERM_OUTPUT] ", "")
+            
+            # Heuristic Code-Flow Step Detection
+            txt_lower = clean.lower()
+            step = None
+            if any(k in txt_lower for k in ("git diff", "find", "grep", "research", "searching")):
+                step = "RESEARCHING"
+            elif any(k in txt_lower for k in ("write", "replace", "modifying", "created file", "writing")):
+                step = "CODING"
+            elif any(k in txt_lower for k in ("nasm", "assembling", "compiler", "gcc", "compiling", "build")):
+                step = "COMPILING"
+            elif any(k in txt_lower for k in ("pytest", "test", "verifying", "validation")):
+                step = "VERIFYING"
+
             p = self.parent()
             while p is not None:
                 if hasattr(p, "_virtual_workspace"):
                     if p._virtual_workspace:
                         p._virtual_workspace.term_display.append(clean)
+                        if step:
+                            p._virtual_workspace.code_flow.set_step(step)
                     break
                 p = p.parent()
             return
@@ -2650,6 +2665,296 @@ class WidgetsSidebar(QWidget):
         self._ram_lbl_val.setText(f"{int(mem)}%")
 
 
+class CodeFlowPanel(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.active_step = "IDLE" # "RESEARCHING", "CODING", "COMPILING", "VERIFYING", "COMPLETED"
+        self.setFixedHeight(40)
+        self.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.anim_tick = 0
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._tick)
+        self.timer.start(100)
+
+    def _tick(self):
+        self.anim_tick += 1
+        self.update()
+
+    def set_step(self, step):
+        self.active_step = step
+        self.update()
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        W, H = self.width(), self.height()
+        steps = ["RESEARCHING", "CODING", "COMPILING", "VERIFYING"]
+        
+        step_w = W / len(steps)
+        for i, step in enumerate(steps):
+            x = i * step_w
+            rect = QRectF(x + 5, 5, step_w - 10, H - 10)
+            
+            is_active = (self.active_step == step)
+            
+            # Background
+            if is_active:
+                glow = math.sin(self.anim_tick / 2.0) * 0.3 + 0.7 # pulsate opacity
+                p.setBrush(QBrush(QColor(16, 185, 129, int(50 * glow))))
+                p.setPen(QPen(QColor(16, 185, 129, int(255 * glow)), 2))
+            else:
+                p.setBrush(QBrush(QColor(30, 41, 59, 100)))
+                p.setPen(QPen(QColor(71, 85, 105, 100), 1))
+                
+            p.drawRoundedRect(rect, 4, 4)
+            
+            # Text
+            p.setPen(QColor(16, 185, 129) if is_active else QColor(148, 163, 184))
+            p.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{'▶ ' if is_active else ''}{step}")
+
+
+class ChessTabWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        import chess
+        self.board = chess.Board()
+        self.difficulty = "Medium"
+        self.ai_worker = None
+        self.move_history = []
+        self._init_ui()
+
+    def _init_ui(self):
+        from actions.chess_gui import ChessBoardWidget
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(15)
+
+        # Left Column: Chess Board
+        self.board_widget = ChessBoardWidget(self)
+        self.board_widget.setFixedSize(300, 300)
+        self.board_widget.move_played.connect(self._on_user_move)
+        layout.addWidget(self.board_widget)
+
+        # Right Column: Controls & Commentary log
+        right_panel = QVBoxLayout()
+        right_panel.setSpacing(8)
+
+        self.turn_lbl = QLabel("Your Turn (White)")
+        self.turn_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self.turn_lbl.setStyleSheet("color: #10B981; background: transparent;")
+        right_panel.addWidget(self.turn_lbl)
+
+        self.stats_lbl = QLabel("Move: 0 | Material: W15 vs B15")
+        self.stats_lbl.setFont(QFont("Segoe UI", 8))
+        self.stats_lbl.setStyleSheet("color: #94A3B8; background: transparent;")
+        right_panel.addWidget(self.stats_lbl)
+
+        self.log_widget = QTextEdit()
+        self.log_widget.setReadOnly(True)
+        self.log_widget.setFont(QFont("Consolas", 8))
+        self.log_widget.setStyleSheet(f"background: rgba(0, 0, 0, 0.4); border: 1px solid {C.BORDER}; border-radius: 6px; color: #E2E8F0; padding: 4px;")
+        self.log_widget.append("Welcome Pratik Sir! White plays first.")
+        right_panel.addWidget(self.log_widget)
+
+        # Controls row
+        controls = QHBoxLayout()
+        controls.setSpacing(6)
+
+        self.diff_box = QComboBox()
+        self.diff_box.addItems(["Easy", "Medium", "Hard"])
+        self.diff_box.setCurrentText("Medium")
+        self.diff_box.setStyleSheet(f"background: rgba(255,255,255,0.05); border: 1px solid {C.BORDER}; color: white; padding: 4px;")
+        self.diff_box.currentTextChanged.connect(self._on_diff_changed)
+        controls.addWidget(self.diff_box)
+
+        new_game_btn = QPushButton("NEW GAME 🔄")
+        new_game_btn.setFixedHeight(26)
+        new_game_btn.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+        new_game_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        new_game_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.PRI_GHO};
+                color: {C.PRI};
+                border: 1px solid {C.PRI_DIM};
+                border-radius: 4px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI};
+                color: black;
+            }}
+        """)
+        new_game_btn.clicked.connect(self._restart_game)
+        controls.addWidget(new_game_btn)
+
+        right_panel.addLayout(controls)
+        layout.addLayout(right_panel)
+
+    def _on_diff_changed(self, text):
+        self.difficulty = text
+        self.log_widget.append(f"<font color='#94A3B8'>SYS: Difficulty changed to {text}.</font>")
+
+    def _restart_game(self):
+        import chess
+        if self.ai_worker and self.ai_worker.isRunning():
+            self.ai_worker.quit()
+            self.ai_worker.wait()
+        self.board = chess.Board()
+        self.move_history = []
+        self.board_widget.set_board(self.board)
+        self.board_widget.set_user_turn(True)
+        self.turn_lbl.setText("Your Turn (White)")
+        self.turn_lbl.setStyleSheet("color: #10B981; background: transparent;")
+        self.log_widget.clear()
+        self.log_widget.append("<font color='#27C8F5'><b>Welcome Pratik Sir! White plays first.</b></font>")
+        self._update_stats()
+
+    def _update_stats(self):
+        from actions.chess_partner import get_game_stats
+        stats = get_game_stats(self.board)
+        w_mat = stats.get("white_material", 15)
+        b_mat = stats.get("black_material", 15)
+        m_count = stats.get("move_count", 0)
+        self.stats_lbl.setText(f"Move: {m_count} | Material: W{w_mat} vs B{b_mat}")
+
+    def _on_user_move(self, uci_move):
+        try:
+            import chess
+            from actions.chess_partner import generate_hinglish_commentary
+            from actions.chess_gui import AIWorker
+            move = chess.Move.from_uci(uci_move)
+            comment = generate_hinglish_commentary(self.board, move)
+            san_move = self.board.san(move)
+            self.move_history.append(f"{len(self.move_history)//2 + 1}. {san_move}")
+            self.log_widget.append(f"<b style='color: #27C8F5'>You:</b> {uci_move} ({san_move})")
+            self.log_widget.append(f"<font color='#e0a82e'><i>Buddy: {comment}</i></font>")
+            self.board.push(move)
+            self.board_widget.set_board(self.board)
+            self._update_stats()
+
+            if self.board.is_game_over():
+                self._handle_game_over()
+                return
+
+            self.board_widget.set_user_turn(False)
+            self.turn_lbl.setText("IP Prime Thinking...")
+            self.turn_lbl.setStyleSheet("color: #F59E0B; background: transparent;")
+
+            self.ai_worker = AIWorker(self.board, self.difficulty)
+            self.ai_worker.move_ready.connect(self._on_ai_move_ready)
+            self.ai_worker.error_occurred.connect(self._on_ai_error)
+            self.ai_worker.start()
+        except Exception as e:
+            self.log_widget.append(f"<font color='#EF4444'>Error: {str(e)}</font>")
+
+    def _on_ai_move_ready(self, move, comment):
+        san_move = self.board.san(move)
+        self.move_history.append(f"{san_move}")
+        self.log_widget.append(f"<b style='color: #F43F5E'>AI Prime:</b> {move.uci()} ({san_move})")
+        self.log_widget.append(f"<font color='#e0a82e'><i>Buddy: {comment}</i></font>")
+        self.board.push(move)
+        self.board_widget.set_board(self.board)
+        self._update_stats()
+
+        if self.board.is_game_over():
+            self._handle_game_over()
+            return
+
+        self.board_widget.set_user_turn(True)
+        self.turn_lbl.setText("Your Turn (White)")
+        self.turn_lbl.setStyleSheet("color: #10B981; background: transparent;")
+
+    def _on_ai_error(self, err_msg):
+        self.log_widget.append(f"<font color='#EF4444'>{err_msg}</font>")
+        self.board_widget.set_user_turn(True)
+        self.turn_lbl.setText("Your Turn (White)")
+        self.turn_lbl.setStyleSheet("color: #10B981; background: transparent;")
+
+    def _handle_game_over(self):
+        res = "Game Over. "
+        if self.board.is_checkmate():
+            res += "Checkmate!"
+        elif self.board.is_stalemate():
+            res += "Stalemate!"
+        elif self.board.is_insufficient_material():
+            res += "Draw (insufficient material)!"
+        self.turn_lbl.setText(res)
+        self.turn_lbl.setStyleSheet("color: #EF4444; background: transparent;")
+        self.log_widget.append(f"<b>{res}</b>")
+
+
+class MemoryGraphWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.anim_tick = 0
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._tick)
+        self.timer.start(30)
+        
+    def _tick(self):
+        self.anim_tick += 1
+        self.update()
+        
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        W, H = self.width(), self.height()
+        cx, cy = W / 2, H / 2
+        
+        # Center Node
+        # Outer nodes
+        nodes = [
+            ("📝 NOTES", 0),
+            ("⚙️ PREFERENCES", 72),
+            ("📅 TASK LIST", 144),
+            ("⏰ ALARMS", 216),
+            ("❤️ EMOTIONS", 288)
+        ]
+        
+        # Draw connections and data particles first (behind nodes)
+        radius = min(W, H) * 0.35
+        for name, angle_deg in nodes:
+            angle = math.radians(angle_deg + self.anim_tick * 0.2)
+            nx = cx + radius * math.cos(angle) + math.sin(self.anim_tick / 25.0 + angle_deg) * 10
+            ny = cy + radius * math.sin(angle) + math.cos(self.anim_tick / 20.0 + angle_deg) * 10
+            
+            # Line
+            p.setPen(QPen(QColor(6, 182, 212, 100), 2)) # cyan connection line
+            p.drawLine(QPointF(cx, cy), QPointF(nx, ny))
+            
+            # Pulsing thought data particle traveling from center to node
+            t = ((self.anim_tick + angle_deg) % 120) / 120.0
+            px = cx + (nx - cx) * t
+            py = cy + (ny - cy) * t
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QBrush(QColor(34, 211, 238, 255))) # glowing cyan particle
+            p.drawEllipse(QPointF(px, py), 5, 5)
+            
+        # Draw Center Node (Brain Core)
+        p.setPen(QPen(QColor(6, 182, 212, 200), 3))
+        p.setBrush(QBrush(QColor(15, 23, 42, 230)))
+        p.drawEllipse(QPointF(cx, cy), 45, 45)
+        
+        p.setPen(QColor(6, 182, 212))
+        p.setFont(QFont("Courier New", 9, QFont.Weight.Bold))
+        p.drawText(QRectF(cx - 40, cy - 10, 80, 20), Qt.AlignmentFlag.AlignCenter, "🧠 BRAIN")
+        
+        # Draw Outer Nodes
+        for name, angle_deg in nodes:
+            angle = math.radians(angle_deg + self.anim_tick * 0.2)
+            nx = cx + radius * math.cos(angle) + math.sin(self.anim_tick / 25.0 + angle_deg) * 10
+            ny = cy + radius * math.sin(angle) + math.cos(self.anim_tick / 20.0 + angle_deg) * 10
+            
+            p.setPen(QPen(QColor(244, 63, 94, 200), 2)) # rose outer border
+            p.setBrush(QBrush(QColor(15, 23, 42, 220)))
+            p.drawEllipse(QPointF(nx, ny), 50, 25)
+            
+            p.setPen(QColor(244, 63, 94))
+            p.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+            p.drawText(QRectF(nx - 45, ny - 10, 90, 20), Qt.AlignmentFlag.AlignCenter, name)
+
+
 class VirtualOSWorkspace(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -2772,6 +3077,9 @@ class VirtualOSWorkspace(QWidget):
         ed_lay = QVBoxLayout(self.editor_tab)
         ed_lay.setContentsMargins(10, 10, 10, 10)
         
+        self.code_flow = CodeFlowPanel(self)
+        ed_lay.addWidget(self.code_flow)
+        
         self.active_file_lbl = QLabel("No file selected")
         self.active_file_lbl.setFont(QFont("Courier New", 9, QFont.Weight.Bold))
         self.active_file_lbl.setStyleSheet(f"color: {C.PRI};")
@@ -2844,6 +3152,14 @@ class VirtualOSWorkspace(QWidget):
         br_lay.addWidget(self.browser_view, stretch=1)
         
         self.tab_widget.addTab(self.browser_tab, "🌐 VIRTUAL BROWSER")
+        
+        # Tab 4: Chess Partner Tab
+        self.chess_tab = ChessTabWidget(self)
+        self.tab_widget.addTab(self.chess_tab, "⚔️ CHESS PARTNER")
+        
+        # Tab 5: Brain Memory Graph Tab
+        self.memory_tab = MemoryGraphWidget(self)
+        self.tab_widget.addTab(self.memory_tab, "🧠 MEMORY GRAPH")
         
         main_lay.addWidget(self.tab_widget, stretch=1)
         

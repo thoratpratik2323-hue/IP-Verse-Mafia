@@ -1,10 +1,10 @@
 @echo off
 echo [MyOS] Assembling bootloader...
 if not exist build mkdir build
-nasm -f bin boot\boot.asm -o build\boot.bin
+"C:\Users\thora\AppData\Local\bin\nasm.exe" -f bin boot\boot.asm -o build\boot.bin
 
 if errorlevel 1 (
-    echo [MyOS] Assembly failed. Please ensure nasm is installed and in PATH.
+    echo [MyOS] Assembly failed. Please ensure nasm is installed.
     pause
     exit /b 1
 )
@@ -13,8 +13,8 @@ echo [MyOS] Bootloader binary assembled (512 bytes).
 dir build\boot.bin
 
 echo [MyOS] Launching QEMU...
-qemu-system-x86_64 -drive format=raw,file=build\boot.bin -serial stdio
+"C:\Program Files\qemu\qemu-system-x86_64.exe" -drive format=raw,file=build\boot.bin -serial stdio
 if errorlevel 1 (
-    echo [MyOS] Failed to launch QEMU. Please ensure QEMU is installed and in PATH.
+    echo [MyOS] Failed to launch QEMU.
     pause
 )
