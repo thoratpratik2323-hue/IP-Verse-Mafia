@@ -789,7 +789,7 @@ class IPRayLive:
     def _is_wakeup_command(self, txt_l: str) -> bool:
         wakeup_triggers = [
             "wake buddy", "wakebuddy", "wake up buddy", "wakeup buddy",
-            "wake up", "wakeup",
+            "wake up", "wakeup", "talk", "talk to me", "speak",
             "prime wakeup", "prime wake up", "wake up prime",
             "wake buddy prime", "buddy wake up", "buddy wake"
         ]
@@ -829,25 +829,125 @@ class IPRayLive:
 
         txt_l = text.lower().strip()
         
+        # Check if we are waiting for quiet duration (text input)
+        if getattr(self, "_waiting_for_quiet_duration", False):
+            if any(w in txt_l for w in ("until", "wake up", "talk", "always", "forever", "indefinite")):
+                self._quiet_mode = True
+                self._quiet_mode_type = "indefinite"
+                self._waiting_for_quiet_duration = False
+                self.ui.quiet_mode = True
+                self.ui.set_state("QUIET")
+                self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                self.ui.write_log("SYS: Quiet Mode (Indefinite) activated.")
+            else:
+                import re
+                match_min = re.search(r"(\d+)\s*(minute|min|m)", txt_l)
+                match_sec = re.search(r"(\d+)\s*(second|sec|s)", txt_l)
+                total_seconds = 0
+                desc = ""
+                if match_min:
+                    mins = int(match_min.group(1))
+                    total_seconds += mins * 60
+                    desc += f"{mins} minute(s)"
+                if match_sec:
+                    secs = int(match_sec.group(1))
+                    total_seconds += secs
+                    if desc:
+                        desc += " and "
+                    desc += f"{secs} second(s)"
+                    
+                if total_seconds > 0:
+                    self._quiet_mode = True
+                    self._quiet_mode_type = "timed"
+                    self._waiting_for_quiet_duration = False
+                    self.ui.muted = True
+                    self.ui.set_state("MUTED")
+                    self.speak(f"Understood, sir. Staying quiet for {desc}.")
+                    self.ui.write_log(f"SYS: Quiet Mode (Timed for {desc}) activated.")
+                    
+                    async def _timed_wake():
+                        await asyncio.sleep(total_seconds)
+                        if self._quiet_mode and getattr(self, "_quiet_mode_type", "") == "timed":
+                            self._quiet_mode = False
+                            self.ui.muted = False
+                            self.ui.set_state("LISTENING")
+                            self.ui.write_log("SYS: Quiet Mode timer expired. Auto-waking...")
+                            play_sfx("startup")
+                            self.speak("I am back online, sir! What can I do for you?")
+                    asyncio.create_task(_timed_wake())
+                else:
+                    self._quiet_mode = True
+                    self._quiet_mode_type = "indefinite"
+                    self._waiting_for_quiet_duration = False
+                    self.ui.quiet_mode = True
+                    self.ui.set_state("QUIET")
+                    self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                    self.ui.write_log("SYS: Quiet Mode (Indefinite) activated.")
+            return
+
         # Quiet mode controls for text input
         if self._is_wakeup_command(txt_l):
             self._quiet_mode = False
+            self.ui.muted = False
+            self.ui.quiet_mode = False
+            self.ui.set_state("LISTENING")
             self.ui.write_log("SYS: Quiet Mode deactivated. Welcome back, Pratik Sir!")
             play_sfx("startup")
             self.speak("I am awake and listening, sir!")
             return
         elif self._is_quiet_command(txt_l):
-            self.speak("Entering quiet mode, sir. I will remain silent until you say 'wake buddy'.")
-            self._quiet_mode = True
-            self.ui.write_log("SYS: Quiet Mode activated.")
+            if "until" in txt_l or "wake up" in txt_l or "talk" in txt_l:
+                self._quiet_mode = True
+                self._quiet_mode_type = "indefinite"
+                self.ui.quiet_mode = True
+                self.ui.set_state("QUIET")
+                self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                self.ui.write_log("SYS: Quiet Mode (Indefinite) activated.")
+            else:
+                import re
+                match_min = re.search(r"(\d+)\s*(minute|min|m)", txt_l)
+                match_sec = re.search(r"(\d+)\s*(second|sec|s)", txt_l)
+                total_seconds = 0
+                desc = ""
+                if match_min:
+                    mins = int(match_min.group(1))
+                    total_seconds += mins * 60
+                    desc += f"{mins} minute(s)"
+                if match_sec:
+                    secs = int(match_sec.group(1))
+                    total_seconds += secs
+                    if desc:
+                        desc += " and "
+                    desc += f"{secs} second(s)"
+                    
+                if total_seconds > 0:
+                    self._quiet_mode = True
+                    self._quiet_mode_type = "timed"
+                    self.ui.muted = True
+                    self.ui.set_state("MUTED")
+                    self.speak(f"Understood, sir. Staying quiet for {desc}.")
+                    self.ui.write_log(f"SYS: Quiet Mode (Timed for {desc}) activated.")
+                    
+                    async def _timed_wake():
+                        await asyncio.sleep(total_seconds)
+                        if self._quiet_mode and getattr(self, "_quiet_mode_type", "") == "timed":
+                            self._quiet_mode = False
+                            self.ui.muted = False
+                            self.ui.set_state("LISTENING")
+                            self.ui.write_log("SYS: Quiet Mode timer expired. Auto-waking...")
+                            play_sfx("startup")
+                            self.speak("I am back online, sir! What can I do for you?")
+                    asyncio.create_task(_timed_wake())
+                else:
+                    self.speak("Kab tak quiet rehna hai, sir? Minutes ya seconds bataiye, ya boliye 'until I say wake up'.")
+                    self._waiting_for_quiet_duration = True
+                    self.ui.write_log("SYS: Awaiting quiet duration input...")
             return
 
         if self._quiet_mode:
             if self._is_coding_command(txt_l, text):
                 self.ui.write_log(f"SYS: [Quiet Mode Active] Running coding command: {text}")
-                # Allow coding command to pass through and execute!
             else:
-                # Silently ignore general text/chat/other commands while in quiet mode
                 return
 
         if txt_l in ["full screen", "fullscreen"]:
@@ -1875,17 +1975,123 @@ class IPRayLive:
                                 in_buf.append(txt)
                                 txt_l = txt.lower()
                                 
-                                # Check quiet/wakeup vocal triggers
-                                if self._is_quiet_command(txt_l):
-                                    self.speak("Entering quiet mode, sir. I will remain silent until you say 'wake buddy'.")
-                                    self._quiet_mode = True
-                                    self.ui.write_log("SYS: Quiet Mode activated via voice.")
-                                elif self._is_wakeup_command(txt_l):
-                                    if self._quiet_mode:
+                                # Check if we are waiting for quiet duration (voice input)
+                                if getattr(self, "_waiting_for_quiet_duration", False):
+                                    if any(w in txt_l for w in ("until", "wake up", "talk", "always", "forever", "indefinite")):
+                                        self._quiet_mode = True
+                                        self._quiet_mode_type = "indefinite"
+                                        self._waiting_for_quiet_duration = False
+                                        self.ui.quiet_mode = True
+                                        self.ui.set_state("QUIET")
+                                        self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                                        self.ui.write_log("SYS: Quiet Mode (Indefinite) activated via voice.")
+                                    else:
+                                        import re
+                                        match_min = re.search(r"(\d+)\s*(minute|min|m)", txt_l)
+                                        match_sec = re.search(r"(\d+)\s*(second|sec|s)", txt_l)
+                                        total_seconds = 0
+                                        desc = ""
+                                        if match_min:
+                                            mins = int(match_min.group(1))
+                                            total_seconds += mins * 60
+                                            desc += f"{mins} minute(s)"
+                                        if match_sec:
+                                            secs = int(match_sec.group(1))
+                                            total_seconds += secs
+                                            if desc:
+                                                desc += " and "
+                                            desc += f"{secs} second(s)"
+                                            
+                                        if total_seconds > 0:
+                                            self._quiet_mode = True
+                                            self._quiet_mode_type = "timed"
+                                            self._waiting_for_quiet_duration = False
+                                            self.ui.muted = True
+                                            self.ui.set_state("MUTED")
+                                            self.speak(f"Understood, sir. Staying quiet for {desc}.")
+                                            self.ui.write_log(f"SYS: Quiet Mode (Timed for {desc}) activated via voice.")
+                                            
+                                            async def _timed_wake():
+                                                await asyncio.sleep(total_seconds)
+                                                if self._quiet_mode and getattr(self, "_quiet_mode_type", "") == "timed":
+                                                    self._quiet_mode = False
+                                                    self.ui.muted = False
+                                                    self.ui.set_state("LISTENING")
+                                                    self.ui.write_log("SYS: Quiet Mode timer expired. Auto-waking...")
+                                                    play_sfx("startup")
+                                                    self.speak("I am back online, sir! What can I do for you?")
+                                            asyncio.create_task(_timed_wake())
+                                        else:
+                                            self._quiet_mode = True
+                                            self._quiet_mode_type = "indefinite"
+                                            self._waiting_for_quiet_duration = False
+                                            self.ui.quiet_mode = True
+                                            self.ui.set_state("QUIET")
+                                            self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                                            self.ui.write_log("SYS: Quiet Mode (Indefinite) activated via voice.")
+                                    continue
+
+                                # If we are in quiet mode, ONLY check for wake up command
+                                if self._quiet_mode:
+                                    if self._is_wakeup_command(txt_l):
                                         self._quiet_mode = False
+                                        self.ui.muted = False
+                                        self.ui.quiet_mode = False
+                                        self.ui.set_state("LISTENING")
                                         self.ui.write_log("SYS: Quiet Mode deactivated via voice.")
                                         play_sfx("startup")
                                         self.speak("I am awake and listening, sir!")
+                                    continue
+
+                                # Check quiet/wakeup vocal triggers
+                                if self._is_quiet_command(txt_l):
+                                    if "until" in txt_l or "wake up" in txt_l or "talk" in txt_l:
+                                        self._quiet_mode = True
+                                        self._quiet_mode_type = "indefinite"
+                                        self.ui.quiet_mode = True
+                                        self.ui.set_state("QUIET")
+                                        self.speak("Understood, sir. Remaining quiet until you say wake up or talk.")
+                                        self.ui.write_log("SYS: Quiet Mode (Indefinite) activated via voice.")
+                                    else:
+                                        import re
+                                        match_min = re.search(r"(\d+)\s*(minute|min|m)", txt_l)
+                                        match_sec = re.search(r"(\d+)\s*(second|sec|s)", txt_l)
+                                        total_seconds = 0
+                                        desc = ""
+                                        if match_min:
+                                            mins = int(match_min.group(1))
+                                            total_seconds += mins * 60
+                                            desc += f"{mins} minute(s)"
+                                        if match_sec:
+                                            secs = int(match_sec.group(1))
+                                            total_seconds += secs
+                                            if desc:
+                                                desc += " and "
+                                            desc += f"{secs} second(s)"
+                                            
+                                        if total_seconds > 0:
+                                            self._quiet_mode = True
+                                            self._quiet_mode_type = "timed"
+                                            self.ui.muted = True
+                                            self.ui.set_state("MUTED")
+                                            self.speak(f"Understood, sir. Staying quiet for {desc}.")
+                                            self.ui.write_log(f"SYS: Quiet Mode (Timed for {desc}) activated via voice.")
+                                            
+                                            async def _timed_wake():
+                                                await asyncio.sleep(total_seconds)
+                                                if self._quiet_mode and getattr(self, "_quiet_mode_type", "") == "timed":
+                                                    self._quiet_mode = False
+                                                    self.ui.muted = False
+                                                    self.ui.set_state("LISTENING")
+                                                    self.ui.write_log("SYS: Quiet Mode timer expired. Auto-waking...")
+                                                    play_sfx("startup")
+                                                    self.speak("I am back online, sir! What can I do for you?")
+                                            asyncio.create_task(_timed_wake())
+                                        else:
+                                            self.speak("Kab tak quiet rehna hai, sir? Minutes ya seconds bataiye, ya boliye 'until I say wake up'.")
+                                            self._waiting_for_quiet_duration = True
+                                            self.ui.write_log("SYS: Awaiting quiet duration input...")
+                                    continue
                                 
                                 if "full screen" in txt_l or "fullscreen" in txt_l:
                                     self.ui.write_log("SYS: Vocal fullscreen trigger detected.")

@@ -1257,6 +1257,9 @@ class HudCanvas(QWidget):
         elif self.state == "STANDBY":
             sym = "💤"
             txt, col = f"{sym}  STANDBY", qcol(C.TEXT_DIM)
+        elif self.state == "QUIET":
+            sym = "⊘"
+            txt, col = f"{sym}  QUIET", qcol("#ffaa00")
         else:
             sym = "●" if self._blink else "○"
             txt, col = f"{sym}  {self.state}", qcol(C.PRI)
@@ -5362,14 +5365,25 @@ class MainWindow(QMainWindow):
         self.close()
         QApplication.quit()
 
+    @pyqtSlot()
     def _style_mute_btn(self):
         if hasattr(self, "_tray_mute_action"):
-            if self._muted:
+            if getattr(self, "_quiet_mode", False):
+                self._tray_mute_action.setText("⊘  Quiet Mode Active")
+            elif self._muted:
                 self._tray_mute_action.setText("🎙  Unmute Microphone")
             else:
                 self._tray_mute_action.setText("🔇  Mute Microphone")
         if hasattr(self, "_mute_btn") and self._mute_btn:
-            if self._muted:
+            if getattr(self, "_quiet_mode", False):
+                self._mute_btn.setText("⊘  QUIET MODE ACTIVE")
+                self._mute_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background: #141400; color: #ffaa00;
+                        border: 1px solid #ffaa00; border-radius: 3px;
+                    }}
+                """)
+            elif self._muted:
                 self._mute_btn.setText("🔇  MICROPHONE MUTED")
                 self._mute_btn.setStyleSheet(f"""
                     QPushButton {{
@@ -5387,7 +5401,19 @@ class MainWindow(QMainWindow):
                     QPushButton:hover {{ background: #001f10; }}
                 """)
         if hasattr(self, "_dock_mute_btn") and self._dock_mute_btn:
-            if self._muted:
+            if getattr(self, "_quiet_mode", False):
+                self._dock_mute_btn.setText("⊘ Quiet")
+                self._dock_mute_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background: transparent;
+                        border: none;
+                        color: #ffaa00;
+                    }}
+                    QPushButton:hover {{
+                        color: white;
+                    }}
+                """)
+            elif self._muted:
                 self._dock_mute_btn.setText("🔇 Muted")
                 self._dock_mute_btn.setStyleSheet(f"""
                     QPushButton {{
@@ -5859,6 +5885,16 @@ class SaturdayUI:
     @on_text_command.setter
     def on_text_command(self, cb):
         self._win.on_text_command = cb
+
+    @property
+    def quiet_mode(self) -> bool:
+        return getattr(self._win, "_quiet_mode", False)
+
+    @quiet_mode.setter
+    def quiet_mode(self, v: bool):
+        self._win._quiet_mode = v
+        from PyQt6.QtCore import QMetaObject, Qt
+        QMetaObject.invokeMethod(self._win, "_style_mute_btn", Qt.ConnectionType.QueuedConnection)
 
     def set_state(self, state: str):
         self._win._state_sig.emit(state)

@@ -1185,7 +1185,7 @@ class SaturdayLive:
                     if not self._tool_executing:
                         self.ui.set_activity("SYSTEM IDLE")
 
-            if not settings.get("wake_word_enabled", False):
+            if settings.get("continuous_listening_24h", True) or not settings.get("wake_word_enabled", False):
                 self._last_user_activity = time.time()
                 continue
 
