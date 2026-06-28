@@ -144,9 +144,13 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | Desktop Preview | Live desktop preview in assistant |
 | **🎛️ Control Center Flyout** | **Premium panel containing volume and brightness sliders, DND toggle, and system quick actions** |
 | **📟 Vocal Terminal HUD** | **Glassmorphic floating terminal console streaming live logger output directly in the workspace** |
-| **🔮 Dynamic Multi-Wave Orb** | **Redesigned orb waves with 4 phase-shifted sine layers and dynamic floating particles** |
+| **🔮 Dynamic Multi-Wave Orb** | **Redesigned orb waves with 4 phase-shifted sine layers, dynamic floating particles, and speaking-state voice pulsation** |
 | **🌌 Aurora Wallpaper** | **Animated layered radial gradient background shifting dynamically in real-time** |
-| **⌨️ Global OS Hotkeys** | **Quick overlays toggling via Keyboard shortcuts: Ctrl+Shift+P/L/T/C and F1** |
+| **⌨️ Global OS Hotkeys** | **Quick overlays toggling via Keyboard shortcuts: Ctrl+Shift+P/L/T/C, F1, F2, F3, F4, F9, F11** |
+| **🎚️ macOS Floating Dock** | **Centered, glassmorphic floating bottom dock hosting launcher, widgets, mic mute, console, and autopilot toggles** |
+| **❖ Windows Start Flyout** | **Centered glassmorphic flyout popup containing quick triggers for vault organizer, memory cleanup, workspace dashboard, and Clipboard AI** |
+| **🍎 Widgets Sidebar Drawer** | **Left-side sliding widgets drawer containing Weather card, Live CPU/RAM progress bars, Calendar/Clock, and persistent Quick Notes** |
+| **🎨 Rounded Window Corners** | **Anti-aliased 12px rounded window boundaries and header frames for modern Apple OS / Windows 11 styling** |
 
 ### 👥 The IP AI Army
 IP Prime coordinates an elite team of **12 specialized autonomous agents** (the IP Army) to execute system-level operations, research, coding, and debugging tasks:
@@ -265,7 +269,14 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v9.x — *Dynamic Multi-Wave Orb, Control Center Flyout, Vocal Terminal logs HUD & Background Cleaner (Current)*
+### v10.x — *macOS-Style Floating Dock, Win11 Start Flyout, Left Widgets Sidebar & Rounded Corners (Current)*
+- 🍎 **macOS-Style Centered Floating Dock** — Replaced the full-width flat footer bar with a centered, glassmorphic floating capsule dock housing quick controls for the Start launcher, Widgets Sidebar, dynamic microphone mute status, Console slide-out, and Autopilot toggle.
+- ❖ **Windows 11-Style Start Flyout Launcher** — Created a centered glassmorphic popup dialog (accessible via `F1` or the Dock) containing quick system triggers to organize vault, clean system memory caches, toggle workspace dashboard, and launch Clipboard AI.
+- 🍎 **Apple OS-Style Widgets Sidebar** — Integrated a sliding widgets drawer on the left side of the window (toggled via `F3` or the Dock) containing weather reports, calendar/clock, CPU/RAM progress bars, and a persistent Quick Notes textbox.
+- 🎨 **System-Wide Rounded Window Corners** — Applied anti-aliased `12px` rounded corners on the main window central widget with header rounding to match the design aesthetics of premium desktop operating systems.
+- 🗂️ **Obsidian 00-06 Vault Layout Migration** — Automated vault reorganization to split and sort files into standardized numbered folders (`00 Notes` to `06 Ideas`) with templates, and updated the autocompiler, file classifier, voice notes, and memory manager to match.
+
+### v9.x — *Dynamic Multi-Wave Orb, Control Center Flyout, Vocal Terminal logs HUD & Background Cleaner*
 - 🔮 **Dynamic Multi-Wave Orb & Particle FX** — Completely redesigned the central energy orb to render 4 independent phase-shifted translucent waves with frequency and amplitude modulations matching assistant states (Idle vs. Listening vs. Processing), coupled with a floating particle emission field.
 - 🎛️ **Premium Control Center Flyout** — Implemented a control panel overlay containing system volume sliders (powered by core-audio `pycaw`), system brightness sliders (WMI queries under `root\wmi`), DND persistence state toggling, and instant quick-launch actions (Lock PC, Screenshot, Task Manager, Fullscreen).
 - 📟 **Vocal Terminal Log Console** — Created a glassmorphic floating panel on the desktop that binds directly to Saturday's system logger output via PyQt custom signals, displaying real-time system logs.
