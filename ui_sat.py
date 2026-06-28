@@ -2636,12 +2636,269 @@ class WidgetsSidebar(QWidget):
         self._ram_lbl_val.setText(f"{int(mem)}%")
 
 
+class AgentCommandCenter(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.main_win = parent
+        self.setStyleSheet("background: transparent;")
+        
+        # Outer horizontal layout: Left list, Right details panel
+        main_lay = QHBoxLayout(self)
+        main_lay.setContentsMargins(15, 15, 15, 15)
+        main_lay.setSpacing(15)
+        
+        # --- LEFT PANEL: List of Agents ---
+        left_panel = QFrame()
+        left_panel.setFixedWidth(240)
+        left_panel.setStyleSheet(f"""
+            QFrame {{
+                background: {C.PANEL};
+                border: 1px solid {C.BORDER};
+                border-radius: 8px;
+            }}
+        """)
+        left_lay = QVBoxLayout(left_panel)
+        left_lay.setContentsMargins(10, 10, 10, 10)
+        left_lay.setSpacing(8)
+        
+        title_lbl = QLabel("🛡️ IP ARMY COMMAND")
+        title_lbl.setFont(QFont("Courier New", 9, QFont.Weight.Bold))
+        title_lbl.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent;")
+        left_lay.addWidget(title_lbl)
+        
+        self.agent_list = QListWidget()
+        self.agent_list.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.agent_list.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.agent_list.setStyleSheet(f"""
+            QListWidget {{
+                background: transparent;
+                border: none;
+                color: white;
+            }}
+            QListWidget::item {{
+                padding: 8px;
+                border-bottom: 1px solid {hex_to_rgba_str(C.BORDER, 0.3)};
+            }}
+            QListWidget::item:selected {{
+                background: {C.PRI_GHO};
+                color: {C.PRI};
+                border-radius: 4px;
+            }}
+        """)
+        self.agent_list.itemSelectionChanged.connect(self._on_agent_selected)
+        left_lay.addWidget(self.agent_list)
+        
+        # Back to main window button
+        back_btn = QPushButton("◀ BACK TO HUD")
+        back_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: 1px solid {C.PRI_DIM};
+                border-radius: 4px;
+                color: {C.PRI};
+                padding: 6px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI_GHO};
+            }}
+        """)
+        back_btn.clicked.connect(lambda: self.main_win._stacked_widget.setCurrentIndex(0))
+        left_lay.addWidget(back_btn)
+        
+        main_lay.addWidget(left_panel)
+        
+        # --- RIGHT PANEL: Agent Detail & Chat ---
+        self.right_panel = QFrame()
+        self.right_panel.setStyleSheet(f"""
+            QFrame {{
+                background: {C.PANEL2};
+                border: 1px solid {C.BORDER};
+                border-radius: 8px;
+            }}
+        """)
+        right_lay = QVBoxLayout(self.right_panel)
+        right_lay.setContentsMargins(14, 14, 14, 14)
+        right_lay.setSpacing(12)
+        
+        # Info header
+        self.name_lbl = QLabel("SELECT AN AGENT")
+        self.name_lbl.setFont(QFont("Courier New", 12, QFont.Weight.Bold))
+        self.name_lbl.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent;")
+        right_lay.addWidget(self.name_lbl)
+        
+        self.role_lbl = QLabel("")
+        self.role_lbl.setFont(QFont("Courier New", 7, QFont.Weight.Bold))
+        self.role_lbl.setStyleSheet(f"color: {C.ACC2}; border: none; background: transparent;")
+        right_lay.addWidget(self.role_lbl)
+        
+        self.desc_lbl = QLabel("")
+        self.desc_lbl.setWordWrap(True)
+        self.desc_lbl.setFont(QFont("Courier New", 8))
+        self.desc_lbl.setStyleSheet(f"color: {C.TEXT_MED}; border: none; background: transparent;")
+        right_lay.addWidget(self.desc_lbl)
+        
+        # Terminal logs
+        self.chat_display = QTextEdit()
+        self.chat_display.setReadOnly(True)
+        self.chat_display.setFont(QFont("Courier New", 8))
+        self.chat_display.setStyleSheet(f"background: rgba(0, 0, 0, 0.25); color: {C.TEXT}; border: 1px solid {C.BORDER}; border-radius: 4px; padding: 6px;")
+        right_lay.addWidget(self.chat_display, stretch=1)
+        
+        # Input row
+        inp_lay = QHBoxLayout()
+        inp_lay.setSpacing(8)
+        self.cmd_input = QLineEdit()
+        self.cmd_input.setFont(QFont("Courier New", 9))
+        self.cmd_input.setPlaceholderText("Command this agent...")
+        self.cmd_input.setStyleSheet(f"background: rgba(0, 0, 0, 0.4); color: white; border: 1px solid {C.BORDER}; border-radius: 4px; padding: 6px;")
+        self.cmd_input.returnPressed.connect(self._send_agent_command)
+        inp_lay.addWidget(self.cmd_input, stretch=1)
+        
+        send_btn = QPushButton("EXECUTE")
+        send_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        send_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.PRI_GHO};
+                border: 1px solid {C.PRI};
+                border-radius: 4px;
+                color: {C.PRI};
+                padding: 6px 12px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI};
+                color: black;
+            }}
+        """)
+        send_btn.clicked.connect(self._send_agent_command)
+        inp_lay.addWidget(send_btn)
+        right_lay.addLayout(inp_lay)
+        
+        main_lay.addWidget(self.right_panel, stretch=1)
+        
+        # Load agents
+        self._agents_data = {
+            "IP Prime": {
+                "role": "Grand Coordinator & Command Center",
+                "desc": "Orchestrates database integration, system state monitoring, intent classification, and multi-agent coordination.",
+                "history": []
+            },
+            "Claude": {
+                "role": "Reasoning & Research Specialist",
+                "desc": "Provides deep logical analysis, complex code refactoring, system architecture blueprints, and mathematical reasoning.",
+                "history": []
+            },
+            "Hermes": {
+                "role": "Automation & Operations Commander",
+                "desc": "Manages system tasks, cron jobs, routine automations, background listeners, and Windows Task Scheduler integration.",
+                "history": []
+            },
+            "AntiGravity": {
+                "role": "Runtime Orchestration & Stability Engine",
+                "desc": "Monitors system resources, controls threads, watches active clipboard logs, and manages UI framework bindings.",
+                "history": []
+            },
+            "Obsidian": {
+                "role": "Security Sentinel",
+                "desc": "Audits dependencies, verifies file integrity, monitors network endpoints, and performs database encryption.",
+                "history": []
+            },
+            "Agent Inferno": {
+                "role": "Lead Tactician & Developer",
+                "desc": "Rapidly writes source code, runs automated build scripts, debugs compile errors, and checks syntax stability.",
+                "history": []
+            },
+            "Agent Zenith": {
+                "role": "Lead Architect & Code Auditor",
+                "desc": "Verifies structural SOLID standards, checks code styling compliance, and resolves architectural conflicts.",
+                "history": []
+            },
+            "IP Scout": {
+                "role": "Research Division",
+                "desc": "Crawls web pages, indexes documentation, summarizes online articles, and conducts facts research.",
+                "history": []
+            },
+            "IP Scribe": {
+                "role": "Content & Copywriting Division",
+                "desc": "Drafts documentation, formats reports in clean Markdown, writes email copy, and creates blog posts.",
+                "history": []
+            },
+            "IP Codex": {
+                "role": "Code Generation Division",
+                "desc": "Generates script templates, HTML templates, CSS themes, and layout templates.",
+                "history": []
+            },
+            "IP Lexicon": {
+                "role": "Translation & Localization Division",
+                "desc": "Handles tone preservation, language translation, and regional localization of data resources.",
+                "history": []
+            },
+            "IP Audit": {
+                "role": "Quality Assurance Division",
+                "desc": "Runs automated tests, audits accessibility (WCAG), and reviews pull request syntax.",
+                "history": []
+            }
+        }
+        
+        for name in self._agents_data:
+            self.agent_list.addItem(name)
+            
+        # Select first item
+        self.agent_list.setCurrentRow(0)
+        
+    def _on_agent_selected(self):
+        curr = self.agent_list.currentItem()
+        if not curr:
+            return
+        name = curr.text()
+        data = self._agents_data[name]
+        self.name_lbl.setText(name.upper())
+        self.role_lbl.setText(f"ROLE: {data['role'].upper()}")
+        self.desc_lbl.setText(data['desc'])
+        
+        # Display history
+        self.chat_display.clear()
+        if not data["history"]:
+            self.chat_display.append(f"Command terminal for {name} initialized. Ready for instructions.")
+        else:
+            for speaker, msg in data["history"]:
+                self.chat_display.append(f"[{speaker}]: {msg}")
+                
+    def _send_agent_command(self):
+        curr = self.agent_list.currentItem()
+        if not curr:
+            return
+        name = curr.text()
+        cmd = self.cmd_input.text().strip()
+        if not cmd:
+            return
+        self.cmd_input.clear()
+        
+        data = self._agents_data[name]
+        data["history"].append(("Pratik", cmd))
+        self.chat_display.append(f"[Pratik]: {cmd}")
+        self.chat_display.append(f"[{name}]: Processing instruction via unified workspace...")
+        
+        # Process command asynchronously using Saturday's command loop
+        if hasattr(self.main_win, "on_text_command") and self.main_win.on_text_command:
+            prompt = (
+                f"[AGENT_COMMAND] agent={name} | role={data['role']} | "
+                f"instruction={cmd} | Execute this task under the persona of {name}. "
+                f"Directly output the results clearly."
+            )
+            def _run():
+                self.main_win.on_text_command(prompt)
+            threading.Thread(target=_run, daemon=True).start()
+
+
 class StartFlyout(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Popup)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(300, 240)
+        self.setFixedSize(300, 290)
         
         # Main layout
         lay = QVBoxLayout(self)
@@ -2701,11 +2958,13 @@ class StartFlyout(QDialog):
         btn_cleanup = _btn("Memory\nClean", "🧹", lambda: self._trigger("cleanup"))
         btn_dashboard = _btn("Open\nWorkspace", "▦", lambda: self._trigger("workspace"))
         btn_clipboard = _btn("Clipboard\nAI", "📋", lambda: self._trigger("clipboard"))
+        btn_army = _btn("Agent\nArmy", "🛡️", lambda: self._trigger("army"))
         
         grid.addWidget(btn_vault, 0, 0)
         grid.addWidget(btn_cleanup, 0, 1)
         grid.addWidget(btn_dashboard, 1, 0)
         grid.addWidget(btn_clipboard, 1, 1)
+        grid.addWidget(btn_army, 2, 0, 1, 2)
         card_lay.addLayout(grid)
         
         lay.addWidget(card)
@@ -2819,6 +3078,10 @@ class MainWindow(QMainWindow):
         # Create Dashboard view
         self._dashboard = WorkspaceDashboard(self)
         self._stacked_widget.addWidget(self._dashboard)
+
+        # Create Agent Command Center view
+        self._agent_center = AgentCommandCenter(self)
+        self._stacked_widget.addWidget(self._agent_center)
 
         root.addWidget(self._stacked_widget, stretch=1)
  
@@ -4705,6 +4968,19 @@ class MainWindow(QMainWindow):
         self._widgets_anim.finished.connect(_on_finish)
         self._widgets_anim.start()
 
+    def _toggle_agent_center_view(self):
+        if not hasattr(self, "_stacked_widget") or not self._stacked_widget:
+            return
+        current_index = self._stacked_widget.currentIndex()
+        if current_index == 2:
+            self._stacked_widget.setCurrentIndex(0)
+            self._workspace_btn.setText("Workspace ▦")
+            self._log.append_log("SYS: Switched back to HUD view.")
+        else:
+            self._stacked_widget.setCurrentIndex(2)
+            self._workspace_btn.setText("Orb View 🔵")
+            self._log.append_log("SYS: Switched to Agent Command Center view.")
+
     def _show_start_flyout(self):
         flyout = StartFlyout(self)
         dx = int(self.x() + (self.width() - flyout.width()) / 2)
@@ -4721,7 +4997,9 @@ class MainWindow(QMainWindow):
                 self.hud._particles.clear()
                 self._log.append_log("SYS: Particle systems flushed.")
             elif act == "workspace":
-                self._toggle_dashboard_view()
+                self._toggle_workspace()
+            elif act == "army":
+                self._toggle_agent_center_view()
             elif act == "clipboard":
                 self._toggle_clipboard_ai()
 
@@ -4844,6 +5122,14 @@ class MainWindow(QMainWindow):
     def _update_last_response(self, text: str):
         self.hud._last_response = text
         self.hud.update()
+        if hasattr(self, "_agent_center") and self._agent_center and self._stacked_widget.currentIndex() == 2:
+            curr = self._agent_center.agent_list.currentItem()
+            if curr:
+                name = curr.text()
+                data = self._agent_center._agents_data[name]
+                clean_text = text.replace(f"[{name}]:", "").strip()
+                data["history"].append((name, clean_text))
+                self._agent_center.chat_display.append(f"[{name}]: {clean_text}")
 
     def _update_activity(self, text: str):
         self.hud._activity = text

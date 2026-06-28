@@ -275,6 +275,7 @@ ip-prime/
 - 🍎 **Apple OS-Style Widgets Sidebar** — Integrated a sliding widgets drawer on the left side of the window (toggled via `F3` or the Dock) containing weather reports, calendar/clock, CPU/RAM progress bars, and a persistent Quick Notes textbox.
 - 🎨 **System-Wide Rounded Window Corners** — Applied anti-aliased `12px` rounded corners on the main window central widget with header rounding to match the design aesthetics of premium desktop operating systems.
 - 🗂️ **Obsidian 00-06 Vault Layout Migration** — Automated vault reorganization to split and sort files into standardized numbered folders (`00 Notes` to `06 Ideas`) with templates, and updated the autocompiler, file classifier, voice notes, and memory manager to match.
+- 🛡️ **Specialized Agent Command Center** — Added a dedicated full-screen panel inside Saturday stacked widget (accessible via the Start Menu's "Agent Army" button) where users can click on any of the 12 specialized agents (e.g., Zenith, Inferno, Scribe), read their roles and descriptions, command them directly through a monospaced terminal chat, and receive responsive outputs.
 
 ### v9.x — *Dynamic Multi-Wave Orb, Control Center Flyout, Vocal Terminal logs HUD & Background Cleaner*
 - 🔮 **Dynamic Multi-Wave Orb & Particle FX** — Completely redesigned the central energy orb to render 4 independent phase-shifted translucent waves with frequency and amplitude modulations matching assistant states (Idle vs. Listening vs. Processing), coupled with a floating particle emission field.
