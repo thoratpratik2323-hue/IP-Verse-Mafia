@@ -71,6 +71,21 @@ class IPRayUI(_SelectedIPRayUI):
             pass
 
 
-__all__ = ["IPRayUI"]
+def get_ui():
+    try:
+        import ui_sat
+        return ui_sat.get_ui()
+    except Exception:
+        return None
+
+
+def get_main_window():
+    u = get_ui()
+    if u and hasattr(u, "_win"):
+        return u._win
+    return None
+
+
+__all__ = ["IPRayUI", "get_ui", "get_main_window"]
 
 

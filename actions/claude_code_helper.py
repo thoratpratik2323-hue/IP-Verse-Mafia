@@ -166,8 +166,8 @@ def stop_proxy_server() -> str:
     except Exception as e:
         return f"Failed to terminate proxy: {e}"
 
-def execute_claude_task(instruction: str) -> str:
-    """Executes a non-interactive Claude Code CLI command on the workspace."""
+def execute_claude_task(instruction: str, player: Optional[Any] = None) -> str:
+    """Executes a non-interactive Claude Code CLI command on the workspace and streams output."""
     if not clone_proxy():
         return "Error: Could not retrieve free-claude-code proxy, sir."
         
@@ -178,6 +178,10 @@ def execute_claude_task(instruction: str) -> str:
         return "Error: Could not launch local proxy server on port 8082, sir."
 
     print(f"[Claude Code Helper] Sending instruction: '{instruction}'")
+    
+    if player and hasattr(player, "set_console_visible"):
+        player.set_console_visible(True)
+        player.write_log(f"SYS: Launching Claude Code task: '{instruction}'...")
     
     # Configure custom environment variables
     env = os.environ.copy()
@@ -194,17 +198,31 @@ def execute_claude_task(instruction: str) -> str:
     ]
     
     try:
-        proc = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             cwd=str(BASE_DIR),
             env=env,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=180
+            bufsize=1,
+            encoding="utf-8"
         )
         
-        output = proc.stdout or ""
-        error = proc.stderr or ""
+        output_lines = []
+        for line in proc.stdout:
+            clean_line = line.replace("\x1b", "").replace("[2K", "").strip()
+            if clean_line:
+                print(f"[Claude Code] {clean_line}")
+                output_lines.append(line)
+                if player and hasattr(player, "write_log"):
+                    player.write_log(f"CLAUDE: {clean_line}")
+                    
+        stderr_output = proc.stderr.read()
+        proc.wait(timeout=10)
+        
+        output = "".join(output_lines)
+        error = stderr_output or ""
         
         # Clean escape sequences or styling from console outputs
         clean_out = output.replace("\x1b", "").replace("[2K", "")
@@ -214,14 +232,23 @@ def execute_claude_task(instruction: str) -> str:
             response.append(f"### [CLAUDE CODE OUTPUT]\n{clean_out}")
         if error.strip() and proc.returncode != 0:
             response.append(f"### [CLAUDE CODE ERROR (Code {proc.returncode})]\n{error}")
+            if player and hasattr(player, "write_log"):
+                player.write_log(f"SYS: Claude Code failed with error: {error.strip()}")
             
         if not response:
             return "Claude Code completed execution with zero output, sir."
             
+        if player and hasattr(player, "write_log"):
+            player.write_log("SYS: Claude Code task completed successfully.")
+            
         return "\n\n".join(response)
     except subprocess.TimeoutExpired:
+        if player and hasattr(player, "write_log"):
+            player.write_log("SYS: Claude Code execution timed out.")
         return "Error: Claude Code execution timed out after 3 minutes, sir."
     except Exception as e:
+        if player and hasattr(player, "write_log"):
+            player.write_log(f"SYS: Error running Claude Code: {e}")
         return f"Error executing Claude Code: {e}"
 
 def claude_code_helper(parameters: dict[str, Any], player: Optional[Any] = None, speak: Optional[Any] = None) -> str:
@@ -235,7 +262,7 @@ def claude_code_helper(parameters: dict[str, Any], player: Optional[Any] = None,
     if action == "run":
         if not instruction:
             return "Please provide a valid developer 'instruction' to run, sir."
-        return execute_claude_task(instruction)
+        return execute_claude_task(instruction, player)
     elif action == "start_proxy":
         clone_proxy()
         check_and_install_dependencies()
