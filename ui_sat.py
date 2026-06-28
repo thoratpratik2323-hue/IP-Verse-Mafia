@@ -3184,9 +3184,8 @@ class VirtualOSWorkspace(QWidget):
         try:
             import os
             for root_dir, dirs, files in os.walk("."):
-                # Prune virtual environments and git folders
-                if any(x in root_dir for x in (".venv", ".git", "__pycache__", ".pytest_cache")):
-                    continue
+                # Prune directory list in-place to prevent traversing large folders
+                dirs[:] = [d for d in dirs if d not in (".venv", ".git", "__pycache__", ".pytest_cache", "build", "dist")]
                 for f in files:
                     rel = os.path.relpath(os.path.join(root_dir, f), ".")
                     rel_normal = rel.replace("\\", "/")
