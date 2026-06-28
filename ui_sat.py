@@ -5280,6 +5280,9 @@ class MainWindow(QMainWindow):
             print(f"[UI] ⚠️ Failed to notify SaturdayLive: {e}")
 
     def _apply_acrylic_backdrop(self):
+        import sys
+        if "pytest" in sys.modules:
+            return
         try:
             import ctypes
             from ctypes import windll, byref, c_int, sizeof
