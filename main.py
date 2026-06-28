@@ -73,10 +73,15 @@ try:
                 self.SAMPLE_RATE = sample_rate
                 self.CHUNK = chunk_size
                 self.SAMPLE_WIDTH = 2
-                self.audio_queue = queue.Queue()
+                self.audio_queue = queue.Queue(maxsize=30)
                 self.sd_stream = None
 
             def callback(self, indata, frames, time, status):
+                if self.audio_queue.full():
+                    try:
+                        self.audio_queue.get_nowait()
+                    except queue.Empty:
+                        pass
                 self.audio_queue.put(bytes(indata))
 
             def start(self):

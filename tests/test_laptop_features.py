@@ -92,14 +92,13 @@ class TestLaptopFeatures(unittest.TestCase):
         from PyQt6.QtWidgets import QApplication
         app = QApplication.instance() or QApplication([])
 
-        from ui_core import MainWindow
+        from ui_sat import MainWindow
         # Mock API file load to prevent config write during test
         mock_api = MagicMock()
         mock_api.read_text.return_value = "{}"
         
-        with patch("ui_core.API_FILE", mock_api), \
-             patch("ui_core.MainWindow.setup_system_tray"), \
-             patch("ui_core.MainWindow.register_global_hotkeys"), \
+        with patch("ui_sat.API_FILE", mock_api), \
+             patch("ui_sat.MainWindow._setup_tray_icon"), \
              patch("PyQt6.QtWidgets.QMainWindow.show"), \
              patch("PyQt6.QtWidgets.QMainWindow.hide"), \
              patch("PyQt6.QtWidgets.QMainWindow.showNormal"):

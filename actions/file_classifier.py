@@ -43,9 +43,9 @@ class FileClassifierThread(threading.Thread):
                 
     def _classify_downloads(self):
         # Category subfolders
-        study_dir = self.second_brain_dir / "Study"
-        code_dir = self.second_brain_dir / "Code"
-        archive_dir = self.second_brain_dir / "Archive"
+        study_dir = self.second_brain_dir / "00 Notes"
+        code_dir = self.second_brain_dir / "03 Projects"
+        archive_dir = self.second_brain_dir / "00 Notes"
         
         # Extensions mapping
         study_exts = {".pdf", ".pptx", ".ppt", ".docx", ".doc", ".xlsx", ".txt"}

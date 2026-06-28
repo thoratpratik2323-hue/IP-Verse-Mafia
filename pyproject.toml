@@ -53,3 +53,8 @@ dev = [
     "pyflakes",
     "pytest",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]

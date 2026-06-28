@@ -24,21 +24,32 @@ def is_port_open(host: str, port: int) -> bool:
         s.settimeout(1.0)
         return s.connect_ex((host, port)) == 0
 
+
 def check_and_install_dependencies():
-    """Ensures fastapi, uvicorn, httpx, and python-dotenv are installed."""
+    """Ensures all required third-party libraries for free-claude-code are installed."""
     try:
         import fastapi
         import uvicorn
         import httpx
         import dotenv
+        import loguru
+        import tiktoken
+        import pydantic_settings
+        import openai
+        import aiohttp
+        import jsonschema
     except ImportError:
         print("[Claude Code Helper] Installing required python libraries...")
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "httpx", "python-dotenv", "loguru"],
+            [
+                sys.executable, "-m", "pip", "install",
+                "fastapi[standard]", "uvicorn", "httpx[socks]", "markdown-it-py",
+                "pydantic", "python-dotenv", "tiktoken", "pydantic-settings",
+                "openai", "loguru", "aiohttp", "jsonschema"
+            ],
             capture_output=True,
             text=True
         )
-
 def setup_env():
     """Generates the .env configuration for free-claude-code using api_keys.json."""
     if not API_KEYS_PATH.exists():
@@ -108,11 +119,11 @@ def start_proxy_server() -> bool:
             cwd=str(PROXY_DIR),
             stdout=log_f,
             stderr=log_f,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+            creationflags=(subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS | subprocess.CREATE_BREAKAWAY_FROM_JOB) if os.name == "nt" else 0
         )
         
-        # Wait up to 10 seconds for startup
-        for _ in range(20):
+        # Wait up to 30 seconds for startup
+        for _ in range(60):
             time.sleep(0.5)
             if is_port_open("127.0.0.1", 8082):
                 print("[Claude Code Helper] Proxy server successfully started.")

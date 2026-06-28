@@ -433,7 +433,7 @@ def save_shutdown_summary() -> bool:
     second_brain_dir = Path.home() / "Documents" / "SecondBrain"
     if second_brain_dir.exists():
         try:
-            daily_dir = second_brain_dir / "daily"
+            daily_dir = second_brain_dir / "01 Journals"
             daily_dir.mkdir(parents=True, exist_ok=True)
             today_str = datetime.now().strftime("%Y-%m-%d")
             daily_file = daily_dir / f"{today_str}.md"
@@ -457,7 +457,7 @@ def save_shutdown_summary() -> bool:
             
             new_content = existing_content + "\n".join(session_block)
             daily_file.write_text(new_content, encoding="utf-8")
-            print(f"[Memory] [OK] Flushed session recap to Second Brain daily log at daily/{today_str}.md")
+            print(f"[Memory] [OK] Flushed session recap to Second Brain daily log at 01 Journals/{today_str}.md")
             
             # Auto-check daily journal habit
             try:

@@ -4,7 +4,7 @@ from typing import Optional, Any
 from google import genai
 
 VAULT_DIR = Path.home() / "Documents" / "SecondBrain"
-NOTES_DIR = VAULT_DIR / "notes"
+NOTES_DIR = VAULT_DIR / "00 Notes"
 
 def save_voice_note(content: str, player: Optional[Any] = None) -> str:
     """Transcribes, structures, and saves a voice note to the SecondBrain vault."""

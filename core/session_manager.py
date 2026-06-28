@@ -1094,47 +1094,47 @@ class SaturdayLive:
 
         print("[SATURDAY] 🎙️ Standing by. Listening locally for wake-word...")
         
-        while True:
-            # If user unchecks enable wake word in settings, break and connect directly
-            settings = self.ui._load_settings()
-            if not settings.get("wake_word_enabled", False):
-                print("[SATURDAY] Wake word disabled in settings. Connecting immediately.")
-                break
-                
-            try:
-                with mic as source:
-                    audio = r.listen(source, timeout=1.0, phrase_time_limit=3.0)
-                
-                from core.offline_fallback import is_internet_available
-                if not is_internet_available():
-                    from core.local_stt import transcribe_audio_locally
-                    text = transcribe_audio_locally(audio)
-                    if text.startswith("ERROR_"):
-                        if not text.startswith("ERROR_TIMEOUT"):
-                            self.ui.write_log(f"STT: {text}")
-                        text = ""
-                else:
-                    text = r.recognize_google(audio, language="en-IN")
-                    
-                text = text.lower().strip()
-                print(f"[WAKE WORD SEARCH] Heard: {text}")
-                
-                if "saturday" in text or "sat" in text or "satar" in text:
-                    print("[SATURDAY] 🎉 Wake word detected!")
-                    self.ui.show_custom_alert(
-                        "Waking Up", 
-                        "Saturday has detected the wake word and is now connecting online.", 
-                        "wake"
-                    )
+        with mic as source:
+            while True:
+                # If user unchecks enable wake word in settings, break and connect directly
+                settings = self.ui._load_settings()
+                if not settings.get("wake_word_enabled", False):
+                    print("[SATURDAY] Wake word disabled in settings. Connecting immediately.")
                     break
-            except sr.WaitTimeoutError:
-                continue
-            except sr.UnknownValueError:
-                continue
-            except Exception as e:
-                print(f"[WARN] Wake-word listening exception: {e}")
-                time.sleep(0.5)
-                continue
+                    
+                try:
+                    audio = r.listen(source, timeout=1.0, phrase_time_limit=3.0)
+                    
+                    from core.offline_fallback import is_internet_available
+                    if not is_internet_available():
+                        from core.local_stt import transcribe_audio_locally
+                        text = transcribe_audio_locally(audio)
+                        if text.startswith("ERROR_"):
+                            if not text.startswith("ERROR_TIMEOUT"):
+                                self.ui.write_log(f"STT: {text}")
+                            text = ""
+                    else:
+                        text = r.recognize_google(audio, language="en-IN")
+                        
+                    text = text.lower().strip()
+                    print(f"[WAKE WORD SEARCH] Heard: {text}")
+                    
+                    if "saturday" in text or "sat" in text or "satar" in text:
+                        print("[SATURDAY] 🎉 Wake word detected!")
+                        self.ui.show_custom_alert(
+                            "Waking Up", 
+                            "Saturday has detected the wake word and is now connecting online.", 
+                            "wake"
+                        )
+                        break
+                except sr.WaitTimeoutError:
+                    continue
+                except sr.UnknownValueError:
+                    continue
+                except Exception as e:
+                    print(f"[WARN] Wake-word listening exception: {e}")
+                    time.sleep(0.5)
+                    continue
 
     async def _monitor_idle(self):
         self._last_user_activity = time.time()

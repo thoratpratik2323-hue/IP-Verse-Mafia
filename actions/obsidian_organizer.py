@@ -88,20 +88,38 @@ def run_categorize(vault_path: Path, parameters: dict) -> str:
         return f"Failed to read note '{note_name}': {e}"
 
     # Determine category based on tags or manual override
-    category = parameters.get("category", "").strip().capitalize()
-    if not category:
+    category = parameters.get("category", "").strip()
+    if category:
+        # Check case-insensitive match against standard folders
+        standards = {
+            "notes": "00 Notes", "00 notes": "00 Notes",
+            "journals": "01 Journals", "01 journals": "01 Journals",
+            "planning": "02 Planning", "02 planning": "02 Planning",
+            "projects": "03 Projects", "03 projects": "03 Projects",
+            "reviews": "04 Reviews", "04 reviews": "04 Reviews",
+            "skills": "05 Skills", "05 skills": "05 Skills",
+            "ideas": "06 Ideas", "06 ideas": "06 Ideas"
+        }
+        category = standards.get(category.lower(), category)
+    else:
         # Simple rule-based tag scanner
         tags = [t.lower() for t in re.findall(r"#\w+", content)]
-        if any(t in tags for t in ["#work", "#job", "#office", "#meeting"]):
-            category = "Work"
-        elif any(t in tags for t in ["#personal", "#diary", "#journal", "#todo"]):
-            category = "Personal"
-        elif any(t in tags for t in ["#research", "#study", "#paper", "#learn"]):
-            category = "Research"
-        elif any(t in tags for t in ["#project", "#dev", "#code", "#sat"]):
-            category = "Projects"
+        if any(t in tags for t in ["#notes", "#reference", "#knowledge", "#study", "#research", "#paper", "#learn"]):
+            category = "00 Notes"
+        elif any(t in tags for t in ["#journal", "#daily", "#diary", "#reflection"]):
+            category = "01 Journals"
+        elif any(t in tags for t in ["#planning", "#goals", "#strategy", "#target"]):
+            category = "02 Planning"
+        elif any(t in tags for t in ["#project", "#dev", "#code", "#sat", "#build"]):
+            category = "03 Projects"
+        elif any(t in tags for t in ["#review", "#weekly", "#monthly", "#yearly", "#audit"]):
+            category = "04 Reviews"
+        elif any(t in tags for t in ["#skill", "#routine", "#how-to", "#practice", "#recipe"]):
+            category = "05 Skills"
+        elif any(t in tags for t in ["#idea", "#capture", "#concept", "#draft"]):
+            category = "06 Ideas"
         else:
-            category = "Inbox"
+            category = "06 Ideas"
 
     dest_dir = vault_path / category
     dest_dir.mkdir(parents=True, exist_ok=True)
