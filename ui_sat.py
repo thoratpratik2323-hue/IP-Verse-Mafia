@@ -17,7 +17,7 @@ import psutil
 
 from PyQt6.QtCore import (
     QEasingCurve, QMimeData, QObject, QPointF, QRectF, QSize, Qt,
-    QTimer, QUrl, pyqtSignal, QVariantAnimation, QTime, QDate,
+    QTimer, QUrl, pyqtSignal, QVariantAnimation, QTime, QDate, pyqtSlot,
 )
 from PyQt6.QtGui import (
     QBrush, QColor, QDragEnterEvent, QDropEvent, QFont, QFontDatabase,
@@ -1534,6 +1534,17 @@ class LogWidget(QTextEdit):
         self._sig.emit(text)
 
     def _enqueue(self, text: str):
+        if text.startswith("[TERM_OUTPUT]"):
+            clean = text.replace("[TERM_OUTPUT] ", "")
+            p = self.parent()
+            while p is not None:
+                if hasattr(p, "_virtual_workspace"):
+                    if p._virtual_workspace:
+                        p._virtual_workspace.term_display.append(clean)
+                    break
+                p = p.parent()
+            return
+            
         self._queue.append(text)
         if len(self._queue) > 30:
             self._queue = self._queue[-30:]
@@ -2636,6 +2647,287 @@ class WidgetsSidebar(QWidget):
         self._ram_lbl_val.setText(f"{int(mem)}%")
 
 
+class VirtualOSWorkspace(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.main_win = parent
+        self.setStyleSheet("background: transparent;")
+        
+        # Outer horizontal layout: Left explorer, Right tabbed workspace
+        main_lay = QHBoxLayout(self)
+        main_lay.setContentsMargins(15, 15, 15, 15)
+        main_lay.setSpacing(15)
+        
+        # --- LEFT PANEL: File Explorer ---
+        left_panel = QFrame()
+        left_panel.setFixedWidth(240)
+        left_panel.setStyleSheet(f"""
+            QFrame {{
+                background: {C.PANEL};
+                border: 1px solid {C.BORDER};
+                border-radius: 8px;
+            }}
+        """)
+        left_lay = QVBoxLayout(left_panel)
+        left_lay.setContentsMargins(10, 10, 10, 10)
+        left_lay.setSpacing(8)
+        
+        title_lbl = QLabel("📁 WORKSPACE FILES")
+        title_lbl.setFont(QFont("Courier New", 9, QFont.Weight.Bold))
+        title_lbl.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent;")
+        left_lay.addWidget(title_lbl)
+        
+        self.file_list = QListWidget()
+        self.file_list.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.file_list.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.file_list.setStyleSheet(f"""
+            QListWidget {{
+                background: transparent;
+                border: none;
+                color: white;
+            }}
+            QListWidget::item {{
+                padding: 6px;
+                border-bottom: 1px solid {hex_to_rgba_str(C.BORDER, 0.2)};
+            }}
+            QListWidget::item:selected {{
+                background: {C.PRI_GHO};
+                color: {C.PRI};
+                border-radius: 4px;
+            }}
+        """)
+        self.file_list.itemSelectionChanged.connect(self._on_file_selected)
+        left_lay.addWidget(self.file_list)
+        
+        # Refresh explorer button
+        refresh_btn = QPushButton("🔄 REFRESH FILES")
+        refresh_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        refresh_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: 1px solid {C.PRI_DIM};
+                border-radius: 4px;
+                color: {C.PRI};
+                padding: 6px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI_GHO};
+            }}
+        """)
+        refresh_btn.clicked.connect(self.scan_workspace)
+        left_lay.addWidget(refresh_btn)
+        
+        # Back to main window button
+        back_btn = QPushButton("◀ BACK TO HUD")
+        back_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: 1px solid {C.PRI_DIM};
+                border-radius: 4px;
+                color: {C.PRI};
+                padding: 6px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI_GHO};
+            }}
+        """)
+        back_btn.clicked.connect(lambda: self.main_win._stacked_widget.setCurrentIndex(0))
+        left_lay.addWidget(back_btn)
+        
+        main_lay.addWidget(left_panel)
+        
+        # --- RIGHT PANEL: Tabbed Workspace ---
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setStyleSheet(f"""
+            QTabWidget::panel {{
+                background: {C.PANEL2};
+                border: 1px solid {C.BORDER};
+                border-radius: 8px;
+            }}
+            QTabBar::tab {{
+                background: rgba(0,0,0,0.3);
+                border: 1px solid {C.BORDER};
+                border-bottom: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                color: {C.TEXT_MED};
+                padding: 6px 12px;
+                font: bold 8pt "Courier New";
+            }}
+            QTabBar::tab:selected {{
+                background: {C.PANEL2};
+                color: {C.PRI};
+                border-bottom: none;
+            }}
+        """)
+        
+        # Tab 1: Live Code Editor / Viewer
+        self.editor_tab = QWidget()
+        ed_lay = QVBoxLayout(self.editor_tab)
+        ed_lay.setContentsMargins(10, 10, 10, 10)
+        
+        self.active_file_lbl = QLabel("No file selected")
+        self.active_file_lbl.setFont(QFont("Courier New", 9, QFont.Weight.Bold))
+        self.active_file_lbl.setStyleSheet(f"color: {C.PRI};")
+        ed_lay.addWidget(self.active_file_lbl)
+        
+        self.code_viewer = QTextEdit()
+        self.code_viewer.setReadOnly(True)
+        self.code_viewer.setFont(QFont("Consolas", 9))
+        self.code_viewer.setStyleSheet(f"background: rgba(0, 0, 0, 0.4); color: #85e89d; border: 1px solid {C.BORDER}; border-radius: 4px; padding: 6px;")
+        ed_lay.addWidget(self.code_viewer)
+        
+        self.tab_widget.addTab(self.editor_tab, "📄 CODE VIEWER")
+        
+        # Tab 2: Virtual Sandbox Terminal
+        self.terminal_tab = QWidget()
+        term_lay = QVBoxLayout(self.terminal_tab)
+        term_lay.setContentsMargins(10, 10, 10, 10)
+        
+        self.term_display = QTextEdit()
+        self.term_display.setReadOnly(True)
+        self.term_display.setFont(QFont("Courier New", 8))
+        self.term_display.setStyleSheet(f"background: rgba(0, 0, 0, 0.5); color: {C.PRI}; border: 1px solid {C.BORDER}; border-radius: 4px; padding: 6px;")
+        self.term_display.append("Saturday Virtual OS Terminal v1.0. Type commands below.\n")
+        term_lay.addWidget(self.term_display)
+        
+        inp_lay = QHBoxLayout()
+        inp_lay.setSpacing(6)
+        self.term_input = QLineEdit()
+        self.term_input.setFont(QFont("Courier New", 9))
+        self.term_input.setPlaceholderText("Type virtual terminal command...")
+        self.term_input.setStyleSheet(f"background: rgba(0, 0, 0, 0.4); color: white; border: 1px solid {C.BORDER}; border-radius: 4px; padding: 6px;")
+        self.term_input.returnPressed.connect(self._run_terminal_command)
+        inp_lay.addWidget(self.term_input)
+        
+        run_btn = QPushButton("RUN")
+        run_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        run_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.PRI_GHO};
+                border: 1px solid {C.PRI};
+                border-radius: 4px;
+                color: {C.PRI};
+                padding: 6px 12px;
+            }}
+            QPushButton:hover {{
+                background: {C.PRI};
+                color: black;
+            }}
+        """)
+        run_btn.clicked.connect(self._run_terminal_command)
+        inp_lay.addWidget(run_btn)
+        term_lay.addLayout(inp_lay)
+        
+        self.tab_widget.addTab(self.terminal_tab, "📟 SANDBOX CLI")
+        
+        # Tab 3: Embedded Virtual Browser screenshot view
+        self.browser_tab = QWidget()
+        br_lay = QVBoxLayout(self.browser_tab)
+        br_lay.setContentsMargins(10, 10, 10, 10)
+        
+        self.browser_status_lbl = QLabel("No active browser session")
+        self.browser_status_lbl.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.browser_status_lbl.setStyleSheet(f"color: {C.ACC2};")
+        br_lay.addWidget(self.browser_status_lbl)
+        
+        self.browser_view = QLabel()
+        self.browser_view.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.browser_view.setStyleSheet(f"background: rgba(0, 0, 0, 0.3); border: 1px solid {C.BORDER}; border-radius: 4px;")
+        br_lay.addWidget(self.browser_view, stretch=1)
+        
+        self.tab_widget.addTab(self.browser_tab, "🌐 VIRTUAL BROWSER")
+        
+        main_lay.addWidget(self.tab_widget, stretch=1)
+        
+        # Initial scan
+        self.scan_workspace()
+        
+    def scan_workspace(self):
+        self.file_list.clear()
+        try:
+            import os
+            for root_dir, dirs, files in os.walk("."):
+                # Prune virtual environments and git folders
+                if any(x in root_dir for x in (".venv", ".git", "__pycache__", ".pytest_cache")):
+                    continue
+                for f in files:
+                    rel = os.path.relpath(os.path.join(root_dir, f), ".")
+                    rel_normal = rel.replace("\\", "/")
+                    if rel_normal.endswith((".py", ".json", ".txt", ".md", ".toml", ".bat", ".html")):
+                        self.file_list.addItem(rel_normal)
+        except Exception as e:
+            self.file_list.addItem(f"Error scanning workspace: {e}")
+            
+    def _on_file_selected(self):
+        curr = self.file_list.currentItem()
+        if not curr:
+            return
+        self.load_file(curr.text())
+        
+    def load_file(self, filepath: str):
+        try:
+            import os
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                self.active_file_lbl.setText(f"📄 {filepath}")
+                self.code_viewer.setPlainText(content)
+                self.tab_widget.setCurrentIndex(0)
+            else:
+                self.active_file_lbl.setText(f"File not found: {filepath}")
+        except Exception as e:
+            self.active_file_lbl.setText(f"Error loading {filepath}")
+            self.code_viewer.setPlainText(str(e))
+            
+    @pyqtSlot(str, str)
+    def display_code_update(self, filepath: str, code: str):
+        # Auto-focus code tab and highlight/show the new code
+        self.active_file_lbl.setText(f"📄 {filepath} (Updated by Saturday)")
+        self.code_viewer.setPlainText(code)
+        self.tab_widget.setCurrentIndex(0)
+        # Select matching item in file explorer list if present
+        for i in range(self.file_list.count()):
+            if self.file_list.item(i).text() == filepath:
+                self.file_list.setCurrentRow(i)
+                break
+                
+    def _run_terminal_command(self):
+        cmd = self.term_input.text().strip()
+        if not cmd:
+            return
+        self.term_input.clear()
+        self.term_display.append(f"\n$ {cmd}")
+        
+        # Execute sandboxed command asynchronously
+        def _exec():
+            try:
+                import subprocess
+                proc = subprocess.run(
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                    encoding="utf-8",
+                    errors="ignore"
+                )
+                out = proc.stdout or ""
+                err = proc.stderr or ""
+                
+                self.main_win._log_sig.emit(f"[TERM_OUTPUT] {out}")
+                if err:
+                    self.main_win._log_sig.emit(f"[TERM_OUTPUT] ERROR: {err}")
+            except Exception as e:
+                self.main_win._log_sig.emit(f"[TERM_OUTPUT] Execution failed: {e}")
+                
+        threading.Thread(target=_exec, daemon=True).start()
+
+
 class AgentCommandCenter(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -2898,7 +3190,7 @@ class StartFlyout(QDialog):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Popup)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(300, 290)
+        self.setFixedSize(300, 340)
         
         # Main layout
         lay = QVBoxLayout(self)
@@ -2959,12 +3251,14 @@ class StartFlyout(QDialog):
         btn_dashboard = _btn("Open\nWorkspace", "▦", lambda: self._trigger("workspace"))
         btn_clipboard = _btn("Clipboard\nAI", "📋", lambda: self._trigger("clipboard"))
         btn_army = _btn("Agent\nArmy", "🛡️", lambda: self._trigger("army"))
+        btn_vworkspace = _btn("Virtual\nOS", "🖥️", lambda: self._trigger("vworkspace"))
         
         grid.addWidget(btn_vault, 0, 0)
         grid.addWidget(btn_cleanup, 0, 1)
         grid.addWidget(btn_dashboard, 1, 0)
         grid.addWidget(btn_clipboard, 1, 1)
-        grid.addWidget(btn_army, 2, 0, 1, 2)
+        grid.addWidget(btn_army, 2, 0)
+        grid.addWidget(btn_vworkspace, 2, 1)
         card_lay.addLayout(grid)
         
         lay.addWidget(card)
@@ -3082,6 +3376,10 @@ class MainWindow(QMainWindow):
         # Create Agent Command Center view
         self._agent_center = AgentCommandCenter(self)
         self._stacked_widget.addWidget(self._agent_center)
+
+        # Create Virtual OS Workspace view
+        self._virtual_workspace = VirtualOSWorkspace(self)
+        self._stacked_widget.addWidget(self._virtual_workspace)
 
         root.addWidget(self._stacked_widget, stretch=1)
  
@@ -4981,6 +5279,21 @@ class MainWindow(QMainWindow):
             self._workspace_btn.setText("Orb View 🔵")
             self._log.append_log("SYS: Switched to Agent Command Center view.")
 
+    @pyqtSlot()
+    def _toggle_virtual_workspace(self):
+        if not hasattr(self, "_stacked_widget") or not self._stacked_widget:
+            return
+        current_index = self._stacked_widget.currentIndex()
+        if current_index == 3:
+            self._stacked_widget.setCurrentIndex(0)
+            self._workspace_btn.setText("Workspace ▦")
+            self._log.append_log("SYS: Switched back to HUD view.")
+        else:
+            self._stacked_widget.setCurrentIndex(3)
+            self._workspace_btn.setText("Orb View 🔵")
+            self._virtual_workspace.scan_workspace()
+            self._log.append_log("SYS: Switched to Virtual OS Workspace view.")
+
     def _show_start_flyout(self):
         flyout = StartFlyout(self)
         dx = int(self.x() + (self.width() - flyout.width()) / 2)
@@ -5000,6 +5313,8 @@ class MainWindow(QMainWindow):
                 self._toggle_workspace()
             elif act == "army":
                 self._toggle_agent_center_view()
+            elif act == "vworkspace":
+                self._toggle_virtual_workspace()
             elif act == "clipboard":
                 self._toggle_clipboard_ai()
 

@@ -241,6 +241,41 @@ def execute_claude_task(instruction: str, player: Optional[Any] = None) -> str:
         if player and hasattr(player, "write_log"):
             player.write_log("SYS: Claude Code task completed successfully.")
             
+        # Dynamically find modified files using git status
+        try:
+            status_proc = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, cwd=str(BASE_DIR))
+            status_lines = status_proc.stdout.splitlines()
+            modified_files = []
+            for status_line in status_lines:
+                parts = status_line.strip().split(maxsplit=1)
+                if len(parts) == 2 and parts[0] in ("M", "A", "AM"):
+                    modified_files.append(parts[1].replace("\\", "/"))
+            if modified_files and player:
+                target_file = modified_files[0]
+                full_path = BASE_DIR / target_file
+                if full_path.exists():
+                    with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                        code_content = f.read()
+                    from PyQt6.QtCore import QMetaObject, Qt, Q_ARG
+                    if hasattr(player, "_win") and player._win:
+                        if hasattr(player._win, "_virtual_workspace") and player._win._virtual_workspace:
+                            QMetaObject.invokeMethod(
+                                player._win._virtual_workspace,
+                                "display_code_update",
+                                Qt.ConnectionType.QueuedConnection,
+                                Q_ARG(str, target_file),
+                                Q_ARG(str, code_content)
+                            )
+                            player.write_log(f"SYS: Auto-loaded modified file '{target_file}' in Virtual OS Code Viewer.")
+                            # Auto-focus the Virtual Workspace view!
+                            QMetaObject.invokeMethod(
+                                player._win,
+                                "_toggle_virtual_workspace",
+                                Qt.ConnectionType.QueuedConnection
+                            )
+        except Exception as git_err:
+            print(f"[Claude Code Helper] Failed to auto-load modified file: {git_err}")
+            
         return "\n\n".join(response)
     except subprocess.TimeoutExpired:
         if player and hasattr(player, "write_log"):
