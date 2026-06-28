@@ -2614,6 +2614,18 @@ def start_ipc_watcher(ui):
         time.sleep(1)
 
 def main():
+    import socket
+    import sys
+    
+    global _instance_lock
+    try:
+        _instance_lock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Bind to a local port dedicated to this instance check
+        _instance_lock.bind(("127.0.0.1", 49152))
+    except socket.error:
+        print("[IP PRIME] ⚠️ Another instance of Saturday/IP Prime is already running! Exiting duplicate process to prevent resource conflict.")
+        sys.exit(0)
+
     import atexit
 
     try:
