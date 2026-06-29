@@ -1,3 +1,18 @@
 {
-    "habits": []
+    "habits": [
+        {
+            "name": "Chess playing",
+            "frequency": "daily",
+            "streak": 0,
+            "last_checked": "",
+            "created_at": "2026-06-28"
+        },
+        {
+            "name": "Study/Coding",
+            "frequency": "daily",
+            "streak": 0,
+            "last_checked": "",
+            "created_at": "2026-06-28"
+        }
+    ]
 }

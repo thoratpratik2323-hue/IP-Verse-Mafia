@@ -2601,7 +2601,7 @@ def start_ipc_watcher(ui):
     import time
     from pathlib import Path
     
-    ipc_file = Path(r"D:\primes output\ip_prime_ipc.json")
+    ipc_file = Path(r"C:\Users\thora\Downloads\output\ip_prime_ipc.json")
     print(f"[IP PRIME IPC] 🛡️ Watching for IPC signals at: {ipc_file}")
     
     # Clear file if it exists with completed/pending status

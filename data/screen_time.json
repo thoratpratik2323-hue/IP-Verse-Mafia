@@ -1,18 +1,8 @@
 {
-    "date": "2026-06-27",
+    "date": "2026-06-29",
     "apps": {
-        "python": 1920,
-        "antigravity": 2980,
-        "explorer": 780,
-        "firefox": 30,
-        "cmd": 2330,
-        "msedge": 370,
-        "windowsterminal": 100,
-        "applicationframehost": 70,
-        "pickerhost": 10,
-        "powershell": 310
+        "python": 140,
+        "explorer": 10
     },
-    "limits": {
-        "chrome": 7200
-    }
+    "limits": {}
 }

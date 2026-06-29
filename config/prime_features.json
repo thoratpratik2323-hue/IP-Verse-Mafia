@@ -44,7 +44,7 @@
     "note": "PyQt6 remains primary UI; run python prime_api.py or see desktop-tauri/README.md"
   },
   "workspace": {
-    "root": "D:\\primes output",
+    "root": "C:\\Users\\thora\\Downloads\\output",
     "auto_save_all": true
   },
   "gesture_control": {

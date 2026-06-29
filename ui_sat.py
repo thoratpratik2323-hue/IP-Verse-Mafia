@@ -18,18 +18,19 @@ import psutil
 from PyQt6.QtCore import (
     QEasingCurve, QMimeData, QObject, QPointF, QRectF, QSize, Qt,
     QTimer, QUrl, pyqtSignal, QVariantAnimation, QTime, QDate, pyqtSlot,
+    QMetaObject,
 )
 from PyQt6.QtGui import (
     QBrush, QColor, QDragEnterEvent, QDropEvent, QFont, QFontDatabase,
     QKeySequence, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap,
-    QRadialGradient, QShortcut, QIcon, QFileSystemModel,
+    QRadialGradient, QShortcut, QIcon, QFileSystemModel, QTextCursor,
 )
 from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy, QTextEdit,
     QVBoxLayout, QWidget, QProgressBar, QSystemTrayIcon, QMenu, QStyle,
     QDialog, QCheckBox, QListWidget, QComboBox, QStackedWidget, QGridLayout,
-    QTreeView, QHeaderView, QTabWidget,
+    QTreeView, QHeaderView, QTabWidget, QSplitter,
 )
 from PyQt6.QtMultimedia import QSoundEffect
 
@@ -1537,6 +1538,25 @@ class LogWidget(QTextEdit):
         self._sig.emit(text)
 
     def _enqueue(self, text: str):
+        if "[Executor]" in text and ("Code saved to:" in text or "Running generated code:" in text):
+            file_path = None
+            m = re.search(r"Code saved to: (.*\.py)", text)
+            if not m:
+                m = re.search(r"Running generated code: (.*\.py)", text)
+            if m:
+                file_path = m.group(1).strip()
+            
+            p = self.parent()
+            while p is not None:
+                if hasattr(p, "open_ai_coding_workspace"):
+                    p.open_ai_coding_workspace(file_path)
+                    if "Running generated code" in text:
+                        p.ai_coding_workspace.set_status("Executing Code...", "#e11d48")
+                    elif "Code saved to" in text:
+                        p.ai_coding_workspace.set_status("Writing Code...", "#06b6d4")
+                    break
+                p = p.parent()
+
         if text.startswith("[TERM_OUTPUT]"):
             clean = text.replace("[TERM_OUTPUT] ", "")
             
@@ -2516,6 +2536,7 @@ class WorkspaceDashboard(QWidget):
 class WidgetsSidebar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.main_win = parent
         self.setFixedWidth(260)
         
         # Main layout
@@ -2551,6 +2572,26 @@ class WidgetsSidebar(QWidget):
         w_loc.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent; border: none;")
         w_lay.addWidget(w_loc)
         lay.addWidget(weather_card)
+
+        # 1.5. AI Coding Workspace Button
+        ai_deck_btn = QPushButton("👾 AI CODING WORKSPACE")
+        ai_deck_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        ai_deck_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        ai_deck_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: rgba(6, 182, 212, 0.08);
+                border: 1px solid rgba(6, 182, 212, 0.3);
+                border-radius: 6px;
+                color: {C.PRI};
+                padding: 8px;
+            }}
+            QPushButton:hover {{
+                background: rgba(6, 182, 212, 0.2);
+                border: 1px solid {C.PRI};
+            }}
+        """)
+        ai_deck_btn.clicked.connect(lambda: self.main_win.open_ai_coding_workspace())
+        lay.addWidget(ai_deck_btn)
         
         # 2. System Monitor Card
         sys_card = QWidget()
@@ -3738,6 +3779,9 @@ class MainWindow(QMainWindow):
         self._metric_tmr.timeout.connect(self._update_metrics)
         self._metric_tmr.start(2000)
         self._update_metrics()
+
+        # AI Coding Workspace Window
+        self.ai_coding_workspace = AICodingWorkspaceWindow(self)
 
         self._log_sig.connect(self._log.append_log)
         self._state_sig.connect(self._apply_state)
@@ -5534,6 +5578,13 @@ class MainWindow(QMainWindow):
         else:
             event.accept()
 
+    def open_ai_coding_workspace(self, file_path_str=None):
+        self.ai_coding_workspace.show()
+        self.ai_coding_workspace.raise_()
+        self.ai_coding_workspace.activateWindow()
+        if file_path_str:
+            self.ai_coding_workspace.select_file(file_path_str)
+
     def _toggle_console(self, force_show=None):
         if force_show is not None:
             visible = force_show
@@ -6324,6 +6375,320 @@ class IPRayUI(SaturdayUI):
 
     def set_fullscreen(self, full: bool):
         pass
+
+
+class AICodingWorkspaceWindow(QWidget):
+    _append_output_sig = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(None) # Opens as a separate window
+        self.main_win = parent
+        self.setWindowTitle("👾 Saturday AI Coding Workspace")
+        self.resize(950, 600)
+        
+        # Apply glassmorphic/frosted style matching our design system
+        self.setStyleSheet("""
+            QWidget {
+                background: #0b0f19;
+                color: #e2e8f0;
+                font-family: "Courier New";
+            }
+            QFrame#MainFrame {
+                background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
+                                            stop:0 rgba(13, 18, 30, 0.96), 
+                                            stop:1 rgba(22, 28, 45, 0.96));
+                border: 1px solid rgba(6, 182, 212, 0.25);
+                border-radius: 12px;
+            }
+            QListWidget {
+                background: rgba(0, 0, 0, 0.35);
+                border: 1px solid rgba(6, 182, 212, 0.15);
+                border-radius: 6px;
+                color: #e2e8f0;
+                padding: 6px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-radius: 4px;
+                margin-bottom: 3px;
+            }
+            QListWidget::item:hover {
+                background: rgba(6, 182, 212, 0.12);
+                color: #06b6d4;
+            }
+            QListWidget::item:selected {
+                background: rgba(6, 182, 212, 0.22);
+                color: #06b6d4;
+                border-left: 3px solid #06b6d4;
+            }}
+            QTextEdit {
+                background: rgba(0, 0, 0, 0.45);
+                border: 1px solid rgba(6, 182, 212, 0.15);
+                border-radius: 6px;
+                padding: 8px;
+            }
+            QPushButton {
+                background: rgba(6, 182, 212, 0.08);
+                border: 1px solid rgba(6, 182, 212, 0.3);
+                border-radius: 6px;
+                color: #06b6d4;
+                padding: 8px 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: rgba(6, 182, 212, 0.2);
+                border: 1px solid #06b6d4;
+            }
+        """)
+        
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        
+        frame = QFrame()
+        frame.setObjectName("MainFrame")
+        outer_layout.addWidget(frame)
+        
+        layout = QVBoxLayout(frame)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(12)
+        
+        # Header Row
+        hdr = QHBoxLayout()
+        title_lbl = QLabel("👾 S.A.T.U.R.D.A.Y  |  AI AUTONOMOUS CODING DECK")
+        title_lbl.setFont(QFont("Courier New", 10, QFont.Weight.Bold))
+        title_lbl.setStyleSheet("color: #06b6d4; border: none; background: transparent;")
+        hdr.addWidget(title_lbl)
+        
+        hdr.addStretch()
+        
+        self.status_lbl = QLabel("● STATUS: IDLE")
+        self.status_lbl.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.status_lbl.setStyleSheet("color: #10b981; border: none; background: transparent;")
+        hdr.addWidget(self.status_lbl)
+        layout.addLayout(hdr)
+        
+        # Splitter for Left list explorer & Right Editor/Console
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        # Left Panel (File explorer)
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(8)
+        
+        explorer_title = QLabel("📂 AI GENERATED SCRIPTS")
+        explorer_title.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        explorer_title.setStyleSheet("color: #94a3b8; border: none;")
+        left_layout.addWidget(explorer_title)
+        
+        self.file_list = QListWidget()
+        self.file_list.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.file_list.itemSelectionChanged.connect(self._load_selected_file)
+        left_layout.addWidget(self.file_list)
+        
+        refresh_btn = QPushButton("🔄 REFRESH SCRIPTS")
+        refresh_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        refresh_btn.clicked.connect(self.scan_workspace)
+        left_layout.addWidget(refresh_btn)
+        
+        splitter.addWidget(left_widget)
+        
+        # Right Panel (Splitter for Code Editor & Output Console)
+        right_splitter = QSplitter(Qt.Orientation.Vertical)
+        
+        # Editor Panel
+        editor_widget = QWidget()
+        editor_layout = QVBoxLayout(editor_widget)
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_layout.setSpacing(6)
+        
+        editor_title_row = QHBoxLayout()
+        self.editor_title = QLabel("📄 ACTIVE FILE: None")
+        self.editor_title.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.editor_title.setStyleSheet("color: #94a3b8; border: none;")
+        editor_title_row.addWidget(self.editor_title)
+        
+        editor_title_row.addStretch()
+        
+        copy_btn = QPushButton("📋 COPY")
+        copy_btn.setFont(QFont("Courier New", 7, QFont.Weight.Bold))
+        copy_btn.setFixedHeight(22)
+        copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        copy_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 4px;
+                color: #e2e8f0;
+                padding: 2px 8px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+        """)
+        copy_btn.clicked.connect(self._copy_code)
+        editor_title_row.addWidget(copy_btn)
+        
+        editor_layout.addLayout(editor_title_row)
+        
+        self.code_editor = QTextEdit()
+        self.code_editor.setReadOnly(True)
+        self.code_editor.setFont(QFont("Consolas", 10))
+        self.code_editor.setStyleSheet("background: rgba(0, 0, 0, 0.55); color: #85e89d; border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 6px;")
+        editor_layout.addWidget(self.code_editor)
+        
+        right_splitter.addWidget(editor_widget)
+        
+        # Console Panel
+        console_widget = QWidget()
+        console_layout = QVBoxLayout(console_widget)
+        console_layout.setContentsMargins(0, 0, 0, 0)
+        console_layout.setSpacing(6)
+        
+        console_title_row = QHBoxLayout()
+        console_title = QLabel("📟 EXECUTION TERMINAL")
+        console_title.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        console_title.setStyleSheet("color: #94a3b8; border: none;")
+        console_title_row.addWidget(console_title)
+        
+        console_title_row.addStretch()
+        
+        self.run_btn = QPushButton("▶ RUN CODE")
+        self.run_btn.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
+        self.run_btn.setFixedHeight(24)
+        self.run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.run_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(16, 185, 129, 0.12);
+                border: 1px solid rgba(16, 185, 129, 0.4);
+                border-radius: 4px;
+                color: #10b981;
+                padding: 2px 12px;
+            }
+            QPushButton:hover {
+                background: rgba(16, 185, 129, 0.25);
+                border: 1px solid #10b981;
+            }
+        """)
+        self.run_btn.clicked.connect(self.run_selected_file)
+        console_title_row.addWidget(self.run_btn)
+        
+        console_layout.addLayout(console_title_row)
+        
+        self.console = QTextEdit()
+        self.console.setReadOnly(True)
+        self.console.setFont(QFont("Consolas", 9))
+        self.console.setStyleSheet("background: rgba(0, 0, 0, 0.7); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 6px;")
+        console_layout.addWidget(self.console)
+        
+        right_splitter.addWidget(console_widget)
+        
+        right_splitter.setSizes([350, 200])
+        splitter.addWidget(right_splitter)
+        splitter.setSizes([220, 700])
+        layout.addWidget(splitter, stretch=1)
+        
+        self._append_output_sig.connect(self._append_console_output)
+        self.scan_workspace()
+        
+    def scan_workspace(self):
+        self.file_list.clear()
+        target_dir = r"C:\Users\thora\Downloads\output"
+        if not os.path.exists(target_dir):
+            return
+        
+        try:
+            files = [f for f in os.listdir(target_dir) if f.endswith(".py")]
+            files.sort(key=lambda x: os.path.getmtime(os.path.join(target_dir, x)), reverse=True)
+            for f in files:
+                self.file_list.addItem(f)
+        except Exception as e:
+            self.file_list.addItem(f"Error: {e}")
+            
+    def _load_selected_file(self):
+        curr = self.file_list.currentItem()
+        if not curr:
+            self.editor_title.setText("📄 ACTIVE FILE: None")
+            self.code_editor.clear()
+            return
+        
+        file_name = curr.text()
+        self.editor_title.setText(f"📄 ACTIVE FILE: {file_name}")
+        file_path = os.path.join(r"C:\Users\thora\Downloads\output", file_name)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                self.code_editor.setPlainText(f.read())
+        except Exception as e:
+            self.code_editor.setPlainText(f"Error loading file: {e}")
+            
+    def select_file(self, file_path_str: str):
+        if not file_path_str:
+            return
+        p = Path(file_path_str)
+        self.scan_workspace()
+        for i in range(self.file_list.count()):
+            item = self.file_list.item(i)
+            if item.text() == p.name:
+                self.file_list.setCurrentItem(item)
+                break
+
+    def set_status(self, status: str, color_hex: str = "#06b6d4"):
+        self.status_lbl.setText(f"● STATUS: {status.upper()}")
+        self.status_lbl.setStyleSheet(f"color: {color_hex}; border: none; background: transparent;")
+
+    def _copy_code(self):
+        code = self.code_editor.toPlainText()
+        if code:
+            QApplication.clipboard().setText(code)
+            self.console.append("📋 Code copied to clipboard.\n")
+
+    def _append_console_output(self, text: str):
+        self.console.append(text)
+        self.console.moveCursor(QTextCursor.MoveOperation.End)
+
+    def run_selected_file(self):
+        selected_item = self.file_list.currentItem()
+        if not selected_item:
+            self.console.append("⚠️ Please select a file to run first, sir.\n")
+            return
+        
+        file_name = selected_item.text()
+        file_path = os.path.join(r"C:\Users\thora\Downloads\output", file_name)
+        if not os.path.exists(file_path):
+            self.console.append(f"❌ File not found: {file_path}\n")
+            return
+        
+        self.set_status("Executing Code...", "#e11d48")
+        self.console.append(f"\n[IP PRIME] >>> Run command triggered for {file_name}\n")
+        
+        def run_thread():
+            try:
+                python_exe = sys.executable
+                result = subprocess.run(
+                    [python_exe, file_path],
+                    capture_output=True, text=True, timeout=30,
+                    cwd=r"C:\Users\thora\Downloads\output"
+                )
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                
+                if stdout:
+                    self._append_output_sig.emit(stdout)
+                if stderr:
+                    self._append_output_sig.emit(f"\n=== ERROR OUTPUT ===\n{stderr}")
+                
+                self._append_output_sig.emit(f"\n[Process Finished with Exit Code: {result.returncode}]\n")
+            except Exception as e:
+                self._append_output_sig.emit(f"\n❌ Execution failed: {e}\n")
+            finally:
+                QMetaObject.invokeMethod(self, "reset_status_to_idle", Qt.ConnectionType.QueuedConnection)
+                
+        threading.Thread(target=run_thread, daemon=True).start()
+
+    @pyqtSlot()
+    def reset_status_to_idle(self):
+        self.set_status("Idle", "#10b981")
 
 
 __all__ = ["IPRayUI", "SaturdayUI"]

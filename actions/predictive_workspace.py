@@ -11,7 +11,7 @@ from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 EVENTS_PATH = BASE_DIR / "config" / "calendar_events.json"
-PROJECTS_ROOT = Path(r"D:\primes output")
+PROJECTS_ROOT = Path(r"C:\Users\thora\Downloads\output")
 
 def get_recent_projects() -> list[str]:
     """Finds the most recently modified folders in CODING PROJECTS."""

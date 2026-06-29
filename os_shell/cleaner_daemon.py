@@ -8,10 +8,10 @@ class WorkspaceCleanerDaemon(QThread):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.running = True
-        self.workspace_root = Path(r"D:\primes output")
+        self.workspace_root = Path(r"C:\Users\thora\Downloads\output")
         
     def run(self):
-        print("[Cleaner Daemon] Active and monitoring D:\\primes output")
+        print("[Cleaner Daemon] Active and monitoring C:\\Users\\thora\\Downloads\\output")
         while self.running:
             # Check every 15 seconds
             for _ in range(15):

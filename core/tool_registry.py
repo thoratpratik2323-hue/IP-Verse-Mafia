@@ -258,14 +258,14 @@ TOOL_DECLARATIONS: list[dict] = [
     },
     {
         "name": "code_helper",
-        "description": "Writes, edits, explains, runs, or builds code files. Default save folder: D:\\primes output\\code",
+        "description": "Writes, edits, explains, runs, or builds code files. Default save folder: C:\\Users\\thora\\Downloads\\output\\code",
         "parameters": {
             "type": "OBJECT",
             "properties": {
                 "action":      {"type": "STRING", "description": "write | edit | patch | test | explain | run | build | optimize | screen_debug | auto (default: auto)"},
                 "description": {"type": "STRING", "description": "What the code should do or what change to make"},
                 "language":    {"type": "STRING", "description": "Programming language (default: python)"},
-                "output_path": {"type": "STRING", "description": "Save path (default: D:\\primes output\\code\\)"},
+                "output_path": {"type": "STRING", "description": "Save path (default: C:\\Users\\thora\\Downloads\\output\\code\\)"},
                 "file_path":   {"type": "STRING", "description": "Path to existing file for edit/explain/run/build"},
                 "code":        {"type": "STRING", "description": "Raw code string for explain"},
                 "args":        {"type": "STRING", "description": "CLI arguments for run/build"},
@@ -277,7 +277,7 @@ TOOL_DECLARATIONS: list[dict] = [
     },
     {
         "name": "dev_agent",
-        "description": "Builds complete multi-file projects. Also does cross-file project refactor and project intelligence/explain. Saves under D:\\primes output\\projects by default.",
+        "description": "Builds complete multi-file projects. Also does cross-file project refactor and project intelligence/explain. Saves under C:\\Users\\thora\\Downloads\\output\\projects by default.",
         "parameters": {
             "type": "OBJECT",
             "properties": {

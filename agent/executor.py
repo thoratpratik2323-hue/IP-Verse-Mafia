@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-IP_OUTPUT_DIR = Path(r"D:\primes output")
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\Downloads\output")
 IP_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from agent.planner       import create_plan, replan

@@ -18,7 +18,7 @@ except ImportError:
 
 _OS = platform.system()  # "Windows" | "Darwin" | "Linux"
 
-IP_OUTPUT_DIR = Path(r"D:\primes output")
+IP_OUTPUT_DIR = Path(r"C:\Users\thora\Downloads\output")
 
 _SAFE_ROOTS: list[Path] = [
     Path.home(),

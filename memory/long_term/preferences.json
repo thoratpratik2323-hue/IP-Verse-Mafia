@@ -8,7 +8,11 @@
     "updated": "2026-05-27"
   },
   "frequent_moods": {
-    "value": "{\"Focused\": 33}",
-    "updated": "2026-06-27"
+    "value": "{\"Focused\": 46}",
+    "updated": "2026-06-28"
+  },
+  "daily_chess_limit_minutes": {
+    "value": "30",
+    "updated": "2026-06-28"
   }
 }

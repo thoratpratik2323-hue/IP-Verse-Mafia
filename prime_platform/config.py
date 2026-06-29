@@ -61,7 +61,7 @@ _DEFAULT = {
         "note": "PyQt6 remains primary UI; see desktop-tauri/README.md",
     },
     "workspace": {
-        "root": r"D:\\primes output",
+        "root": r"C:\\Users\\thora\\Downloads\\output",
         "auto_save_all": True,
     },
 }

@@ -18,7 +18,7 @@ try:
     from core.path_config import IP_GIVEN_CODE_DIR
     OUTPUT_DIR = IP_GIVEN_CODE_DIR
 except Exception:
-    OUTPUT_DIR = Path(r"D:\primes output\code")
+    OUTPUT_DIR = Path(r"C:\Users\thora\Downloads\output\code")
 
 def _get_gemini_client():
     """Loads API key and returns a UnifiedModelClient configured for vision tasks."""
