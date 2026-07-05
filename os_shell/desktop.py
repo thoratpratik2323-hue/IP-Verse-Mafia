@@ -32,6 +32,7 @@ from os_shell.widgets.terminal_widget import VocalTerminalWidget
 from os_shell.widgets.ai_orb import AIOrb
 from os_shell.widgets.launchpad import LaunchpadOverlay
 from os_shell.widgets.autopilot_coder import AutopilotCoderWidget
+from os_shell.widgets.nainipix_studio import NainiPixStudioWidget
 from os_shell.shell_manager import hide_windows_taskbar, show_windows_taskbar
 
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
@@ -1194,6 +1195,17 @@ class IPPrimeOSDesktop(QMainWindow):
                 self.prime_vision.stop_camera()
         win_vision.visibility_changed.connect(toggle_camera)
 
+        # 🎨 Window: NainiPix AI Studio (AI Image Generator & Preset Editor)
+        win_np = GlassWindow("🎨 NainiPix AI Studio", self)
+        win_np.resize(780, 480)
+        win_np.move((self.width() - 780) // 2 - 50, (self.height() - 480) // 2 + 50)
+        win_np.hide_window()
+        np_layout = QVBoxLayout()
+        self.nainipix_studio = NainiPixStudioWidget(win_np)
+        np_layout.addWidget(self.nainipix_studio)
+        win_np.set_content_layout(np_layout)
+        self.windows["nainipix"] = win_np
+
         styles = {
             "launcher": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3b82f6, stop:1 #2563eb); border: 1px solid #1d4ed8;",
             "core": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #06b6d4, stop:1 #0891b2); border: 1px solid #0e7490;",
@@ -1202,7 +1214,8 @@ class IPPrimeOSDesktop(QMainWindow):
             "files": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fbbf24, stop:1 #f59e0b); border: 1px solid #d97706;",
             "config": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #64748b, stop:1 #475569); border: 1px solid #334155;",
             "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #059669); border: 1px solid #047857;",
-            "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;"
+            "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;",
+            "nainipix": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #a855f7); border: 1px solid #8a3ab9;"
         }
 
         # Add Launcher button first
@@ -1216,10 +1229,11 @@ class IPPrimeOSDesktop(QMainWindow):
         # Connect window overlays & add dock toggle buttons
         for key, win in self.windows.items():
             win.hide_window()
-            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision"]:
+            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision", "nainipix"]:
                 icon_emoji = {
                     "core": "🧬", "graph": "🧠", "swarm": "💻", 
-                    "files": "📁", "config": "⚙️", "autopilot": "🤖", "vision": "👁️"
+                    "files": "📁", "config": "⚙️", "autopilot": "🤖", "vision": "👁️",
+                    "nainipix": "🎨"
                 }.get(key, "⚙️")
                 btn = QPushButton(icon_emoji, self.dock)
                 btn.setToolTip(win.windowTitle())
@@ -1905,6 +1919,19 @@ class IPPrimeOSDesktop(QMainWindow):
                     self.update()
             except Exception as e:
                 print(f"[Desktop] Failed to update wallpaper: {e}")
+
+    def set_wallpaper_direct(self, file_path) -> bool:
+        import shutil
+        try:
+            pixmap = QPixmap(file_path)
+            if not pixmap.isNull():
+                self.bg_pixmap = pixmap
+                shutil.copy(file_path, str(self.bg_path))
+                self.update()
+                return True
+        except Exception as e:
+            print(f"[Desktop] Failed to set wallpaper directly: {e}")
+        return False
 
     def _process_typewriter(self):
         if not hasattr(self, "_typewriter_queue") or not self._typewriter_queue:
