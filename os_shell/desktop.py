@@ -1294,12 +1294,8 @@ class IPPrimeOSDesktop(QMainWindow):
         threading.Thread(target=worker, daemon=True).start()
 
     def _update_stats_ui(self, cpu_val, ram_val):
-        if cpu_val > 0 or ram_val > 0:
-            self._hud_cpu = f"{cpu_val}%"
-            self._hud_ram = f"{ram_val}%"
-        else:
-            self._hud_cpu = "--%"
-            self._hud_ram = "--%"
+        self._hud_cpu = f"{cpu_val}%"
+        self._hud_ram = f"{ram_val}%"
 
         self.cpu_lbl.setText(f"CPU: {self._hud_cpu}")
         self.ram_lbl.setText(f"RAM: {self._hud_ram}")
@@ -1322,6 +1318,8 @@ class IPPrimeOSDesktop(QMainWindow):
                         pbar.setValue(val - 5)
                     else:
                         lbl.setText("IDLE")
+        
+        self.update() # Trigger paintEvent to repaint the wallpaper telemetry!
 
         # Update Clock
         now = datetime.datetime.now()
@@ -1608,12 +1606,12 @@ class IPPrimeOSDesktop(QMainWindow):
         # Draw "Good" (spaced and bold/bigger)
         painter.setFont(QFont("Outfit", 22, QFont.Weight.Bold))
         painter.setPen(QColor(6, 182, 212, 210)) # Elegant Cyan
-        painter.drawText(QRectF(box_x, 65.0, box_w, 32.0), Qt.AlignmentFlag.AlignRight, "Good")
+        painter.drawText(QRectF(box_x, 15.0, box_w, 32.0), Qt.AlignmentFlag.AlignRight, "Good")
         
         # Draw Time of Day Greeting (bold and prominent)
         painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
         painter.setPen(QColor(248, 250, 252, 240)) # Solid white
-        painter.drawText(QRectF(box_x, 100.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
+        painter.drawText(QRectF(box_x, 48.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
         painter.restore()
 
         # Draw dynamic output log feed directly on the background
