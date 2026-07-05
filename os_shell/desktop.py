@@ -1346,14 +1346,69 @@ class IPPrimeOSDesktop(QMainWindow):
             except Exception as e:
                 print(f"[Desktop] Failed to update wallpaper: {e}")
 
+    def _process_typewriter(self):
+        if not hasattr(self, "_typewriter_queue") or not self._typewriter_queue:
+            if hasattr(self, "_typewriter_timer"):
+                self._typewriter_timer.stop()
+            return
+            
+        target_line = self._typewriter_queue[0]
+        
+        if not hasattr(self, "_typewriter_char_idx") or self._typewriter_char_idx == 0:
+            self._typewriter_char_idx = 0
+            self.log_history.append("")
+            if len(self.log_history) > 14:
+                self.log_history = self.log_history[-14:]
+                
+        self._typewriter_char_idx += 1
+        current_printed = target_line[:self._typewriter_char_idx]
+        self.log_history[-1] = current_printed
+        self.update()
+        
+        if self._typewriter_char_idx >= len(target_line):
+            self._typewriter_queue.pop(0)
+            self._typewriter_char_idx = 0
+
     def add_conversation_line(self, role: str, text: str):
         if not hasattr(self, "log_history"):
             self.log_history = []
-        
+        if not hasattr(self, "_typewriter_queue"):
+            self._typewriter_queue = []
+        if not hasattr(self, "_typewriter_timer"):
+            self._typewriter_timer = QTimer(self)
+            self._typewriter_timer.timeout.connect(self._process_typewriter)
+            
         clean_text = text.strip()
         if not clean_text:
             return
             
+        # Asynchronously store conversation in LanceDB semantic memory!
+        if role in ["User", "Prime"]:
+            def store_vector():
+                try:
+                    from actions.semantic_store import init_db, _get_gemini_client, get_embedding
+                    import time
+                    import uuid
+                    
+                    db = init_db()
+                    tbl = db.open_table("conversations")
+                    client = _get_gemini_client()
+                    
+                    embedding = get_embedding(client, clean_text)
+                    
+                    tbl.add([{
+                        "id": str(uuid.uuid4()),
+                        "role": role,
+                        "content": clean_text,
+                        "embedding": embedding,
+                        "timestamp": time.time()
+                    }])
+                except Exception as e:
+                    print(f"[Vector Memory] Failed to save conversation semantic block: {e}")
+                    
+            import threading
+            threading.Thread(target=store_vector, daemon=True).start()
+
         if role == "User":
             prefix = "User: "
         elif role == "Prime":
@@ -1382,12 +1437,10 @@ class IPPrimeOSDesktop(QMainWindow):
             lines.append(current_line)
             
         for line in lines:
-            self.log_history.append(line)
+            self._typewriter_queue.append(line)
             
-        if len(self.log_history) > 14:
-            self.log_history = self.log_history[-14:]
-            
-        self.update()
+        if not self._typewriter_timer.isActive():
+            self._typewriter_timer.start(25)
 
     def write_log_to_terminal(self, text: str):
         if text:

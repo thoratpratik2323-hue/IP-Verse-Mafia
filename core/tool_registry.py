@@ -3249,5 +3249,38 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["action"]
         }
+    },
+    {
+        "name": "macro_automation",
+        "description": (
+            "Executes custom system GUI macro sequences including mouse clicks, typing, and key strokes. "
+            "Use when user wants to automate GUI sequences, click buttons, type text on screen, or run hotkey combinations."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "sequence": {
+                    "type": "ARRAY",
+                    "description": "List of sequence steps: move_to, click, type, hotkey, delay",
+                    "items": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "action": {"type": "STRING", "description": "move_to | click | type | hotkey | delay"},
+                            "x": {"type": "INTEGER", "description": "X coordinate for move_to"},
+                            "y": {"type": "INTEGER", "description": "Y coordinate for move_to"},
+                            "text": {"type": "STRING", "description": "Text to type"},
+                            "keys": {
+                                "type": "ARRAY",
+                                "description": "Keys for hotkey action",
+                                "items": {"type": "STRING"}
+                            },
+                            "seconds": {"type": "NUMBER", "description": "Seconds to wait for delay action"}
+                        },
+                        "required": ["action"]
+                    }
+                }
+            },
+            "required": ["sequence"]
+        }
     }
 ]
