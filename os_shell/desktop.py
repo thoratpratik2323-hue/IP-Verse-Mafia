@@ -2304,8 +2304,7 @@ class IPPrimeOSDesktop(QMainWindow):
 
         # Draw Swarm Status HUD directly below logo - removed as requested
 
-        # Draw Swarm Queue panel
-        self._draw_swarm_queue_panel(painter, 40, 195)
+        # Draw Swarm Queue panel - removed as requested
 
         # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()
