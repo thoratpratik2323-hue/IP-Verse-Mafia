@@ -963,6 +963,25 @@ class IPPrimeOSDesktop(QMainWindow):
         win_auto.set_content_layout(auto_layout)
         self.windows["autopilot"] = win_auto
 
+        # Prime Vision (Live webcam analysis & OCR)
+        win_vision = GlassWindow("👁️ Prime Vision", self)
+        win_vision.resize(450, 480)
+        win_vision.move((self.width() - 450) // 2 + 50, (self.height() - 480) // 2 - 50)
+        win_vision.hide_window()
+        vision_layout = QVBoxLayout()
+        from os_shell.widgets.prime_vision import PrimeVisionWidget
+        self.prime_vision = PrimeVisionWidget(win_vision)
+        vision_layout.addWidget(self.prime_vision)
+        win_vision.set_content_layout(vision_layout)
+        self.windows["vision"] = win_vision
+
+        def toggle_camera(visible):
+            if visible:
+                self.prime_vision.start_camera()
+            else:
+                self.prime_vision.stop_camera()
+        win_vision.visibility_changed.connect(toggle_camera)
+
         styles = {
             "launcher": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3b82f6, stop:1 #2563eb); border: 1px solid #1d4ed8;",
             "core": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #06b6d4, stop:1 #0891b2); border: 1px solid #0e7490;",
@@ -970,7 +989,8 @@ class IPPrimeOSDesktop(QMainWindow):
             "swarm": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #6366f1, stop:1 #4f46e5); border: 1px solid #4338ca;",
             "files": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fbbf24, stop:1 #f59e0b); border: 1px solid #d97706;",
             "config": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #64748b, stop:1 #475569); border: 1px solid #334155;",
-            "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #059669); border: 1px solid #047857;"
+            "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #059669); border: 1px solid #047857;",
+            "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;"
         }
 
         # Add Launcher button first
@@ -984,10 +1004,10 @@ class IPPrimeOSDesktop(QMainWindow):
         # Connect window overlays & add dock toggle buttons
         for key, win in self.windows.items():
             win.hide_window()
-            if key in ["core", "graph", "swarm", "files", "config", "autopilot"]:
+            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision"]:
                 icon_emoji = {
                     "core": "🧬", "graph": "🧠", "swarm": "💻", 
-                    "files": "📁", "config": "⚙️", "autopilot": "🤖"
+                    "files": "📁", "config": "⚙️", "autopilot": "🤖", "vision": "👁️"
                 }.get(key, "⚙️")
                 btn = QPushButton(icon_emoji, self.dock)
                 btn.setToolTip(win.windowTitle())
