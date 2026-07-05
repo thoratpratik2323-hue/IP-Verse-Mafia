@@ -30,6 +30,10 @@ from actions.finance_tracker import finance_tracker
 from actions.network_monitor import network_monitor
 from actions.wifi_speed_logger import wifi_speed_logger
 from actions.second_monitor_overlay import second_monitor_overlay
+from actions.web_scraper import web_scraper
+from actions.boss_orchestrator import boss_orchestrator
+from actions.asset_scaffolder import asset_scaffolder
+import core.tool_dispatcher
 
 class TestNewFeatures(unittest.TestCase):
 
@@ -410,6 +414,45 @@ print("hello from IP army")
         res_silent = weather_action({"city": "Ukkalgaon"}, player=self.player)
         self.assertIn("Weather Update for Ukkalgaon", res_silent)
         self.assertIn("Sunny +38C", res_silent)
+
+    @patch("actions.web_scraper.requests.get")
+    @patch("actions.web_scraper.UnifiedModelClient")
+    def test_web_scraper(self, mock_client_class, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.text = "<html><body><h1>Pricing</h1><p>Basic: $10</p></body></html>"
+        mock_get.return_value = mock_resp
+        
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value.text = "Extracted Pricing: Basic is $10"
+        mock_client_class.return_value = mock_client
+        
+        from actions.web_scraper import web_scraper
+        res = web_scraper({"url": "http://test.com", "instruction": "get pricing"}, player=self.player)
+        self.assertEqual(res, "Extracted Pricing: Basic is $10")
+
+    @patch("core.tool_dispatcher.dispatch_tool")
+    @patch("actions.boss_orchestrator.UnifiedModelClient")
+    def test_boss_orchestrator(self, mock_client_class, mock_dispatch):
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value.text = '{"steps": [{"tool": "web_search", "args": {"query": "AI news"}}]}'
+        mock_client_class.return_value = mock_client
+        
+        mock_dispatch.return_value = "Search Results."
+        
+        from actions.boss_orchestrator import boss_orchestrator
+        res = boss_orchestrator({"command": "Search AI news"}, player=self.player)
+        self.assertIn("Search Results.", res)
+
+    @patch("actions.asset_scaffolder.UnifiedModelClient")
+    def test_asset_scaffolder(self, mock_client_class):
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value.text = "<html>Layout</html>"
+        mock_client_class.return_value = mock_client
+        
+        from actions.asset_scaffolder import asset_scaffolder
+        res = asset_scaffolder({"action": "generate_layout", "target": "dashboard"}, player=self.player)
+        self.assertEqual(res, "<html>Layout</html>")
 
 if __name__ == "__main__":
     unittest.main()

@@ -34,6 +34,9 @@ from actions.image_generator import image_generator
 from actions.youtube_macros import automate_youtube, play_youtube
 from actions.notepad_automation import automate_notepad
 from actions.macro_automation import execute_macro_sequence
+from actions.web_scraper import web_scraper
+from actions.boss_orchestrator import boss_orchestrator
+from actions.asset_scaffolder import asset_scaffolder
 from actions.panic_wipe import panic_wipe as run_panic_wipe
 from actions.usb_monitor import toggle_usb as run_usb_toggle
 from actions.iot_controller import toggle_iot as run_iot_toggle, get_iot_state as run_get_iot_state
@@ -297,6 +300,18 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "macro_automation":
             r = await loop.run_in_executor(None, lambda: execute_macro_sequence(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "web_scraper":
+            r = await loop.run_in_executor(None, lambda: web_scraper(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "boss_orchestrator":
+            r = await loop.run_in_executor(None, lambda: boss_orchestrator(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "asset_scaffolder":
+            r = await loop.run_in_executor(None, lambda: asset_scaffolder(parameters=args, player=player))
             result = r or "Done."
 
         elif name == "panic_wipe":

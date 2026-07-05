@@ -3282,5 +3282,47 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["sequence"]
         }
+    },
+    {
+        "name": "web_scraper",
+        "description": (
+            "Fetches a web page and extracts structured elements (text blocks, tables, lists) "
+            "based on natural language instructions using Gemini AI."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "url": {"type": "STRING", "description": "Target website URL to scrape"},
+                "instruction": {"type": "STRING", "description": "Specific information extraction instruction"}
+            },
+            "required": ["url"]
+        }
+    },
+    {
+        "name": "boss_orchestrator",
+        "description": (
+            "Chains sequential tool calls dynamically to execute multi-step cross-domain instructions."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "command": {"type": "STRING", "description": "High-level orchestration request"}
+            },
+            "required": ["command"]
+        }
+    },
+    {
+        "name": "asset_scaffolder",
+        "description": (
+            "Generates HTML/CSS layout templates or extracts styling parameters and tokens from design scripts."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "generate_layout | extract_styling"},
+                "target": {"type": "STRING", "description": "Prompt description or CSS/HTML script block"}
+            },
+            "required": ["target"]
+        }
     }
 ]
