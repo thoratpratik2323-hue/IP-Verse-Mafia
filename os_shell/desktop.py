@@ -1435,20 +1435,24 @@ class IPPrimeOSDesktop(QMainWindow):
         else:
             time_greet = "Night"
             
+        # Bounding box for right-alignment (width=400, ending at w-40)
+        box_w = 400.0
+        box_x = float(self.width() - box_w - 40)
+        
         # Draw "Good" (spaced and lightweight)
         painter.setFont(QFont("Outfit", 13, QFont.Weight.Light))
         painter.setPen(QColor(6, 182, 212, 190)) # Elegant Cyan
-        painter.drawText(40, 110, "Good")
+        painter.drawText(QRectF(box_x, 90.0, box_w, 24.0), Qt.AlignmentFlag.AlignRight, "Good")
         
         # Draw Time of Day Greeting (bold and prominent)
         painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
         painter.setPen(QColor(248, 250, 252, 240)) # Solid white
-        painter.drawText(40, 142, f"{time_greet}, Sir")
+        painter.drawText(QRectF(box_x, 114.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
         
         # Draw subtitle / welcome back
         painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
         painter.setPen(QColor(180, 205, 212, 150)) # Soft desaturated slate-cyan
-        painter.drawText(40, 164, "Standing by for commands.")
+        painter.drawText(QRectF(box_x, 154.0, box_w, 20.0), Qt.AlignmentFlag.AlignRight, "Standing by for commands.")
         painter.restore()
 
         # Draw dynamic output log feed directly on the background
