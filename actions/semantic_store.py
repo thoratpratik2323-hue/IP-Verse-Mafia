@@ -33,12 +33,34 @@ def _get_gemini_client() -> genai.Client:
         print(f"[Semantic Store] Error getting API key: {e}")
         raise ValueError("Gemini API key not configured properly in config/api_keys.json")
 
+def get_all_table_names(db) -> list:
+    """Helper to retrieve all table names as a list of strings compatibly."""
+    try:
+        return list(db.table_names())
+    except Exception:
+        pass
+    try:
+        res = db.list_tables()
+        if isinstance(res, list):
+            return res
+        if hasattr(res, "tables"):
+            return list(res.tables)
+        if hasattr(res, "dict"):
+            d = res.dict()
+            if "tables" in d:
+                return list(d["tables"])
+    except Exception:
+        pass
+    return []
+
 def init_db():
     """Initializes LanceDB database with proper schemas."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = lancedb.connect(str(DB_PATH))
     
-    if "documents" not in db.list_tables():
+    existing = get_all_table_names(db)
+    
+    if "documents" not in existing:
         schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
@@ -48,7 +70,7 @@ def init_db():
         ])
         db.create_table("documents", schema=schema)
         
-    if "conversations" not in db.list_tables():
+    if "conversations" not in existing:
         conv_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("role", pa.string()),
@@ -58,7 +80,7 @@ def init_db():
         ])
         db.create_table("conversations", schema=conv_schema)
         
-    if "code_reviews" not in db.list_tables():
+    if "code_reviews" not in existing:
         rev_schema = pa.schema([
             pa.field("id", pa.string()),
             pa.field("file_path", pa.string()),
@@ -438,7 +460,7 @@ def compact_memory() -> str:
     try:
         db = init_db()
         reports = []
-        for name in db.list_tables():
+        for name in get_all_table_names(db):
             try:
                 tbl = db.open_table(name)
                 tbl.optimize()
