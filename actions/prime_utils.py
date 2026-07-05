@@ -269,6 +269,13 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
             if not fallback_allowed or offline_flag:
                 raise RuntimeError(f"Ollama execution failed and cloud fallback is disabled/offline: {local_err}")
             print("[Unified Model] Fallback to cloud provider active...")
+            try:
+                from ui import get_main_window
+                win = get_main_window()
+                if win:
+                    win.write_log_to_terminal("SYS: Fallback Engine - Local Ollama failed, falling back to Cloud...")
+            except Exception:
+                pass
 
     # 1. Load config
     config_path = base_dir / "config" / "api_keys.json"
@@ -322,12 +329,26 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
             return _call_openrouter_fallback(contents, config, model_name=model_name)
         except Exception as e:
             print(f"[Unified Model] OpenRouter call failed: {e}. Falling back to Gemini...")
+            try:
+                from ui import get_main_window
+                win = get_main_window()
+                if win:
+                    win.write_log_to_terminal("SYS: Fallback Engine - OpenRouter failed, falling back to Gemini...")
+            except Exception:
+                pass
             provider = "gemini"
 
     # If provider is gemini or fallback triggered, run Gemini SDK
     if (provider == "gemini" or not base_url or not api_key) and provider != "freellmapi":
         if provider != "gemini":
             print(f"[Unified Model] Fallback to Gemini: provider is {provider} but base_url or api_key is missing.")
+            try:
+                from ui import get_main_window
+                win = get_main_window()
+                if win:
+                    win.write_log_to_terminal("SYS: Fallback Engine - Routing to Gemini...")
+            except Exception:
+                pass
         
         # Determine standard models
         gemini_model = model_name or ("gemini-2.5-flash" if category == "vision" else "gemini-2.5-flash")
@@ -362,6 +383,13 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
                 is_rate_limit = "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "quota" in err_msg.lower()
                 if is_rate_limit and attempt < max_attempts - 1:
                     print(f"[Unified Model] Rate limit hit (429) on attempt {attempt+1}. Attempting key rotation...")
+                    try:
+                        from ui import get_main_window
+                        win = get_main_window()
+                        if win:
+                            win.write_log_to_terminal(f"SYS: Fallback Engine - Rate limit (429) hit. Rotating Gemini keys...")
+                    except Exception:
+                        pass
                     if rotate_api_key():
                         continue
                 
@@ -380,12 +408,26 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
                     is_legacy_rate_limit = "429" in le_msg or "RESOURCE_EXHAUSTED" in le_msg or "quota" in le_msg.lower()
                     if is_legacy_rate_limit and attempt < max_attempts - 1:
                         print(f"[Unified Model] Legacy rate limit hit (429) on attempt {attempt+1}. Attempting key rotation...")
+                        try:
+                            from ui import get_main_window
+                            win = get_main_window()
+                            if win:
+                                win.write_log_to_terminal(f"SYS: Fallback Engine - Legacy rate limit hit. Rotating keys...")
+                        except Exception:
+                            pass
                         if rotate_api_key():
                             continue
                     
                     if attempt == max_attempts - 1:
                         try:
                             print("[Unified Model] Gemini fallbacks failed. Trying OpenRouter free fallback...")
+                            try:
+                                from ui import get_main_window
+                                win = get_main_window()
+                                if win:
+                                    win.write_log_to_terminal("SYS: Fallback Engine - Gemini failed, falling back to OpenRouter...")
+                            except Exception:
+                                pass
                             return _call_openrouter_fallback(contents, config, model_name=model_name)
                         except Exception as or_err:
                             raise RuntimeError(f"Unified model call failed on both modern and legacy Gemini fallbacks and OpenRouter fallback: {e} | {le} | {or_err}")
@@ -457,6 +499,13 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         if provider == "freellmapi":
             raise RuntimeError(f"FreeLLMAPI execution failed: {e}")
         print(f"[Unified Model] NVIDIA/OpenAI request failed: {e}. Falling back to Gemini...")
+        try:
+            from ui import get_main_window
+            win = get_main_window()
+            if win:
+                win.write_log_to_terminal("SYS: Fallback Engine - Primary provider failed, falling back to Gemini...")
+        except Exception:
+            pass
         # Graceful fallback to Gemini on HTTP error
         try:
             from google import genai
@@ -471,6 +520,13 @@ def call_unified_model(contents, config=None, category="coding", model_name=None
         except Exception as fallback_err:
             try:
                 print("[Unified Model] Nvidia and Gemini fallbacks failed. Trying OpenRouter free fallback...")
+                try:
+                    from ui import get_main_window
+                    win = get_main_window()
+                    if win:
+                        win.write_log_to_terminal("SYS: Fallback Engine - Gemini failed, falling back to OpenRouter...")
+                except Exception:
+                    pass
                 return _call_openrouter_fallback(contents, config, model_name=model_name)
             except Exception as or_err:
                 raise RuntimeError(f"Unified model failed on Nvidia, Gemini and OpenRouter: {e} | {fallback_err} | {or_err}")

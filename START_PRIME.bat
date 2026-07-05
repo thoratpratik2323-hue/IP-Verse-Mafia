@@ -3,6 +3,9 @@ chcp 65001 > nul
 title IP PRIME OS
 cls
 
+:: Change directory to the folder where this batch file is located
+cd /d "%~dp0"
+
 :: Activate virtual environment
 if exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat

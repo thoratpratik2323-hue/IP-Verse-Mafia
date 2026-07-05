@@ -70,6 +70,36 @@ class IPRayUI(_SelectedIPRayUI):
         except Exception:
             pass
 
+    def write_log(self, text: str):
+        super().write_log(text)
+        if hasattr(self, "_os_desktop") and self._os_desktop:
+            clean_text = text.strip()
+            if not clean_text:
+                return
+            
+            if clean_text.startswith("You (Quiet Mode Command):"):
+                msg = clean_text[len("You (Quiet Mode Command):"):].strip()
+                self._os_desktop.add_conversation_line("User", msg)
+            elif clean_text.startswith("You:"):
+                msg = clean_text[len("You:"):].strip()
+                self._os_desktop.add_conversation_line("User", msg)
+            elif clean_text.startswith("IP Prime:"):
+                msg = clean_text[len("IP Prime:"):].strip()
+                self._os_desktop.add_conversation_line("Prime", msg)
+            elif clean_text.startswith("IP Prime (Brain):"):
+                msg = clean_text[len("IP Prime (Brain):"):].strip()
+                self._os_desktop.add_conversation_line("Prime", msg)
+            elif clean_text.startswith("IP Prime (NVIDIA):"):
+                msg = clean_text[len("IP Prime (NVIDIA):"):].strip()
+                self._os_desktop.add_conversation_line("Prime", msg)
+            elif clean_text.startswith("IP Prime (FREELLM):"):
+                msg = clean_text[len("IP Prime (FREELLM):"):].strip()
+                self._os_desktop.add_conversation_line("Prime", msg)
+            elif clean_text.startswith("SYS:"):
+                msg = clean_text[len("SYS:"):].strip()
+                if not msg.startswith("Fallback Engine"):
+                    self._os_desktop.add_conversation_line("System", msg)
+
 
 def get_ui():
     try:

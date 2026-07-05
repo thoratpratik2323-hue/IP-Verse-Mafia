@@ -16,56 +16,55 @@ SPEAKING   = "speaking"
 
 class AIOrb(QWidget):
     """
-    Ultra-Premium Sparkling Cosmic AI Orb.
+    Ultra-Premium 3D Rotating Particle Sphere AI Orb.
     Features:
-      - Siri-style overlapping morphing liquid energy blobs
-      - Radial circular audio visualizer ring
-      - Orbiting 4-point glowing star sparkles (magic stardust escaping the core)
-      - Inner shimmering quantum particles floating within the glass sphere
-      - Slow-rotating multi-layered central lens flare star shimmer
-      - Glassmorphic outer crust with HSL tailored state color styling
+      - 3D Fibonacci Sphere node distribution
+      - Rigorous 3D rotation transforms (Yaw/Pitch)
+      - Perspective projection and depth sorting (painter's algorithm)
+      - Depth-based connection lines (constellation network)
+      - Responsive pulsing nucleus and audio-reactive scaling
     """
     orb_clicked = pyqtSignal()
 
-    SIZE = 175  # Orb diameter
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(300, 300)
+        self.orb_size = 120  # Nice substantial default size
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setStyleSheet("background: transparent; border: none;")
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
 
         self.state = IDLE
-        self._angle = 0.0          # Core spin angle
-        self._pulse = 0.0          # Shimmer/pulse phase
+        self.rot_x = 0.0
+        self.rot_y = 0.0
+        self._pulse = 0.0
 
         # Audio frequency bands
         self._num_bands = 64
         self._bands = [0.0] * self._num_bands
         
-        # Spawn stardust/sparkle particles
-        self._particles = []
-        self._init_particles()
+        # Load config if present
+        saved_pos = self._load_config()
+
+        # Initialize the 3D Fibonacci Sphere nodes
+        self.num_nodes = 120
+        self.nodes = []
+        golden_ratio = (1 + math.sqrt(5)) / 2
+        for i in range(self.num_nodes):
+            phi = math.acos(1 - 2 * (i + 0.5) / self.num_nodes)
+            theta = 2 * math.pi * i / golden_ratio
+            x = math.cos(theta) * math.sin(phi)
+            y = math.sin(theta) * math.sin(phi)
+            z = math.cos(phi)
+            self.nodes.append([x, y, z])
 
         # Animation timer (approx 60 FPS for buttery smooth rendering)
         self._tick = QTimer(self)
         self._tick.timeout.connect(self._animate)
         self._tick.start(16)
 
-    def _init_particles(self):
-        # Create 45 unique sparkles with various orbits, speeds, and sizes
-        for i in range(45):
-            self._particles.append({
-                "angle": random.uniform(0, 360),
-                "distance": random.uniform(20, 125),   # Distance from core center
-                "speed": random.uniform(0.4, 1.4) * (1 if random.random() > 0.4 else -1),
-                "size": random.uniform(1.2, 4.0),
-                "alpha": random.uniform(80, 240),
-                "is_star": random.random() > 0.6,      # 40% are 4-point diamond stars
-                "blink_speed": random.uniform(0.04, 0.12),
-                "blink_phase": random.uniform(0, 2 * math.pi),
-                "color_shift": random.uniform(0.0, 1.0)
-            })
+        # Set default size
+        widget_sz = int(self.orb_size * 2.8)
+        self.setFixedSize(widget_sz, widget_sz)
 
     # ── Public API ─────────────────────────────
     def set_state(self, state: str):
@@ -75,39 +74,100 @@ class AIOrb(QWidget):
         if self.state != state:
             self.state = state
 
+    def set_orb_size(self, size):
+        self.orb_size = size
+        widget_sz = int(size * 2.8)
+        self.setFixedSize(widget_sz, widget_sz)
+        self._save_config()
+        self.update()
+
+    def _save_config(self):
+        import json
+        from pathlib import Path
+        config_path = Path("assets/orb_config.json")
+        config_path.parent.mkdir(exist_ok=True)
+        try:
+            config = {
+                "x": self.x(),
+                "y": self.y(),
+                "size": self.orb_size
+            }
+            config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+        except Exception as e:
+            print(f"[AIOrb] Failed to save config: {e}")
+
+    def _load_config(self):
+        import json
+        from pathlib import Path
+        config_path = Path("assets/orb_config.json")
+        if config_path.exists():
+            try:
+                config = json.loads(config_path.read_text(encoding="utf-8"))
+                self.orb_size = config.get("size", 120)
+                widget_sz = int(self.orb_size * 2.8)
+                self.setFixedSize(widget_sz, widget_sz)
+                return config.get("x"), config.get("y")
+            except Exception as e:
+                print(f"[AIOrb] Failed to load config: {e}")
+        return None
+
     # ── Animation Update ────────────────────────
     def _animate(self):
-        self._pulse += 0.06
-        # Core rotation speed based on state
-        spin_speed = 3.5 if self.state == PROCESSING else (1.8 if self.state == LISTENING else 0.8)
-        self._angle = (self._angle + spin_speed) % 360
+        self._pulse += 0.05
+        
+        # Rotation speeds based on state
+        speed_mult = 1.0
+        if self.state == PROCESSING:
+            speed_mult = 3.0
+        elif self.state == LISTENING:
+            speed_mult = 1.8
+        elif self.state == SPEAKING:
+            speed_mult = 2.2
+        else:
+            speed_mult = 0.7
+            
+        self.rot_y = (self.rot_y + 0.012 * speed_mult) % (2 * math.pi)
+        self.rot_x = (self.rot_x + 0.007 * speed_mult) % (2 * math.pi)
 
-        # Update audio bands/peaks smoothly
+        # Update audio bands decay
         for i in range(self._num_bands):
             if self.state == LISTENING:
-                target = abs(math.sin(self._pulse * 1.5 + i * 0.25)) * 0.75 + random.uniform(0.0, 0.2)
+                target = abs(math.sin(self._pulse * 1.5 + i * 0.25)) * 0.85 + random.uniform(0.0, 0.15)
             elif self.state == SPEAKING:
-                target = max(0.0, math.sin(self._pulse * 2.0 + i * 0.15) * math.cos(self._pulse * 0.5 + i * 0.08) * 0.9 + random.uniform(-0.1, 0.2))
+                target = max(0.0, math.sin(self._pulse * 2.0 + i * 0.15) * math.cos(self._pulse * 0.5 + i * 0.08) * 0.95 + random.uniform(-0.05, 0.1))
             elif self.state == PROCESSING:
-                target = 0.3 + 0.15 * math.sin(self._pulse * 4.0 + i * 0.45)
+                target = 0.2 + 0.1 * math.sin(self._pulse * 4.0 + i * 0.45)
             else:
-                target = 0.1 + 0.06 * math.sin(self._pulse * 0.8 + i * 0.2)
+                target = 0.05 + 0.03 * math.sin(self._pulse * 0.8 + i * 0.2)
             
-            # Standard easing interpolation
             self._bands[i] += (target - self._bands[i]) * 0.25
 
-        # Update sparkles/particles
-        for p in self._particles:
-            speed_mult = 2.8 if self.state == PROCESSING else (1.8 if self.state == LISTENING or self.state == SPEAKING else 1.0)
-            p["angle"] = (p["angle"] + p["speed"] * speed_mult) % 360
-            p["blink_phase"] += p["blink_speed"]
+        # Smooth scale interpolation for pop-in and bounce transitions
+        target_scale = 1.0
+        if self.state == SPEAKING:
+            avg_audio = sum(self._bands) / len(self._bands) if self._bands else 0.0
+            target_scale = 1.08 + avg_audio * 0.85 + 0.08 * abs(math.sin(self._pulse * 3.0))
+        elif self.state == LISTENING:
+            target_scale = 1.12 + 0.08 * math.sin(self._pulse * 2.2)
+            
+        if not hasattr(self, "_current_scale"):
+            self._current_scale = 1.0
+            
+        self._current_scale += (target_scale - self._current_scale) * 0.18
 
         self.update()
 
-    # ── Mouse click ────────────────────────────
+    # ── Mouse event overrides for Draggable Desktop behavior ──────────
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.orb_clicked.emit()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        event.accept()
 
     # ── Paint Event ────────────────────────────
     def paintEvent(self, event):
@@ -116,56 +176,93 @@ class AIOrb(QWidget):
 
         cx = self.width() / 2.0
         cy = self.height() / 2.0
-        r_base = self.SIZE / 2.0
+        r_base = (self.orb_size / 2.2) * getattr(self, "_current_scale", 1.0)
 
         primary_color = self._get_state_color(1.0)
         accent_color = self._get_accent_color(1.0)
 
-        # ── 1. Background Siri-Style Liquid Energy Blobs ──
-        self._draw_liquid_blobs(painter, cx, cy, r_base)
+        # ── 1. Audio Pulse Calculation ──
+        avg_audio = sum(self._bands) / len(self._bands) if self._bands else 0.0
+        pulse_factor = 1.0 + avg_audio * 1.6
 
-        # ── 2. Radial Circular Audio Visualizer Ring ──
-        self._draw_circular_visualizer(painter, cx, cy, r_base, primary_color, accent_color)
-
-        # ── 3. Draw Outer Orbiting Sparkles (Magic Stardust) ──
-        self._draw_particles(painter, cx, cy, r_base, primary_color, accent_color, inside=False)
-
-        # ── 4. Main Glassmorphic Outer Crust Sphere ──
-        orb_grad = QRadialGradient(cx - r_base * 0.2, cy - r_base * 0.2, r_base)
-        orb_grad.setColorAt(0.0, QColor(255, 255, 255, 45))
-        orb_grad.setColorAt(0.4, QColor(primary_color.red(), primary_color.green(), primary_color.blue(), 50))
-        orb_grad.setColorAt(0.9, QColor(8, 12, 28, 220))
-        orb_grad.setColorAt(1.0, QColor(4, 6, 12, 255))
+        # ── 2. Rotate and Project 3D Nodes ──
+        cos_y, sin_y = math.cos(self.rot_y), math.sin(self.rot_y)
+        cos_x, sin_x = math.cos(self.rot_x), math.sin(self.rot_x)
         
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(orb_grad))
-        painter.drawEllipse(QPointF(cx, cy), r_base, r_base)
-
-        # Draw a subtle thin white edge highlight
-        highlight_pen = QPen(QColor(255, 255, 255, 40), 1.0)
-        painter.setPen(highlight_pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawEllipse(QPointF(cx, cy), r_base, r_base)
-
-        # ── 5. Draw Inner Sparkling Particles (Floating inside the sphere) ──
-        self._draw_particles(painter, cx, cy, r_base, primary_color, accent_color, inside=True)
-
-        # ── 6. Rotating Center Star Shimmer (Lens Flare Effect) ──
-        self._draw_center_shimmer(painter, cx, cy, primary_color, accent_color)
-
-        # ── 7. Core Pulsing Glow ──
-        core_r = r_base * (0.50 + 0.04 * math.sin(self._pulse * 2.0))
-        core_grad = QRadialGradient(cx, cy, core_r)
-        core_grad.setColorAt(0.0, QColor(255, 255, 255, 240))
-        core_grad.setColorAt(0.25, QColor(primary_color.red(), primary_color.green(), primary_color.blue(), 230))
-        core_grad.setColorAt(0.7, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 90))
-        core_grad.setColorAt(1.0, QColor(0, 0, 0, 0))
+        projected = []
+        current_r = r_base * pulse_factor
+        D = 2.4  # Camera distance
         
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(core_grad))
-        painter.drawEllipse(QPointF(cx, cy), core_r, core_r)
+        for idx, (x, y, z) in enumerate(self.nodes):
+            # Rotate Y
+            x1 = x * cos_y - z * sin_y
+            z1 = x * sin_y + z * cos_y
+            # Rotate X
+            y2 = y * cos_x - z1 * sin_x
+            z2 = y * sin_x + z1 * cos_x
+            
+            # Perspective projection
+            S = D / (D + z2)
+            px = cx + x1 * current_r * S
+            py = cy + y2 * current_r * S
+            projected.append({
+                'px': px,
+                'py': py,
+                'z': z2,
+                'x1': x1,
+                'y2': y2
+            })
 
-        # ── 8. Status Text ──
+        # ── 3. Draw Connecting Edges ──
+        for i in range(self.num_nodes):
+            for j in range(i + 1, self.num_nodes):
+                dx = self.nodes[i][0] - self.nodes[j][0]
+                dy = self.nodes[i][1] - self.nodes[j][1]
+                dz = self.nodes[i][2] - self.nodes[j][2]
+                dist_sq = dx*dx + dy*dy + dz*dz
+                
+                # Connection threshold
+                if dist_sq < 0.155:
+                    p1 = projected[i]
+                    p2 = projected[j]
+                    
+                    z_avg = (p1['z'] + p2['z']) / 2.0
+                    alpha_factor = (1.0 - z_avg) / 2.0
+                    edge_alpha = int(140 * alpha_factor * (0.3 + 0.7 * pulse_factor))
+                    
+                    if edge_alpha > 5:
+                        edge_color = QColor(primary_color.red(), primary_color.green(), primary_color.blue(), edge_alpha)
+                        pen = QPen(edge_color, 1.0)
+                        painter.setPen(pen)
+                        painter.drawLine(QPointF(p1['px'], p1['py']), QPointF(p2['px'], p2['py']))
+
+        # ── 4. Draw Node Particles ──
+        sorted_indices = sorted(range(self.num_nodes), key=lambda idx: projected[idx]['z'], reverse=True)
+        
+        for idx in sorted_indices:
+            p = projected[idx]
+            z_val = p['z']
+            
+            depth_factor = (1.0 - z_val) / 2.0
+            node_sz = 1.8 + 2.8 * depth_factor
+            
+            node_alpha = int(255 * (0.2 + 0.8 * depth_factor))
+            node_color = QColor(primary_color.red(), primary_color.green(), primary_color.blue(), node_alpha)
+            
+            if depth_factor > 0.75:
+                painter.setPen(Qt.PenStyle.NoPen)
+                grad = QRadialGradient(p['px'], p['py'], node_sz * 1.5)
+                grad.setColorAt(0.0, QColor(255, 255, 255, node_alpha))
+                grad.setColorAt(0.4, node_color)
+                grad.setColorAt(1.0, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 0))
+                painter.setBrush(QBrush(grad))
+                painter.drawEllipse(QPointF(p['px'], p['py']), node_sz * 1.5, node_sz * 1.5)
+            else:
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QBrush(node_color))
+                painter.drawEllipse(QPointF(p['px'], p['py']), node_sz, node_sz)
+
+        # ── 5. Status Text ABOVE the sphere ──
         status_text = {
             IDLE: "PRIME OS",
             LISTENING: "LISTENING",
@@ -173,7 +270,6 @@ class AIOrb(QWidget):
             SPEAKING: "SPEAKING"
         }.get(self.state, "PRIME OS")
 
-        # Highlight status text with the active state color and position it ABOVE the orb
         painter.setPen(QPen(primary_color))
         font = QFont("Outfit", 10, QFont.Weight.Bold)
         font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 2.0)
@@ -181,197 +277,14 @@ class AIOrb(QWidget):
         painter.drawText(int(cx - r_base * 1.5), int(cy - r_base - 38), int(r_base * 3), 25,
                          Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, status_text)
 
-    # ── Render Helper: Siri-Style Blobs ────────────────────────────────
-    def _draw_liquid_blobs(self, painter, cx, cy, r_base):
-        num_points = 64
-        
-        # State-based modifiers for Siri-style wave dynamics
-        state_lower = self.state.lower()
-        if "speak" in state_lower:
-            amp_mult = 2.6
-            speed_mult = 2.4
-        elif "listen" in state_lower:
-            amp_mult = 1.8
-            speed_mult = 1.6
-        elif "think" in state_lower or "process" in state_lower:
-            amp_mult = 2.0
-            speed_mult = 2.0
-        else: # IDLE
-            amp_mult = 0.55
-            speed_mult = 0.7
-            
-        layers = [
-            (0.18 * amp_mult, 0.0, self._get_state_color(0.16), 1.05),
-            (0.14 * amp_mult, 2.0, self._get_accent_color(0.14), 1.12),
-            (0.16 * amp_mult, 4.0, self._get_state_color(0.12), 0.96)
-        ]
-        painter.setPen(Qt.PenStyle.NoPen)
-        for amp, phase_off, col, base_scale in layers:
-            path = QPainterPath()
-            first_point = None
-            for pt in range(num_points):
-                angle_deg = pt * (360.0 / num_points)
-                rad = math.radians(angle_deg)
-                wave = math.sin(rad * 3.0 + self._pulse * 1.4 * speed_mult + phase_off) * \
-                       math.cos(rad * 2.0 - self._pulse * 0.9 * speed_mult + phase_off)
-                
-                curr_r = r_base * (base_scale + amp * wave)
-                x = cx + curr_r * math.cos(rad)
-                y = cy + curr_r * math.sin(rad)
-                if pt == 0:
-                    path.moveTo(x, y)
-                    first_point = QPointF(x, y)
-                else:
-                    path.lineTo(x, y)
-            if first_point:
-                path.lineTo(first_point)
-            path.closeSubpath()
-            painter.setBrush(QBrush(col))
-            painter.drawPath(path)
-
-    # ── Render Helper: Circular Visualizer ────────────────────────────
-    def _draw_circular_visualizer(self, painter, cx, cy, r_base, primary_color, accent_color):
-        base_r = r_base + 6.0
-        max_height = 42.0
-        for i in range(self._num_bands):
-            angle_deg = i * (360.0 / self._num_bands) + self._angle * 0.5
-            rad = math.radians(angle_deg)
-            cos_a = math.cos(rad)
-            sin_a = math.sin(rad)
-            amp = self._bands[i]
-
-            start_x = cx + base_r * cos_a
-            start_y = cy + base_r * sin_a
-            end_x = cx + (base_r + amp * max_height) * cos_a
-            end_y = cy + (base_r + amp * max_height) * sin_a
-
-            grad = QLinearGradient(start_x, start_y, end_x, end_y)
-            grad.setColorAt(0.0, QColor(primary_color.red(), primary_color.green(), primary_color.blue(), 230))
-            grad.setColorAt(0.7, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 180))
-            grad.setColorAt(1.0, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 0))
-
-            bar_width = 1.8 + amp * 2.2
-            pen = QPen(QBrush(grad), bar_width)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            painter.setPen(pen)
-            painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
-
-            # Draw a tiny sparkling star dot at the tip of highly active visualizer bars!
-            if amp > 0.45:
-                sparkle_size = 2.0 + (amp * 2.5)
-                sparkle_color = QColor(255, 255, 255, int(200 * amp))
-                self._draw_star_shape(painter, end_x, end_y, sparkle_size, sparkle_color)
-
-    # ── Render Helper: Sparkles & Particles ───────────────────────────
-    def _draw_particles(self, painter, cx, cy, r_base, primary_color, accent_color, inside=True):
-        # Draw particles depending on whether they are inside or outside the main glass orb
-        for p in self._particles:
-            dist = p["distance"]
-            is_currently_inside = dist < (r_base - 10.0)
-
-            # Filter particles based on placement request
-            if inside != is_currently_inside:
-                continue
-
-            rad = math.radians(p["angle"])
-            
-            # Dynamic radius with wave ripple modulation when listening/speaking
-            curr_dist = dist
-            if not inside and self.state in (LISTENING, SPEAKING):
-                avg_audio = sum(self._bands) / len(self._bands)
-                curr_dist += avg_audio * 30.0 * math.sin(p["angle"] + self._pulse)
-
-            x = cx + curr_dist * math.cos(rad)
-            y = cy + curr_dist * math.sin(rad)
-
-            # Blinking opacity
-            blink = abs(math.sin(p["blink_phase"]))
-            alpha = int(p["alpha"] * blink)
-            if alpha < 10:
-                continue
-
-            # Interpolate particle color between state primary and accent
-            t_col = p["color_shift"]
-            r_c = int(primary_color.red() * (1 - t_col) + accent_color.red() * t_col)
-            g_c = int(primary_color.green() * (1 - t_col) + accent_color.green() * t_col)
-            b_c = int(primary_color.blue() * (1 - t_col) + accent_color.blue() * t_col)
-            part_color = QColor(r_c, g_c, b_c, alpha)
-
-            # Draw 4-point star sparkle or soft circular dust particle
-            if p["is_star"]:
-                self._draw_star_shape(painter, x, y, p["size"] * 2.0, part_color)
-            else:
-                painter.setPen(Qt.PenStyle.NoPen)
-                # Create small radial glow for the particle
-                grad = QRadialGradient(x, y, p["size"] * 1.5)
-                grad.setColorAt(0.0, QColor(255, 255, 255, alpha))
-                grad.setColorAt(0.3, part_color)
-                grad.setColorAt(1.0, QColor(r_c, g_c, b_c, 0))
-                painter.setBrush(QBrush(grad))
-                painter.drawEllipse(QPointF(x, y), p["size"] * 1.5, p["size"] * 1.5)
-
-    # ── Render Helper: Central Star Shimmer Flare ─────────────────────
-    def _draw_center_shimmer(self, painter, cx, cy, primary_color, accent_color):
-        # Draw 2 layers of rotating diamond stars at the absolute center
-        # Layer 1: Large glowing primary star
-        star1_sz = 26.0 + 4.0 * math.sin(self._pulse * 2.5)
-        star1_color = QColor(255, 255, 255, 210)
-        
-        painter.save()
-        painter.translate(cx, cy)
-        painter.rotate(self._angle)
-        self._draw_star_shape_centered(painter, 0, 0, star1_sz, star1_color)
-        painter.restore()
-
-        # Layer 2: Small accent star spinning in reverse
-        star2_sz = 14.0 + 2.0 * math.cos(self._pulse * 1.8)
-        star2_color = QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 190)
-        
-        painter.save()
-        painter.translate(cx, cy)
-        painter.rotate(-self._angle * 1.5 + 45.0)
-        self._draw_star_shape_centered(painter, 0, 0, star2_sz, star2_color)
-        painter.restore()
-
-    # ── Low-Level Shape Helpers ───────────────────────────────────────
-    def _draw_star_shape(self, painter, x, y, sz, color):
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(color))
-        path = QPainterPath()
-        path.moveTo(x, y - sz)
-        path.quadTo(x, y, x + sz, y)
-        path.quadTo(x, y, x, y + sz)
-        path.quadTo(x, y, x - sz, y)
-        path.quadTo(x, y, x, y - sz)
-        path.closeSubpath()
-        painter.drawPath(path)
-
-    def _draw_star_shape_centered(self, painter, cx, cy, sz, color):
-        # Draws a thin, sparkling 4-point star centered at coordinates
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(color))
-        path = QPainterPath()
-        # Make the spikes thinner for a more premium starry/sparkle appearance
-        w = sz * 0.18
-        path.moveTo(cx, cy - sz)
-        path.quadTo(cx, cy, cx + w, cy)
-        path.lineTo(cx + sz, cy)
-        path.quadTo(cx, cy, cx, cy + w)
-        path.lineTo(cx, cy + sz)
-        path.quadTo(cx, cy, cx - w, cy)
-        path.lineTo(cx - sz, cy)
-        path.quadTo(cx, cy, cx, cy - w)
-        path.closeSubpath()
-        painter.drawPath(path)
-
     # ── Theme Colors ──────────────────────────────────────────────────
     def _get_state_color(self, opacity=1.0) -> QColor:
         alpha = int(opacity * 255)
         colors = {
-            IDLE:       (0, 191, 255),    # Cyber cyan
-            LISTENING:  (0, 245, 120),    # Emerald green
-            PROCESSING: (255, 191, 0),    # Solar amber
-            SPEAKING:   (186, 85, 211),   # Orchid voice violet
+            IDLE:       (0, 191, 255),
+            LISTENING:  (0, 245, 120),
+            PROCESSING: (255, 191, 0),
+            SPEAKING:   (186, 85, 211),
         }
         r, g, b = colors.get(self.state, (0, 191, 255))
         return QColor(r, g, b, alpha)
@@ -379,10 +292,10 @@ class AIOrb(QWidget):
     def _get_accent_color(self, opacity=1.0) -> QColor:
         alpha = int(opacity * 255)
         accents = {
-            IDLE:       (138, 43, 226),   # Violet accent
-            LISTENING:  (0, 255, 235),    # Aqua accent
-            PROCESSING: (255, 80, 0),     # Red-orange flare accent
-            SPEAKING:   (255, 0, 128),    # Pink voice signature
+            IDLE:       (138, 43, 226),
+            LISTENING:  (0, 255, 235),
+            PROCESSING: (255, 80, 0),
+            SPEAKING:   (255, 0, 128),
         }
         r, g, b = accents.get(self.state, (138, 43, 226))
         return QColor(r, g, b, alpha)

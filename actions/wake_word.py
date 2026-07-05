@@ -19,7 +19,7 @@ class WakeWordSpotterThread(threading.Thread):
         self._running = False
         
         # Keywords list
-        self.keywords = ["prime", "hey prime", "hey jarvis", "jarvis", "okay prime", "ok prime", "wake up"]
+        self.keywords = ["prime", "ip prime", "buddy", "bro", "yoo", "okay boss", "suno", "wake up"]
         
     def stop(self):
         self._stop_event.set()

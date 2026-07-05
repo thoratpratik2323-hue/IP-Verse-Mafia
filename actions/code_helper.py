@@ -347,6 +347,114 @@ def _build(description, language, output_path, args, timeout, speak=None, player
     if speak: speak(msg)
     return f"{msg}\n\nLast code saved to: {path}"
 
+def _verify_and_self_heal_code(file_path: Path, original_code: str, description: str, player=None) -> str:
+    """
+    Fable 5-style self-healing loop:
+    1. Runs a syntax check / compilation check.
+    2. Runs pytest test-suite (auto-generating unit tests if needed).
+    3. If any step fails, uses Gemini to auto-fix code based on errors.
+    4. Repeats up to 3 attempts.
+    """
+    if player:
+        player.write_log(f"[Code] Verification & Self-Healing loop started for {file_path.name}...")
+        
+    code = original_code
+    path = file_path
+    
+    # We will attempt compilation and test runs up to 3 times
+    for attempt in range(1, 4):
+        print(f"[Code] 🔄 Verification Attempt {attempt}/3")
+        if player:
+            player.write_log(f"[Code] Verification Attempt {attempt}/3...")
+            
+        # ── 1. Compilation/Syntax Check ──
+        syntax_err = ""
+        if path.suffix == ".py":
+            try:
+                proc = subprocess.run(
+                    [sys.executable, "-m", "py_compile", str(path)],
+                    capture_output=True, text=True, encoding="utf-8", timeout=15
+                )
+                if proc.returncode != 0:
+                    syntax_err = (proc.stdout + proc.stderr).strip()
+            except Exception as e:
+                syntax_err = f"Syntax check failed: {e}"
+                
+        if syntax_err:
+            print(f"[Code] ⚠️ Syntax error detected on attempt {attempt}: {syntax_err}")
+            if player:
+                player.write_log(f"[Code] Fix loop - Syntax error on attempt {attempt}...")
+            try:
+                code = _fix_code(code, syntax_err, description)
+                _save_file(path, code)
+                continue
+            except Exception as e:
+                return f"Self-healing syntax fix failed: {e}"
+
+        # ── 2. Run/Execute File Check ──
+        last_output = ""
+        if path.suffix == ".py":
+            last_output = _run_file(path, [], 20)
+            
+            # Check for pip missing dependencies (e.g. ModuleNotFoundError)
+            missing_module = re.search(r"ModuleNotFoundError:\s+No\s+module\s+named\s+['\"]([^'\"]+)['\"]", last_output)
+            if missing_module:
+                module_name = missing_module.group(1)
+                print(f"[Code] 📦 Detected missing module '{module_name}'. Attempting pip install...")
+                if player:
+                    player.write_log(f"[Code] Installing missing dependency: {module_name}...")
+                subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
+                last_output = _run_file(path, [], 20)
+
+        # ── 3. Unit Test Generation & Verification Check ──
+        test_err = ""
+        if path.suffix == ".py":
+            # Generate unit tests automatically
+            test_path = path.parent / f"test_{path.name}"
+            test_res = _generate_tests_action(str(path), str(test_path), run_after=True, player=player)
+            
+            if "failed" in test_res.lower() or "error" in test_res.lower():
+                test_err = test_res
+
+        # ── 4. AISlop Quality Gate Check ──
+        aislop_error = ""
+        try:
+            from actions.aislop_helper import run_aislop_scan, run_aislop_fix
+            scan_res = run_aislop_scan(str(path), player)
+            score = scan_res.get("score", 100)
+            if score < 95:
+                run_aislop_fix(str(path), player)
+                scan_res = run_aislop_scan(str(path), player)
+                score = scan_res.get("score", 100)
+                
+            if score < 95:
+                issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
+                aislop_error = f"AISlop Quality Gate failed (Score: {score}/100):\n{issues_summary}"
+        except Exception:
+            pass
+
+        # ── 5. Success Check ──
+        if not _has_error(last_output) and not test_err and not aislop_error:
+            msg = f"✅ Code verified and pristine (all tests passed) after {attempt} attempt(s)!"
+            if player:
+                player.write_log(msg)
+            return msg
+
+        # ── 6. Self-Healing Trigger ──
+        combined_err = f"Execution Output:\n{last_output}\n\nTest Output:\n{test_err}\n\nQuality issues:\n{aislop_error}".strip()
+        print(f"[Code] ⚠️ Failures detected, fixing attempt {attempt}...")
+        if player:
+            player.write_log(f"[Code] Fixing failing tests/execution (attempt {attempt})...")
+            
+        try:
+            code = _fix_code(code, combined_err, description)
+            _save_file(path, code)
+        except Exception as e:
+            return f"Self-healing fix cycle failed: {e}"
+
+    return f"❌ Verification finished after 3 attempts, but errors/failures persist. Saved to: {path}"
+
+
 def _write_action(description, language, output_path, player) -> str:
     if not description:
         return "Please describe what you want me to write, sir."
@@ -357,97 +465,15 @@ def _write_action(description, language, output_path, player) -> str:
         code, path = _write(description, lang, output_path, player)
         print(f"[Code] ✅ Written: {path}")
         
-        # AUTO-RUN VERIFICATION & SELF-HEALING LOOP
-        print(f"[Code] 🔄 Auto-verifying execution for: {path.name}...")
-        if player:
-            player.write_log("[Code] Auto-verifying execution...")
-            
-        last_output = _run_file(path, [], 20)
+        # Fable-style Self-Healing Verification Loop!
+        verification_status = _verify_and_self_heal_code(path, code, description, player)
         
-        # Check for pip missing dependencies (e.g. ModuleNotFoundError)
-        missing_module = re.search(r"ModuleNotFoundError:\s+No\s+module\s+named\s+['\"]([^'\"]+)['\"]", last_output)
-        if missing_module:
-            module_name = missing_module.group(1)
-            print(f"[Code] 📦 Detected missing module '{module_name}'. Attempting pip install...")
-            if player:
-                player.write_log(f"[Code] Installing missing dependency: {module_name}...")
-            subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
-            last_output = _run_file(path, [], 20)
-
-        # AISlop Quality Gate Integration
-        try:
-            from actions.aislop_helper import run_aislop_scan, run_aislop_fix
-            scan_res = run_aislop_scan(str(path), player)
-            score = scan_res.get("score", 100)
-            if score < 95:
-                print(f"[Code] 🛡️ AISlop Score: {score}/100. Triggering auto-fix...")
-                run_aislop_fix(str(path), player)
-                scan_res = run_aislop_scan(str(path), player)
-                score = scan_res.get("score", 100)
-                
-            if score < 95:
-                issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
-                aislop_error = f"AISlop Quality Gate failed (Score: {score}/100). The following code quality issues / placeholders were found:\n{issues_summary}"
-                print(f"[Code] ⚠️ AISlop check failed after auto-fix: {aislop_error}")
-            else:
-                aislop_error = ""
-        except Exception as e:
-            print(f"[Code] AISlop quality gate bypassed/error: {e}")
-            aislop_error = ""
-            score = 100
-
-        # Self-healing loop if errors or quality issues found
-        if _has_error(last_output) or aislop_error:
-            print("[Code] ⚠️ Execution error or quality issue detected during write verification, entering self-healing...")
-            if player:
-                player.write_log("[Code] Error/quality issue detected, self-healing...")
-            
-            for attempt in range(1, MAX_BUILD_ATTEMPTS + 1):
-                try:
-                    combined_err = f"{last_output}\n\n{aislop_error}".strip()
-                    code = _fix_code(code, combined_err, description)
-                    _save_file(path, code)
-                    last_output = _run_file(path, [], 20)
-                    
-                    # Recheck missing module
-                    missing_module = re.search(r"ModuleNotFoundError:\s+No\s+module\s+named\s+['\"]([^'\"]+)['\"]", last_output)
-                    if missing_module:
-                        module_name = missing_module.group(1)
-                        subprocess.run([sys.executable, "-m", "pip", "install", module_name], capture_output=True)
-                        last_output = _run_file(path, [], 20)
-
-                    # Recheck AISlop scan after fix
-                    try:
-                        scan_res = run_aislop_scan(str(path), player)
-                        score = scan_res.get("score", 100)
-                        if score < 95:
-                            run_aislop_fix(str(path), player)
-                            scan_res = run_aislop_scan(str(path), player)
-                            score = scan_res.get("score", 100)
-                        
-                        if score < 95:
-                            issues_summary = "\n".join([f"- {issue.get('message')}" for issue in scan_res.get("issues", [])])
-                            aislop_error = f"AISlop Quality Gate failed (Score: {score}/100). The following code quality issues / placeholders were found:\n{issues_summary}"
-                        else:
-                            aislop_error = ""
-                    except Exception as e:
-                        print(f"[Code] AISlop quality check error: {e}")
-                        aislop_error = ""
-
-                    if not _has_error(last_output) and not aislop_error:
-                        break
-                except Exception as e:
-                    print(f"[Code] Self-healing attempt {attempt} failed: {e}")
-                    
-        execution_status = ""
-        if _has_error(last_output):
-            execution_status = f"\n\n⚠️ Self-verification executed with errors:\n{last_output[:800]}"
-        else:
-            execution_status = f"\n\n✅ Self-verification succeeded! Execution Output:\n{last_output[:800]}"
-
+        # Read final code
+        final_code = path.read_text(encoding="utf-8")
         return (
-            f"Code written and verified. Saved to: {path}{execution_status}\n\n"
-            f"Preview:\n{_preview(code)}"
+            f"Code written and verified. Saved to: {path}\n\n"
+            f"Verification Status: {verification_status}\n\n"
+            f"Preview:\n{_preview(final_code)}"
         )
     except Exception as e:
         return f"Could not generate code: {e}"
@@ -484,20 +510,20 @@ Updated code:"""
     except Exception as e:
         return f"Could not edit code: {e}"
 
-    status = _save_file(Path(file_path), edited)
+    path = Path(file_path)
+    status = _save_file(path, edited)
     print(f"[Code] ✅ Edited: {file_path}")
     
-    # Run AISlop Quality Gate
-    try:
-        from actions.aislop_helper import run_aislop_scan, run_aislop_fix
-        scan_res = run_aislop_scan(str(file_path), player)
-        if scan_res.get("score", 100) < 95:
-            run_aislop_fix(str(file_path), player)
-            edited = Path(file_path).read_text(encoding="utf-8")
-    except Exception as e:
-        print(f"[Code] AISlop check warning: {e}")
-
-    return f"File edited. {status}\n\nInfo: You are fully authorized to run it automatically using the 'run' action to verify or execute the changes. Otherwise, let Pratik Sir know it is updated and ready.\n\nPreview:\n{_preview(edited)}"
+    # Fable-style Self-Healing Verification Loop!
+    verification_status = _verify_and_self_heal_code(path, edited, f"Update according to: {instruction}", player)
+    
+    # Read final code
+    final_code = path.read_text(encoding="utf-8")
+    return (
+        f"File edited and verified. Saved to: {path}\n\n"
+        f"Verification Status: {verification_status}\n\n"
+        f"Preview:\n{_preview(final_code)}"
+    )
 
 
 def _explain_action(file_path, code, player) -> str:

@@ -1,1866 +1,1050 @@
+<!-- NEXUS OS dashboard.html | macOS Yosemite Glass Style -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧬 IP PRIME — Floating Neural Visualizer</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    
-    <style>
-        :root {
-            --cyan: #00f0ff;
-            --cyan-glow: rgba(0, 240, 255, 0.4);
-            --cyan-ghost: rgba(0, 240, 255, 0.08);
-            --purple: #bd00ff;
-            --purple-glow: rgba(189, 0, 255, 0.4);
-            --green: #39ff14;
-            --green-glow: rgba(57, 255, 20, 0.3);
-            --red: #f43f5e;
-            --red-glow: rgba(244, 63, 94, 0.4);
-            --border: rgba(0, 240, 255, 0.18);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧬 IP PRIME — macOS Yosemite Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-        }
+<style>
+/* ═══════════════════════════════════════════════
+   CSS DESIGN TOKENS — macOS Yosemite Glass
+═══════════════════════════════════════════════ */
+:root {
+  --cyan:        #00f5ff;
+  --cyan-dim:    rgba(0,245,255,0.15);
+  --cyan-glow:   rgba(0,245,255,0.5);
+  --purple:      #a855f7;
+  --purple-dim:  rgba(168,85,247,0.15);
+  --purple-glow: rgba(168,85,247,0.5);
+  --amber:       #f59e0b;
+  --amber-dim:   rgba(245,158,11,0.15);
+  --green:       #10b981;
+  --green-dim:   rgba(16,185,129,0.15);
+  --red:         #f43f5e;
+  --red-dim:     rgba(244,63,94,0.15);
+  
+  --menu-bg:     rgba(255, 255, 255, 0.15);
+  --menu-border: rgba(255, 255, 255, 0.2);
+  --menu-text:   #ffffff;
+  
+  --glass-bg:     rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-shadow: rgba(0, 0, 0, 0.3);
+  
+  --title-bg:     rgba(255, 255, 255, 0.22);
+  --body-bg:      rgba(255, 255, 255, 0.08);
+  
+  --text-hi:     #ffffff;
+  --text-mid:    #e0e7ff;
+  --text-lo:     #94a3b8;
+  --radius:      10px;
+}
 
-        body {
-            background: #020813;
-            color: #f1f5f9;
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            -webkit-app-region: drag;
-            border: 2px solid var(--cyan);
-            border-radius: 8px;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.15);
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
 
-        /* ── Auto-Hiding Footer ── */
-        .header-trigger {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            z-index: 9999;
-        }
+body {
+  background: url('https://images.unsplash.com/photo-1516687401797-25297ff1462c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE2OTA4OTI4OTl8&ixlib=rb-4.0.3&q=80&w=1600') 50% no-repeat fixed;
+  background-size: cover;
+  color: var(--text-hi);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  user-select: none;
+  overflow: hidden;
+}
 
-        header {
-            height: 46px;
-            width: calc(100% - 20px);
-            margin: 0 auto 10px auto;
-            padding: 0 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 2px solid var(--cyan);
-            border-radius: 6px;
-            background: #020813;
-            box-shadow: 0 0 18px var(--cyan-glow), inset 0 0 10px rgba(0, 240, 255, 0.15);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-            -webkit-app-region: drag;
-        }
+/* ═══════════════════════════════════════════════
+   2D NEURAL CANVAS LAYER (Placed behind windows)
+═══════════════════════════════════════════════ */
+#neuralCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
 
-        .header-trigger:hover header, header:hover {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
+/* Blur overlay behind windows to simulate double-blur */
+.desktop-tint {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
 
-        .no-drag {
-            -webkit-app-region: no-drag;
-        }
+/* ═══════════════════════════════════════════════
+   TOP MENU BAR (macOS Yosemite Style)
+═══════════════════════════════════════════════ */
+.menu-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 24px;
+  z-index: 9999;
+  background: var(--menu-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--menu-border);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--menu-text);
+}
 
-        .title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            text-shadow: 0 0 8px var(--cyan-glow);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.menu-logo {
+  font-size: 14px;
+  cursor: default;
+}
+.menu-item {
+  cursor: default;
+  transition: opacity 0.15s;
+}
+.menu-item:hover { opacity: 0.7; }
+.menu-item.bold { font-weight: 700; }
 
-        .title span.pulse {
-            width: 5px;
-            height: 5px;
-            background: var(--cyan);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--cyan-glow);
-            animation: pulse 1.5s infinite;
-        }
+.menu-spacer { flex: 1; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.4; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+.menu-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: 'Outfit', sans-serif;
+}
+.menu-metric {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.menu-metric span { color: var(--cyan); font-weight: 700; }
 
-        /* ── State Badge ── */
-        .state-badge {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            border: 1.5px solid var(--cyan);
-            background: rgba(0, 240, 255, 0.1);
-            padding: 4px 12px;
-            border-radius: 4px;
-            color: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan-glow);
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
+.menu-clock {
+  font-weight: 600;
+}
 
-        /* ── Window Controls ── */
-        .win-controls {
-            display: flex;
-            gap: 8px;
-        }
+/* ═══════════════════════════════════════════════
+   DRAGGABLE WINDOWS (macOS Yosemite Glass)
+═══════════════════════════════════════════════ */
+article.draggable-window {
+  position: absolute;
+  background: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: opacity 0.25s, transform 0.25s;
+}
 
-        .win-btn {
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            border: 1.5px solid var(--cyan);
-            background: rgba(0, 240, 255, 0.05);
-            color: var(--cyan);
-            font-size: 9px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+article.draggable-window::before {
+  content: '';
+  position: absolute;
+  top: -20px; 
+  left: -20px; 
+  right: -20px; 
+  bottom: -20px;
+  background: inherit;
+  filter: blur(10px) saturate(2);
+  z-index: -1;
+}
 
-        .win-btn:hover {
-            color: #fff;
-            background: rgba(0, 240, 255, 0.2);
-            border-color: var(--cyan);
-            box-shadow: 0 0 8px var(--cyan-glow);
-        }
+article.draggable-window.dragging::before {
+  filter: blur(10px) sepia(1) hue-rotate(200deg);
+}
 
-        .win-btn.close {
-            border-color: var(--red);
-            color: var(--red);
-            background: rgba(244, 63, 94, 0.05);
-        }
+article.draggable-window.minimized {
+  opacity: 0;
+  transform: scale(0.8) translateY(100px);
+  pointer-events: none;
+}
 
-        .win-btn.close:hover {
-            background: rgba(244, 63, 94, 0.25);
-            border-color: var(--red);
-            color: #fff;
-            box-shadow: 0 0 8px var(--red-glow);
-        }
+/* Window Title Bar */
+.window-titlebar {
+  height: 32px;
+  background: rgba(235, 235, 235, 0.85);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  position: relative;
+  cursor: move;
+  flex-shrink: 0;
+}
 
-        /* ── Futuristic Top Navbar ── */
-        .top-nav {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 38px;
-            padding: 0 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #020813;
-            border-bottom: 2px solid var(--cyan);
-            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
-            z-index: 10000;
-            -webkit-app-region: drag;
-        }
+article.draggable-window.dragging .window-titlebar {
+  background: rgba(215, 225, 255, 0.85);
+}
 
-        .terminal-status {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: bold;
-            color: var(--cyan);
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--cyan-glow);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+/* Yosemite Traffic Lights */
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+.light-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+.light-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.traffic-lights:hover .light-btn::after { opacity: 1; }
+.light-close { background: #ff5f56; border: 1px solid #e0443e; }
+.light-min   { background: #ffbd2e; border: 1px solid #dfa224; }
+.light-max   { background: #27c93f; border: 1px solid #1a9c2b; }
 
-        .term-prompt {
-            color: #64748b;
-            text-shadow: none;
-        }
+.window-title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #222222;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
 
-        .blink {
-            animation: blinker 1s step-start infinite;
-        }
 
-        @keyframes blinker {
-            50% { opacity: 0; }
-        }
+/* Window Content Body */
+.window-body {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.65);
+  color: #1e293b;
+  padding: 14px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
 
-        .nav-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            text-shadow: 0 0 8px var(--cyan-glow);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+/* ═══════════════════════════════════════════════
+   MODULE CONTENT DESIGNS
+═══════════════════════════════════════════════ */
 
-        .nav-pulse {
-            width: 4px;
-            height: 4px;
-            background: var(--cyan);
-            border-radius: 50%;
-            box-shadow: 0 0 6px var(--cyan-glow);
-            animation: pulse 1.5s infinite;
-        }
+/* ── MODULE: NEURAL CORE & SYSTEM HEALTH ── */
+.neural-core-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.core-box {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.core-box-lbl { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+.core-box-val { font-size: 16px; font-weight: 700; color: #0369a1; margin-top: 2px; }
 
-        /* ── ThreeJS Visualizer Container ── */
-        .visualizer-container {
-            width: calc(100% - 740px);
-            height: calc(100% - 38px);
-            position: absolute;
-            top: 38px;
-            left: 500px;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            pointer-events: none;
-        }
+.future-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.future-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #334155;
+}
+.future-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #0284c7;
+  box-shadow: 0 0 5px rgba(2, 132, 199, 0.5);
+}
 
-        canvas#neuralCore {
-            width: 100% !important;
-            height: 100% !important;
-            display: block;
-        }
+/* ── MODULE: MIND GRAPH ── */
+#graphContainer { width: 100%; height: 100%; min-height: 250px; }
 
-        /* ── Left Control Terminal ── */
-        .left-panel {
-            position: absolute;
-            left: 0;
-            top: 38px;
-            width: 500px;
-            height: calc(100% - 38px);
-            background: rgba(2, 8, 19, 0.85);
-            backdrop-filter: blur(12px);
-            border-right: 2px solid var(--cyan);
-            box-shadow: 4px 0 20px rgba(0, 240, 255, 0.2);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+/* ── MODULE: TERMINAL ── */
+.terminal-console {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  padding: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-y: auto;
+}
+.term-line { display: flex; gap: 8px; margin-bottom: 2px; }
+.term-sys  { color: var(--amber); }
+.term-prompt { color: var(--green); }
+.term-cmd  { color: var(--cyan); }
+.term-out  { color: var(--text-mid); padding-left: 12px; }
+.term-err  { color: var(--red); padding-left: 12px; }
+.term-cursor {
+  display: inline-block; width: 6px; height: 12px;
+  background: var(--cyan);
+  animation: term-blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes term-blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-        .tab-bar {
-            display: flex;
-            background: rgba(0, 240, 255, 0.05);
-            border-bottom: 1.5px solid rgba(0, 240, 255, 0.2);
-            padding: 2px;
-            overflow-x: auto;
-        }
-        
-        .tab-bar::-webkit-scrollbar {
-            height: 3px;
-        }
-        
-        .tab-bar::-webkit-scrollbar-thumb {
-            background: var(--cyan);
-        }
+/* ── MODULE: SWARM DECK ── */
+.swarm-container { display: flex; flex-direction: column; gap: 8px; }
+.swarm-agent-card {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #1e293b;
+}
+.agent-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #0f172a; }
+.agent-status { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.agent-status.running { background: rgba(2, 132, 199, 0.15); color: #0284c7; }
+.agent-status.idle { background: rgba(0, 0, 0, 0.08); color: #475569; }
+.agent-progress-wrap { height: 4px; background: rgba(0, 0, 0, 0.08); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.agent-progress-bar { height: 100%; background: linear-gradient(90deg, #0284c7, var(--purple)); width: 0%; transition: width 0.4s; }
 
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #64748b;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 800;
-            padding: 10px 2px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            text-align: center;
-            border-right: 1px solid rgba(0, 240, 255, 0.1);
-        }
+/* ── MODULE: CONTROL CENTER ── */
+.cfg-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.cfg-row:last-child { border-bottom: none; }
+.cfg-lbl { font-size: 12px; color: #334155; }
+.cfg-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 2px 8px; border-radius: 4px; color: #0369a1;
+  cursor: pointer;
+}
+.cfg-toggle {
+  width: 34px; height: 18px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9px;
+  position: relative; cursor: pointer;
+  transition: background 0.2s;
+}
+.cfg-toggle.on { background: var(--green); }
+.cfg-toggle::after {
+  content: ''; position: absolute;
+  top: 2px; left: 2px; width: 14px; height: 14px;
+  background: white; border-radius: 50%;
+  transition: transform 0.2s;
+}
+.cfg-toggle.on::after { transform: translateX(16px); }
 
-        .tab-btn:hover {
-            color: var(--cyan);
-            background: rgba(0, 240, 255, 0.04);
-        }
+/* ── MODULE: FILES ── */
+.drop-zone {
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+}
+.drop-zone:hover { border-color: #0284c7; background: rgba(2, 132, 199, 0.03); }
+.drop-zone-lbl { font-size: 12px; color: #334155; margin-bottom: 4px; }
+.drop-zone-sub { font-size: 9px; color: #64748b; }
+.file-list-view {
+  margin-top: 10px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.file-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: #1e293b;
+}
 
-        .tab-btn.active {
-            color: var(--cyan);
-            background: rgba(0, 240, 255, 0.12);
-            border-bottom: 2px solid var(--cyan);
-            text-shadow: 0 0 8px var(--cyan-glow);
-        }
+/* ═══════════════════════════════════════════════
+   DOCK (macOS Yosemite Style)
+═══════════════════════════════════════════════ */
+.dock-container {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--menu-border);
+  border-radius: 16px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
 
-        .tab-content {
-            display: none;
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-            flex-direction: column;
-            gap: 10px;
-        }
+/* Yosemite perspective reflection shelf effect */
+.dock-container::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 4%; right: 4%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
 
-        .tab-content.active {
-            display: flex;
-        }
+.dock-icon {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+}
+.dock-icon:hover {
+  transform: scale(1.2) translateY(-10px);
+  background: rgba(255,255,255,0.22);
+}
 
-        .tab-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .tab-content::-webkit-scrollbar-thumb {
-            background: var(--cyan);
-            border-radius: 2px;
-        }
+/* Yosemite Active indicator dot */
+.dock-icon::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 4px #ffffff;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.dock-icon.active::after { opacity: 1; }
 
-        /* ── Cybernetic UI Form Elements ── */
-        .glass-card {
-            background: rgba(15, 23, 42, 0.45);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            border-radius: 6px;
-            padding: 10px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+.dock-tooltip {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+.dock-icon:hover .dock-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 
-        .glass-card-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9.5px;
-            font-weight: 900;
-            color: var(--cyan);
-            letter-spacing: 0.5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10px;
-            color: #cbd5e1;
-        }
-
-        .cyber-input {
-            background: rgba(2, 8, 19, 0.6);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            border-radius: 4px;
-            color: #f8fafc;
-            font-family: monospace;
-            font-size: 10px;
-            padding: 3px 6px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .cyber-input:focus {
-            border-color: var(--cyan);
-            box-shadow: 0 0 8px var(--cyan-glow);
-        }
-
-        .cyber-btn {
-            background: rgba(0, 240, 255, 0.08);
-            border: 1.5px solid var(--cyan);
-            border-radius: 4px;
-            color: var(--cyan);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 900;
-            padding: 5px 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-shadow: 0 0 4px var(--cyan-glow);
-            text-align: center;
-        }
-
-        .cyber-btn:hover {
-            background: rgba(0, 240, 255, 0.25);
-            box-shadow: 0 0 10px var(--cyan-glow);
-            color: #fff;
-        }
-
-        .cyber-btn.danger {
-            border-color: var(--red);
-            color: var(--red);
-            background: rgba(244, 63, 94, 0.08);
-            text-shadow: 0 0 4px var(--red-glow);
-        }
-
-        .cyber-btn.danger:hover {
-            background: rgba(244, 63, 94, 0.25);
-            box-shadow: 0 0 10px var(--red-glow);
-            color: #fff;
-        }
-
-        /* ── Modern Switches ── */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 32px;
-            height: 18px;
-        }
-
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .3s;
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 12px;
-            width: 12px;
-            left: 2px;
-            bottom: 2px;
-            background-color: #64748b;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: rgba(0, 240, 255, 0.2);
-            border-color: var(--cyan);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(14px);
-            background-color: var(--cyan);
-            box-shadow: 0 0 6px var(--cyan-glow);
-        }
-
-        /* ── MindMap Styles ── */
-        #mindmap-canvas {
-            background: rgba(2, 8, 19, 0.4);
-            border: 1px solid rgba(0, 240, 255, 0.25);
-            border-radius: 6px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
-        }
-
-        /* ── Right Panel & Sidebar ── */
-        .right-panel {
-            position: absolute;
-            right: 0;
-            top: 38px;
-            width: 240px;
-            height: calc(100% - 38px);
-            background: #020813;
-            border-left: 2px solid var(--cyan);
-            box-shadow: -4px 0 15px rgba(0, 240, 255, 0.15);
-            z-index: 9999;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .panel-section-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 900;
-            color: var(--cyan);
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--cyan-glow);
-            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-        }
-
-        .log-container {
-            flex: 1;
-            background: rgba(0, 240, 255, 0.03);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            border-radius: 4px;
-            padding: 8px;
-            font-family: monospace;
-            font-size: 9px;
-            color: #94a3b8;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .log-container::-webkit-scrollbar {
-            width: 4px;
-        }
-        .log-container::-webkit-scrollbar-thumb {
-            background: var(--cyan);
-            border-radius: 2px;
-        }
-
-        .log-line {
-            line-height: 1.3;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            padding-bottom: 2px;
-            word-break: break-all;
-        }
-
-        .log-line.sys { color: var(--cyan); }
-        .log-line.file { color: var(--green); }
-        .log-line.err { color: var(--red); }
-
-        .upload-dropzone {
-            height: 100px;
-            background: rgba(0, 240, 255, 0.02);
-            border: 1.5px dashed rgba(0, 240, 255, 0.25);
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-dropzone:hover {
-            background: rgba(0, 240, 255, 0.08);
-            border-color: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan-glow);
-        }
-
-        .upload-icon {
-            font-size: 20px;
-            color: var(--cyan);
-            text-shadow: 0 0 6px var(--cyan-glow);
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
-
-        .upload-text {
-            font-family: 'Inter', sans-serif;
-            font-size: 9px;
-            color: #94a3b8;
-            text-align: center;
-            padding: 0 8px;
-        }
-    </style>
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
 </head>
 <body>
 
-    <!-- Futuristic Top Navbar -->
-    <nav class="top-nav">
-        <div class="nav-title">
-            IP PRIME <span class="nav-pulse"></span>
-        </div>
-        <div class="terminal-status no-drag" id="terminal-status">
-            <span class="term-prompt">&gt; CORE_SYS:</span> <span id="terminal-state">LISTENING</span><span class="blink">_</span>
-        </div>
-    </nav>
+<!-- 2D Canvas for Connecting Neural Node Background -->
+<canvas id="neuralCanvas"></canvas>
+<div class="desktop-tint"></div>
 
-    <!-- Transparent trigger zone for header hover -->
-    <div class="header-trigger">
-        <header>
-            <div class="title">
-                <span class="pulse" id="pulse-dot"></span> IP PRIME
-            </div>
-            <div class="state-badge" id="state-badge">LISTENING</div>
-            <div class="win-controls no-drag">
-                <button class="win-btn" onclick="minimizeWin()" title="Minimize">─</button>
-                <button class="win-btn" onclick="maximizeWin()" title="Maximize">▢</button>
-                <button class="win-btn close" onclick="closeWin()" title="Close">✕</button>
-            </div>
-        </header>
+<!-- macOS style top Menu Bar -->
+<header class="menu-bar">
+  <div class="menu-left">
+    <span class="menu-logo"></span>
+    <span class="menu-item bold">IP Prime OS</span>
+    <span class="menu-item">File</span>
+    <span class="menu-item">Edit</span>
+    <span class="menu-item">View</span>
+    <span class="menu-item">Window</span>
+    <span class="menu-item">Help</span>
+  </div>
+  <div class="menu-spacer"></div>
+  <div class="menu-right">
+    <div class="menu-metric">CPU: <span id="menuCpu">0%</span></div>
+    <div class="menu-metric">RAM: <span id="menuRam">0%</span></div>
+    <div class="menu-clock" id="menuClock">LOADING...</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+   DRAGGABLE WINDOWS (macOS Yosemite Style)
+═══════════════════════════════════════════════ */
+
+<!-- WINDOW: NEURAL CORE -->
+<article class="draggable-window" id="win-core" style="width: 320px; height: 350px; left: 80px; top: 100px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('core')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('core')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('core')"></button>
     </div>
-
-    <!-- Left Control Panel (Cybernetic Terminals) -->
-    <div class="left-panel no-drag">
-        <div class="tab-bar">
-            <button class="tab-btn active" id="btn-mindmap" onclick="switchTab('mindmap')">🧠 MINDMAP</button>
-            <button class="tab-btn" id="btn-chronos" onclick="switchTab('chronos')">⏰ CHRONOS</button>
-            <button class="tab-btn" id="btn-workstation" onclick="switchTab('workstation')">💻 WORKSTATION</button>
-            <button class="tab-btn" id="btn-aero" onclick="switchTab('aero')">🖐️ AERO</button>
-            <button class="tab-btn" id="btn-broadcast" onclick="switchTab('broadcast')">🔔 BROADCAST</button>
-            <button class="tab-btn" id="btn-system" onclick="switchTab('system')">⚡ SYSTEM</button>
-        </div>
-
-        <!-- 1. MINDMAP TAB -->
-        <div class="tab-content active" id="tab-mindmap">
-            <div class="panel-section-title">&gt; MEMORY_NEURAL_MAP</div>
-            <div id="mindmap-canvas" style="width: 100%; height: 320px;"></div>
-            
-            <div class="glass-card" id="memory-detail-card">
-                <div class="glass-card-title">&gt; NODE_DETAILS</div>
-                <div id="memory-detail-empty" style="font-size: 9px; color: #64748b; text-align: center; padding: 10px;">
-                    Click a leaf memory node in the map above to view or delete details.
-                </div>
-                <div id="memory-detail-content" style="display: none; flex-direction: column; gap: 8px;">
-                    <div class="card-row">
-                        <span style="color: var(--cyan); font-weight: bold;">Category:</span>
-                        <span id="detail-category" style="font-family: monospace;">-</span>
-                    </div>
-                    <div class="card-row">
-                        <span style="color: var(--cyan); font-weight: bold;">Key:</span>
-                        <span id="detail-key" style="font-family: monospace;">-</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <span style="color: var(--cyan); font-size: 10px; font-weight: bold;">Value:</span>
-                        <div id="detail-value" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 4px; padding: 8px; font-size: 10px; font-family: monospace; white-space: pre-wrap; word-break: break-all; max-height: 80px; overflow-y: auto;">-</div>
-                    </div>
-                    <button class="cyber-btn danger" id="btn-forget-memory" onclick="deleteSelectedMemory()">FORGET_MEMORY</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. CHRONOS TAB -->
-        <div class="tab-content" id="tab-chronos">
-            <div class="panel-section-title">&gt; CHRONOS_SCHEDULER_STATUS</div>
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>MORNING BRIEFING (Namaste brief)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="routine-morning-enabled" onchange="markRoutineDirty()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="card-row">
-                    <span>Trigger Time:</span>
-                    <input type="time" class="cyber-input" id="routine-morning-time" onchange="markRoutineDirty()">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 9px; color: var(--cyan);">Actions to run:</span>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <label style="font-size: 9px; display: flex; align-items: center; gap: 4px;">
-                            <input type="checkbox" id="routine-morning-briefing" onchange="markRoutineDirty()"> Hinglish Voice Brief
-                        </label>
-                        <label style="font-size: 9px; display: flex; align-items: center; gap: 4px;">
-                            <input type="checkbox" id="routine-morning-weather" onchange="markRoutineDirty()"> Weather API Bulletin
-                        </label>
-                        <label style="font-size: 9px; display: flex; align-items: center; gap: 4px;">
-                            <input type="checkbox" id="routine-morning-broadcast" onchange="markRoutineDirty()"> Push Alerts
-                        </label>
-                    </div>
-                </div>
-                <button class="cyber-btn" onclick="triggerRoutineNow('morning_brief')" style="margin-top: 6px;">RUN_ROUTINE_NOW</button>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>WORKSPACE SCANS (Errors checking)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="routine-workspace-enabled" onchange="markRoutineDirty()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="card-row">
-                    <span>Trigger Time:</span>
-                    <input type="time" class="cyber-input" id="routine-workspace-time" onchange="markRoutineDirty()">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 9px; color: var(--cyan);">Actions to run:</span>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <label style="font-size: 9px; display: flex; align-items: center; gap: 4px;">
-                            <input type="checkbox" id="routine-workspace-compile" onchange="markRoutineDirty()"> Python Compiler Scan
-                        </label>
-                        <label style="font-size: 9px; display: flex; align-items: center; gap: 4px;">
-                            <input type="checkbox" id="routine-workspace-broadcast" onchange="markRoutineDirty()"> Push Notification
-                        </label>
-                    </div>
-                </div>
-                <button class="cyber-btn" onclick="triggerRoutineNow('workspace_check')" style="margin-top: 6px;">RUN_ROUTINE_NOW</button>
-            </div>
-            
-            <button class="cyber-btn" id="btn-save-routines" onclick="saveRoutines()" style="width: 100%; font-size: 10px; display: none;">SAVE_ROUTINE_SETTINGS</button>
-        </div>
-
-        <!-- 3. WORKSTATION TAB -->
-        <div class="tab-content" id="tab-workstation">
-            <div class="panel-section-title">&gt; LIVE_DEVELOPER_HUD</div>
-            
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>PIPELINE PAIRING STATE</span>
-                    <span id="dev-active-badge" class="state-badge" style="font-size: 7px; padding: 2px 6px;">IDLE</span>
-                </div>
-                <div class="card-row">
-                    <span>Current Step:</span>
-                    <span id="dev-step" style="font-family: monospace; color: var(--cyan); font-weight: bold;">idle</span>
-                </div>
-                <div class="card-row">
-                    <span>Active File Focus:</span>
-                    <span id="dev-file" style="font-family: monospace; color: var(--green);">None</span>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 9px; color: #64748b;">
-                        <span>Progress Metric</span>
-                        <span id="dev-progress-percent">0%</span>
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.05); height: 6px; border-radius: 3px; overflow: hidden; border: 1px solid rgba(0, 240, 255, 0.15);">
-                        <div id="dev-progress-bar" style="background: linear-gradient(90deg, var(--cyan), var(--purple)); height: 100%; width: 0%; transition: width 0.4s ease;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card" style="flex: 1; display: flex; flex-direction: column; min-height: 120px;">
-                <div class="glass-card-title">&gt; SELF_HEALING_LOGS</div>
-                <div id="dev-logs-box" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 4px; font-family: monospace; font-size: 9px; padding: 8px; overflow-y: auto; color: #94a3b8; white-space: pre-wrap; height: 120px;">Developer Agent is currently idle. Spawn a task to begin.</div>
-            </div>
-
-            <div class="glass-card" style="display: flex; flex-direction: column;">
-                <div class="glass-card-title">&gt; REAL_TIME_DIFF_PREVIEWER</div>
-                <div id="dev-diff-box" style="background: rgba(2, 8, 19, 0.85); border: 1.5px solid rgba(0, 240, 255, 0.2); border-radius: 4px; font-family: monospace; font-size: 8.5px; padding: 10px; color: #e2e8f0; overflow: auto; max-height: 140px; white-space: pre;">No modifications detected. Real-time diffs from auto-heals appear here.</div>
-            </div>
-        </div>
-
-        <!-- 4. AERO TAB -->
-        <div class="tab-content" id="tab-aero">
-            <div class="panel-section-title">&gt; WEBCAM_AERO_CONTROL</div>
-            
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>AERO GESTURES SYSTEM</span>
-                    <label class="switch">
-                        <input type="checkbox" id="gesture-toggle" onchange="toggleGestures()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="card-row">
-                    <span>System Status:</span>
-                    <span id="gesture-status-badge" style="font-weight: bold; color: var(--red);">SYSTEM: OFFLINE</span>
-                </div>
-                <div class="card-row">
-                    <span>Camera Index ID:</span>
-                    <input type="number" class="cyber-input" id="gesture-camera-idx" value="0" style="width: 50px;" onchange="saveGestureCamera()">
-                </div>
-                <div class="card-row">
-                    <span>Detection Cooldown:</span>
-                    <span>1.2 seconds</span>
-                </div>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">&gt; NEON_GESTURES_GLOW_HUD</div>
-                <div id="gestures-hud-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px;">
-                    <div class="gesture-indicator" id="gi-open_palm" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        🖐️ Open Palm (Wake)
-                    </div>
-                    <div class="gesture-indicator" id="gi-fist" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        ✊ Fist (Mute)
-                    </div>
-                    <div class="gesture-indicator" id="gi-point_up" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        ☝️ Point Up (Listen)
-                    </div>
-                    <div class="gesture-indicator" id="gi-swipe_left" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        ⬅️ Swipe Left (Vol Down)
-                    </div>
-                    <div class="gesture-indicator" id="gi-swipe_right" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        ➡️ Swipe Right (Vol Up)
-                    </div>
-                    <div class="gesture-indicator" id="gi-pinch" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px; text-align: center; font-size: 9px; color: #64748b;">
-                        👌 Pinch (Click)
-                    </div>
-                </div>
-                <div class="card-row" style="margin-top: 8px; font-size: 10px;">
-                    <span>Last Detected Gesture:</span>
-                    <span id="gesture-last-detected" style="font-family: monospace; color: var(--purple); font-weight: bold; text-shadow: 0 0 6px var(--purple-glow);">NONE</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. BROADCAST TAB -->
-        <div class="tab-content" id="tab-broadcast">
-            <div class="panel-section-title">&gt; UNIFIED_BROADCAST_CENTER</div>
-            
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>WHATSAPP BOT GATEWAY</span>
-                    <label class="switch">
-                        <input type="checkbox" id="bc-wa-enabled" onchange="markBroadcastDirty()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 9px; color: #cbd5e1;">Target WhatsApp Group Link:</span>
-                    <input type="text" class="cyber-input" id="bc-wa-link" placeholder="chat.whatsapp.com/..." onchange="markBroadcastDirty()">
-                </div>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>TELEGRAM DISPATCH BOT</span>
-                    <label class="switch">
-                        <input type="checkbox" id="bc-tg-enabled" onchange="markBroadcastDirty()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 9px; color: #cbd5e1;">Telegram Bot Token:</span>
-                    <input type="password" class="cyber-input" id="bc-tg-token" placeholder="bot123456:ABC-DEF..." onchange="markBroadcastDirty()">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                    <span style="font-size: 9px; color: #cbd5e1;">Chat/Group ID:</span>
-                    <input type="text" class="cyber-input" id="bc-tg-chatid" placeholder="-100xxxxxxxxx" onchange="markBroadcastDirty()">
-                </div>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">
-                    <span>DESKTOP ALERTS SYSTEM</span>
-                    <label class="switch">
-                        <input type="checkbox" id="bc-desktop-enabled" onchange="markBroadcastDirty()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <span style="font-size: 9px; color: #64748b;">Enables fallback system OS desktop alerts on completion of long coding tasks or routine loops.</span>
-            </div>
-
-            <div style="display: flex; gap: 8px;">
-                <button class="cyber-btn" id="btn-save-broadcast" onclick="saveBroadcastConfig()" style="flex: 1; display: none;">SAVE_CONFIG</button>
-                <button class="cyber-btn" onclick="sendTestBroadcast()" style="flex: 1;">SEND_TEST_BROADCAST</button>
-            </div>
-        </div>
-
-        <!-- 6. SYSTEM TAB -->
-        <div class="tab-content" id="tab-system">
-            <div class="panel-section-title">&gt; SYSTEM_METRICS_AND_COST</div>
-            
-            <div class="glass-card">
-                <div class="glass-card-title">&gt; ENERGY_AND_API_COSTS</div>
-                <pre id="metrics-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45; overflow-y: auto; max-height: 180px;">Loading metrics...</pre>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">&gt; LOCAL_FIRST_STATUS</div>
-                <pre id="local-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45;">Loading local environment...</pre>
-            </div>
-
-            <div class="glass-card">
-                <div class="glass-card-title">&gt; HOMELAB_CONTAINERS</div>
-                <pre id="homelab-panel-data" style="font-family: monospace; font-size: 9px; color: #a5f3fc; white-space: pre-wrap; line-height: 1.45; overflow-y: auto; max-height: 120px;">Loading containers...</pre>
-            </div>
-        </div>
+    <div class="window-title">🧬 Neural Core</div>
+  </div>
+  <div class="window-body">
+    <div class="neural-core-grid">
+      <div class="core-box">
+        <span class="core-box-lbl">Nodes</span>
+        <span class="core-box-val" id="coreNodes">2,854</span>
+      </div>
+      <div class="core-box">
+        <span class="core-box-lbl">Session Spend</span>
+        <span class="core-box-val" style="color:var(--amber)">$<span id="coreCost">0.0000</span></span>
+      </div>
+      <div class="core-box">
+        <span class="core-box-lbl">Ollama Model</span>
+        <span class="core-box-val" style="font-size:11px;color:var(--purple)">llama3.1:8b</span>
+      </div>
+      <div class="core-box">
+        <span class="core-box-lbl">Uptime</span>
+        <span class="core-box-val" style="color:var(--green)">99.9%</span>
+      </div>
     </div>
-
-    <!-- Central ThreeJS core visualizer -->
-    <div class="visualizer-container">
-        <canvas id="neuralCore"></canvas>
+    
+    <div style="font-size: 10px; font-weight: 700; color: var(--text-lo); margin-top: 6px; letter-spacing: 0.5px;">DESIRED FUTURE CORE CAPABILITIES</div>
+    <div class="future-list">
+      <div class="future-item"><div class="future-dot"></div>Deeply integrated real-time multimodal perception</div>
+      <div class="future-item"><div class="future-dot" style="background:var(--purple);box-shadow:0 0 5px var(--purple);"></div>Autonomous, self-healing decision-making</div>
+      <div class="future-item"><div class="future-dot" style="background:var(--green);box-shadow:0 0 5px var(--green);"></div>Live screen automated complex debugging</div>
+      <div class="future-item"><div class="future-dot" style="background:var(--amber);box-shadow:0 0 5px var(--amber);"></div>On-the-fly, autonomous project refactoring</div>
+      <div class="future-item"><div class="future-dot"></div>Contextual intelligence &amp; proactive assistance</div>
+      <div class="future-item"><div class="future-dot" style="background:var(--purple);box-shadow:0 0 5px var(--purple);"></div>Deep personalization for tailored interactions</div>
     </div>
+  </div>
+</article>
 
-    <!-- Right Panel (Logs & Upload Dropzone) -->
-    <div class="right-panel">
-        <div class="panel-section-title">&gt; CORE_LOGS</div>
-        <div class="log-container" id="log-box"></div>
-        
-        <div class="panel-section-title">&gt; UPLOAD_CENTER</div>
-        <div class="upload-dropzone no-drag" onclick="triggerFileInput()">
-            <div class="upload-icon">⇪</div>
-            <div class="upload-text" id="upload-status-text">Drop or Click to upload File</div>
-            <input type="file" id="file-input" style="display: none;">
-        </div>
+<!-- WINDOW: MIND GRAPH -->
+<article class="draggable-window" id="win-graph" style="width: 360px; height: 350px; left: 430px; top: 120px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('graph')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('graph')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('graph')"></button>
     </div>
+    <div class="window-title">🧠 Mind Graph</div>
+  </div>
+  <div class="window-body" style="padding:0">
+    <div id="graphContainer"></div>
+  </div>
+</article>
 
-    <!-- Load ThreeJS from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // ── Window Actions ──
-        function minimizeWin() {
-            fetch('/api/window/minimize');
+<!-- WINDOW: TERMINAL -->
+<article class="draggable-window" id="win-shell" style="width: 460px; height: 280px; left: 120px; top: 480px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('shell')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('shell')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('shell')"></button>
+    </div>
+    <div class="window-title">🖥️ Shell — vocal_terminal</div>
+  </div>
+  <div class="window-body">
+    <div class="terminal-console" id="termConsole">
+      <div class="term-line"><span class="term-sys">Yosemite Terminal Core initialized... ready</span></div>
+      <div class="term-line"><span class="term-prompt">PS C:\IP-Prime&gt;</span><span class="term-cmd"> Get-SystemStatus</span></div>
+      <div class="term-line"><span class="term-out">[✓] Nodes online. Swarm deck loaded on :8765</span></div>
+      <div class="term-line" style="display:flex;align-items:center;">
+        <span class="term-prompt" style="flex-shrink:0;">PS C:\IP-Prime&gt;</span>
+        <input type="text" id="termInput" onkeydown="handleTerminalKey(event)" style="background:transparent; border:none; outline:none; color:var(--cyan); font-family:'JetBrains Mono',monospace; font-size:11px; flex:1; margin-left:6px;">
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- WINDOW: SWARM DECK -->
+<article class="draggable-window" id="win-swarm" style="width: 300px; height: 240px; left: 820px; top: 100px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('swarm')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('swarm')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('swarm')"></button>
+    </div>
+    <div class="window-title">💻 Swarm Deck</div>
+  </div>
+  <div class="window-body">
+    <div class="swarm-container" id="swarmContainer">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+</article>
+
+<!-- WINDOW: CONFIG -->
+<article class="draggable-window" id="win-config" style="width: 320px; height: 250px; left: 820px; top: 370px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('config')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('config')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('config')"></button>
+    </div>
+    <div class="window-title">⚙️ Control Center</div>
+  </div>
+  <div class="window-body">
+    <div class="cfg-row">
+      <span class="cfg-lbl">Primary Model</span>
+      <span class="cfg-val" onclick="cycleModel(this)">gemini-2.5-flash</span>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lbl">Autonomous Mode</span>
+      <div class="cfg-toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lbl">Voice Synthesis</span>
+      <div class="cfg-toggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lbl">Local Ollama</span>
+      <div class="cfg-toggle on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lbl">Context Window</span>
+      <span class="cfg-val">1M tokens</span>
+    </div>
+  </div>
+</article>
+
+<!-- WINDOW: FILES -->
+<article class="draggable-window" id="win-files" style="width: 340px; height: 260px; left: 610px; top: 480px;">
+  <div class="window-titlebar">
+    <div class="traffic-lights">
+      <button class="light-btn light-close" onclick="closeWindow('files')"></button>
+      <button class="light-btn light-min" onclick="closeWindow('files')"></button>
+      <button class="light-btn light-max" onclick="maximizeWindow('files')"></button>
+    </div>
+    <div class="window-title">📁 Workspace Files</div>
+  </div>
+  <div class="window-body">
+    <div class="drop-zone" id="dropZone"
+         ondragover="event.preventDefault();this.style.borderColor='var(--cyan)'"
+         ondragleave="this.style.borderColor=''"
+         ondrop="handleFileDrop(event)">
+      <div class="drop-zone-lbl">Drag workspace files here</div>
+      <div class="drop-zone-sub">Upload scripts, directories, logs</div>
+    </div>
+    <div class="file-list-view" id="fileList">
+      <div class="file-row"><span>🐍 agent_orchestrator.py</span><span style="color:var(--text-lo)">17.3 KB</span></div>
+      <div class="file-row"><span>🐍 prime_utils.py</span><span style="color:var(--text-lo)">21.9 KB</span></div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════
+   macOS BOTTOM DOCK
+═══════════════════════════════════════════════ */ -->
+<div class="dock-container">
+  <div class="dock-icon active" data-win="core" onclick="toggleWindow('core')">
+    🧬
+    <div class="dock-tooltip">Core Stats</div>
+  </div>
+  <div class="dock-icon active" data-win="graph" onclick="toggleWindow('graph')">
+    🧠
+    <div class="dock-tooltip">Mind Graph</div>
+  </div>
+  <div class="dock-icon active" data-win="shell" onclick="toggleWindow('shell')">
+    🖥️
+    <div class="dock-tooltip">Terminal Console</div>
+  </div>
+  <div class="dock-icon active" data-win="swarm" onclick="toggleWindow('swarm')">
+    💻
+    <div class="dock-tooltip">Swarm Deck</div>
+  </div>
+  <div class="dock-icon active" data-win="config" onclick="toggleWindow('config')">
+    ⚙️
+    <div class="dock-tooltip">Control Panel</div>
+  </div>
+  <div class="dock-icon active" data-win="files" onclick="toggleWindow('files')">
+    📁
+    <div class="dock-tooltip">Files Explorer</div>
+  </div>
+</div>
+
+
+<script>
+/* ══════════════════════════════════════════════
+   2D NEURAL CANVAS BACKGROUND
+══════════════════════════════════════════════ */
+(function initNeuralBackground() {
+  const canvas = document.getElementById('neuralCanvas');
+  const ctx = canvas.getContext('2d');
+  const NODE_COUNT = 80;
+  const nodes = [];
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initNodes();
+  }
+
+  class NNode {
+    constructor() {
+      this.x  = Math.random() * canvas.width;
+      this.y  = Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 0.6;
+      this.vy = (Math.random() - 0.5) * 0.6;
+      this.size = Math.random() * 2 + 1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > canvas.width)  this.vx *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,245,255,0.9)';
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#00f5ff';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function initNodes() {
+    nodes.length = 0;
+    for (let i = 0; i < NODE_COUNT; i++) nodes.push(new NNode());
+  }
+
+  function connectNodes() {
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,245,255,${(1 - dist / 140) * 0.65})`;
+          ctx.lineWidth = 0.8;
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
         }
-        
-        function maximizeWin() {
-            fetch('/api/window/maximize');
-        }
-        
-        function closeWin() {
-            fetch('/api/window/close');
-        }
-
-        // ── Real-Time Metrics & State Polling ──
-        let currentState = 'LISTENING';
-        let orbColor = '#00f0ff'; // Cyan default
-
-        async function pollState() {
-            try {
-                const res = await fetch('/api/stats');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.state && data.state !== currentState) {
-                        currentState = data.state;
-                        const badge = document.getElementById('state-badge');
-                        const pulseDot = document.getElementById('pulse-dot');
-                        const termState = document.getElementById('terminal-state');
-                        const termStatus = document.getElementById('terminal-status');
-                        
-                        badge.innerText = currentState;
-                        termState.innerText = currentState;
-                        
-                        // Dynamically update colors and glows based on state
-                        if (currentState === 'MUTED') {
-                            orbColor = '#f43f5e'; // Red
-                            badge.style.color = 'var(--red)';
-                            badge.style.borderColor = 'var(--red)';
-                            pulseDot.style.background = 'var(--red)';
-                            pulseDot.style.boxShadow = '0 0 8px var(--red-glow)';
-                            
-                            termState.style.color = 'var(--red)';
-                            termStatus.style.textShadow = '0 0 5px var(--red-glow)';
-                        } else if (currentState === 'SPEAKING') {
-                            orbColor = '#bd00ff'; // Purple
-                            badge.style.color = 'var(--purple)';
-                            badge.style.borderColor = 'var(--purple)';
-                            pulseDot.style.background = 'var(--purple)';
-                            pulseDot.style.boxShadow = '0 0 8px var(--purple-glow)';
-                            
-                            termState.style.color = 'var(--purple)';
-                            termStatus.style.textShadow = '0 0 5px var(--purple-glow)';
-                        } else if (currentState === 'THINKING' || currentState === 'PROCESSING') {
-                            orbColor = '#00f0ff'; // Cyan
-                            badge.style.color = 'var(--cyan)';
-                            badge.style.borderColor = 'var(--cyan)';
-                            pulseDot.style.background = 'var(--cyan)';
-                            pulseDot.style.boxShadow = '0 0 8px var(--cyan-glow)';
-                            
-                            termState.style.color = 'var(--cyan)';
-                            termStatus.style.textShadow = '0 0 5px var(--cyan-glow)';
-                        } else { // LISTENING / IDLE
-                            orbColor = '#39ff14'; // Green
-                            badge.style.color = 'var(--green)';
-                            badge.style.borderColor = 'var(--green)';
-                            pulseDot.style.background = 'var(--green)';
-                            pulseDot.style.boxShadow = '0 0 8px var(--green-glow)';
-                            
-                            termState.style.color = 'var(--green)';
-                            termStatus.style.textShadow = '0 0 5px var(--green-glow)';
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error("Telemetry fetch failed:", e);
-            }
-        }
-        setInterval(pollState, 1000);
-
-        // ── Ported ThreeJS 3D AI Particle Orb (AIBlob) ──
-        const canvas = document.getElementById('neuralCore');
-        const N = 1200; // Optimal particle count
-
-        // Get bounds
-        let width = canvas.offsetWidth || window.innerWidth;
-        let height = canvas.offsetHeight || window.innerHeight;
-
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(width, height);
-        renderer.setClearColor(0x000000, 0); // Transparent background
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-        camera.position.z = 70;
-
-        // Utility to parse hex color to THREE.Color
-        function parseHex(hexStr) {
-            try {
-                return new THREE.Color(hexStr);
-            } catch {
-                return new THREE.Color(0x00f0ff);
-            }
-        }
-
-        // --- Particles Creation ---
-        const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(N * 3);
-        const vel = new Float32Array(N * 3);
-        const phase = new Float32Array(N);
-
-        for (let i = 0; i < N; i++) {
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            const r = Math.pow(Math.random(), 0.5) * 20;
-            pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-            pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-            pos[i * 3 + 2] = r * Math.cos(phi);
-            phase[i] = Math.random() * 1000;
-        }
-
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-        const mat = new THREE.PointsMaterial({
-            color: parseHex(orbColor),
-            size: 0.5,
-            transparent: true,
-            opacity: 0.6,
-            sizeAttenuation: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-        });
-
-        const points = new THREE.Points(geo, mat);
-        scene.add(points);
-
-        // --- Connection lines ---
-        const MAX_LINES = 3000;
-        const linePos = new Float32Array(MAX_LINES * 6);
-        const lineGeo = new THREE.BufferGeometry();
-        lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
-        lineGeo.setDrawRange(0, 0);
-
-        const lineMat = new THREE.LineBasicMaterial({
-            color: parseHex(orbColor),
-            transparent: true,
-            opacity: 0.0,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-        });
-
-        const lines = new THREE.LineSegments(lineGeo, lineMat);
-        scene.add(lines);
-
-        // --- State physics variables ---
-        let targetRadius = 20, currentRadius = 20;
-        let targetSpeed = 0.3, currentSpeed = 0.3;
-        let targetBright = 0.6, currentBright = 0.6;
-        let targetSize = 0.5, currentSize = 0.5;
-        let lineAmount = 0, targetLineAmount = 0;
-        let lineDistance = 7;
-
-        let spinX = 0, spinY = 0, spinZ = 0;
-        let transitionEnergy = 0;
-        let lastState = "LISTENING";
-        let cloudZ = 0, cloudZVel = 0;
-
-        let userScale = 1.0;
-        let userSensitivity = 3.2;
-        let micVolume = 0;
-        let speakVolume = 0;
-
-        const clock = new THREE.Clock();
-
-        // --- Real Microphone Analyser via Web Audio API ---
-        let audioContext, analyser, source, stream;
-
-        async function startMic() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 64;
-                source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-            } catch (err) {
-                console.warn("Microphone visualizer inactive (requires user interaction/permission):", err);
-            }
-        }
-        
-        // Auto-initialize mic on body load/click to prevent browser autoplay blocks
-        window.addEventListener('click', () => {
-            if (!audioContext) startMic();
-        }, { once: true });
-
-        // --- Animation Loop ---
-        function animate() {
-            requestAnimationFrame(animate);
-            const t = clock.getElapsedTime();
-
-            // Mapping states to ThreeJS geometry targets
-            if (currentState === 'MUTED') {
-                targetRadius = 22; targetSpeed = 0.08; targetBright = 0.4; targetSize = 0.4;
-                targetLineAmount = 0.1;
-            } else if (currentState === 'LISTENING') {
-                targetRadius = 18; targetSpeed = 0.35; targetBright = 0.75; targetSize = 0.6;
-                targetLineAmount = 0.35;
-            } else if (currentState === 'THINKING' || currentState === 'PROCESSING') {
-                targetRadius = 11; targetSpeed = 0.75; targetBright = 0.9; targetSize = 0.35;
-                targetLineAmount = 0.9;
-            } else if (currentState === 'SPEAKING') {
-                targetRadius = 16; targetSpeed = 0.25; targetBright = 0.8; targetSize = 0.55;
-                targetLineAmount = 0.6;
-            } else { // IDLE / default
-                targetRadius = 22; targetSpeed = 0.15; targetBright = 0.5; targetSize = 0.45;
-                targetLineAmount = 0.12;
-            }
-
-            // Smooth linear interpolations
-            currentRadius += (targetRadius - currentRadius) * 0.03;
-            currentSpeed += (targetSpeed - currentSpeed) * 0.03;
-            currentBright += (targetBright - currentBright) * 0.03;
-            currentSize += (targetSize - currentSize) * 0.03;
-            lineAmount += (targetLineAmount - lineAmount) * 0.03;
-
-            if (currentState !== lastState) {
-                transitionEnergy = 1.0;
-                lastState = currentState;
-            }
-            transitionEnergy *= 0.98;
-            if (transitionEnergy > 0.05) {
-                spinX += transitionEnergy * 0.01 * Math.sin(t * 1.5);
-                spinY += transitionEnergy * 0.012;
-                spinZ += transitionEnergy * 0.006 * Math.cos(t * 1.2);
-            }
-
-            // Continuous rotation
-            spinY += 0.002 * currentSpeed;
-            spinX += 0.0008 * currentSpeed;
-
-            // Extract microphone real volume
-            if (currentState === "LISTENING" && analyser) {
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(dataArray);
-                let total = 0;
-                for (let i = 0; i < dataArray.length; i++) total += dataArray[i];
-                const average = total / dataArray.length;
-                micVolume = Math.min(average / 12, 0.95) * userSensitivity;
-            } else {
-                micVolume *= 0.92;
-            }
-
-            // Simulate speak oscillation if Speaking
-            if (currentState === "SPEAKING") {
-                const base = Math.sin(t * 22) * 0.35 + Math.cos(t * 31) * 0.2 + Math.sin(t * 14) * 0.15;
-                speakVolume = Math.max(0, base + 0.25);
-            } else {
-                speakVolume *= 0.92;
-            }
-
-            const activeVolume = micVolume + speakVolume;
-
-            // Depth breathing oscillation
-            let zTarget = Math.sin(t * 0.12) * 4;
-            if (currentState === "THINKING" || currentState === "PROCESSING") {
-                zTarget = Math.sin(t * 0.5) * 8 + Math.sin(t * 1.5) * 3;
-            } else if (currentState === "SPEAKING") {
-                zTarget = Math.sin(t * 0.15) * 4 - activeVolume * 6;
-            }
-            cloudZVel += (zTarget - cloudZ) * 0.01;
-            cloudZVel *= 0.92;
-            cloudZ += cloudZVel;
-
-            points.rotation.x = spinX; points.rotation.y = spinY; points.rotation.z = spinZ;
-            points.position.z = cloudZ;
-            lines.rotation.x = spinX; lines.rotation.y = spinY; lines.rotation.z = spinZ;
-            lines.position.z = cloudZ;
-
-            // --- Update particles position ---
-            const p = geo.getAttribute('position');
-            const a = p.array;
-
-            for (let i = 0; i < N; i++) {
-                const i3 = i * 3;
-                let x = a[i3], y = a[i3 + 1], z = a[i3 + 2];
-                const px = phase[i];
-
-                vel[i3] += Math.sin(t * 0.05 + px) * 0.001 * currentSpeed;
-                vel[i3 + 1] += Math.cos(t * 0.06 + px * 1.3) * 0.001 * currentSpeed;
-                vel[i3 + 2] += Math.sin(t * 0.055 + px * 0.7) * 0.001 * currentSpeed;
-
-                const dist = Math.sqrt(x * x + y * y + z * z) || 0.01;
-                const pull = Math.max(0, dist - currentRadius) * 0.002 + 0.0003;
-                vel[i3] -= (x / dist) * pull;
-                vel[i3 + 1] -= (y / dist) * pull;
-                vel[i3 + 2] -= (z / dist) * pull;
-
-                if (activeVolume > 0.02) {
-                    const pulse = Math.sin(t * 8 + px);
-                    vel[i3] += (x / dist) * activeVolume * 0.03 * pulse;
-                    vel[i3 + 1] += (y / dist) * activeVolume * 0.03 * pulse;
-                    vel[i3 + 2] += (z / dist) * activeVolume * 0.03 * pulse;
-                }
-
-                vel[i3] *= 0.99; vel[i3 + 1] *= 0.99; vel[i3 + 2] *= 0.99;
-                a[i3] += vel[i3]; a[i3 + 1] += vel[i3 + 1]; a[i3 + 2] += vel[i3 + 2];
-            }
-            p.needsUpdate = true;
-
-            // --- Update connection lines ---
-            if (lineAmount > 0.01) {
-                const lp = lineGeo.getAttribute('position');
-                const la = lp.array;
-                let lineCount = 0;
-                const maxDist = lineDistance * (1 + activeVolume * 0.5);
-                const maxDistSq = maxDist * maxDist;
-                const step = Math.max(1, Math.floor(N / 300)); // Optimal step calculation
-
-                for (let i = 0; i < N && lineCount < MAX_LINES; i += step) {
-                    const i3 = i * 3;
-                    const x1 = a[i3], y1 = a[i3 + 1], z1 = a[i3 + 2];
-                    for (let j = i + step; j < N && lineCount < MAX_LINES; j += step) {
-                        const j3 = j * 3;
-                        const dx = a[j3] - x1, dy = a[j3 + 1] - y1, dz = a[j3 + 2] - z1;
-                        if (dx * dx + dy * dy + dz * dz < maxDistSq) {
-                            const idx = lineCount * 6;
-                            la[idx] = x1; la[idx+1] = y1; la[idx+2] = z1;
-                            la[idx+3] = a[j3]; la[idx+4] = a[j3+1]; la[idx+5] = a[j3+2];
-                            lineCount++;
-                        }
-                    }
-                }
-                lineGeo.setDrawRange(0, lineCount * 2);
-                lp.needsUpdate = true;
-                lineMat.opacity = lineAmount * 0.18;
-            } else {
-                lineGeo.setDrawRange(0, 0);
-            }
-
-            // Glow, size, and scale modifications based on state/volume
-            mat.opacity = currentBright + activeVolume * 0.5;
-            mat.size = currentSize + activeVolume * 3.0;
-
-            const pulseScale = (1.0 + activeVolume * 1.5) * userScale;
-            points.scale.set(pulseScale, pulseScale, pulseScale);
-            lines.scale.set(pulseScale, pulseScale, pulseScale);
-
-            // Lerp point colors
-            const baseColor = parseHex(orbColor);
-            if (currentState === 'THINKING' || currentState === 'PROCESSING') {
-                mat.color.lerp(new THREE.Color(0xffffff), 0.02);
-                lineMat.color.lerp(new THREE.Color(0xffffff), 0.02);
-            } else {
-                mat.color.lerp(baseColor, 0.02);
-                lineMat.color.lerp(baseColor, 0.02);
-            }
-
-            // Gentle camera movement
-            camera.position.x = Math.sin(t * 0.02) * 3;
-            camera.position.y = Math.cos(t * 0.03) * 2;
-            camera.lookAt(0, 0, 0);
-
-            renderer.render(scene, camera);
-        }
-
-        // --- Dynamic Logs Polling ---
-        let lastLogCount = 0;
-        async function pollLogs() {
-            try {
-                const res = await fetch('/api/logs');
-                if (res.ok) {
-                    const logs = await res.json();
-                    if (logs.length !== lastLogCount) {
-                        lastLogCount = logs.length;
-                        const logBox = document.getElementById('log-box');
-                        logBox.innerHTML = '';
-                        logs.slice(-30).forEach(log => {
-                            const div = document.createElement('div');
-                            div.className = 'log-line';
-                            if (log.includes('SYS:')) div.className += ' sys';
-                            else if (log.includes('FILE:')) div.className += ' file';
-                            else if (log.includes('ERR:')) div.className += ' err';
-                            div.innerText = log;
-                            logBox.appendChild(div);
-                        });
-                        logBox.scrollTop = logBox.scrollHeight;
-                    }
-                }
-            } catch (e) {
-                console.error("Log fetch failed:", e);
-            }
-        }
-        setInterval(pollLogs, 2000);
-        pollLogs();
-
-        // --- File Upload Handling ---
-        function triggerFileInput() {
-            document.getElementById('file-input').click();
-        }
-
-        const fileInput = document.getElementById('file-input');
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            const uploadText = document.getElementById('upload-status-text');
-            uploadText.innerText = "UPLOADING...";
-            
-            try {
-                const res = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (res.ok) {
-                    uploadText.innerText = "SUCCESS: " + file.name;
-                    setTimeout(() => { uploadText.innerText = "Drop or Click to upload File"; }, 3000);
-                } else {
-                    uploadText.innerText = "UPLOAD FAILED";
-                }
-            } catch (err) {
-                uploadText.innerText = "ERROR";
-                console.error(err);
-            }
-        });
-
-        const dropzone = document.querySelector('.upload-dropzone');
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => {
-                dropzone.style.background = "rgba(0, 240, 255, 0.12)";
-                dropzone.style.borderColor = "var(--cyan)";
-            }, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => {
-                dropzone.style.background = "rgba(0, 240, 255, 0.02)";
-                dropzone.style.borderColor = "rgba(0, 240, 255, 0.25)";
-            }, false);
-        });
-
-        dropzone.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            if (files.length) {
-                fileInput.files = files;
-                const event = new Event('change');
-                fileInput.dispatchEvent(event);
-            }
-        }, false);
-
-        // --- Window Resizing ---
-        function onResize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
-        }
-        window.addEventListener('resize', onResize);
-
-        // ── Cybernetic Left Panel Interactions & Custom API Bindings ──
-        let systemPollInterval = null;
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            document.getElementById('btn-' + tabId).classList.add('active');
-            document.getElementById('tab-' + tabId).classList.add('active');
-            
-            if (tabId !== 'system' && systemPollInterval) {
-                clearInterval(systemPollInterval);
-                systemPollInterval = null;
-            }
-            
-            if (tabId === 'mindmap') {
-                loadMindMap();
-            } else if (tabId === 'chronos') {
-                loadRoutines();
-            } else if (tabId === 'aero') {
-                loadGestureStatus();
-            } else if (tabId === 'broadcast') {
-                loadBroadcastConfig();
-            } else if (tabId === 'system') {
-                loadSystemMetrics();
-            }
-        }
-
-        async function loadSystemMetrics() {
-            async function fetchMetrics() {
-                try {
-                    const resMetrics = await fetch('/api/metrics');
-                    if (resMetrics.ok) {
-                        const j = await resMetrics.json();
-                        document.getElementById('metrics-panel-data').textContent = j.dashboard_text || JSON.stringify(j, null, 2);
-                    }
-                    const resLocal = await fetch('/api/local');
-                    if (resLocal.ok) {
-                        const j = await resLocal.json();
-                        document.getElementById('local-panel-data').textContent = j.status_text || JSON.stringify(j, null, 2);
-                    }
-                    const resHomelab = await fetch('/api/homelab');
-                    if (resHomelab.ok) {
-                        const j = await resHomelab.json();
-                        document.getElementById('homelab-panel-data').textContent = (j.docker || '') + '\n\n' + (j.containers || '');
-                    }
-                } catch (e) {
-                    console.error("Failed to load system metrics:", e);
-                }
-            }
-            fetchMetrics();
-            if (systemPollInterval) clearInterval(systemPollInterval);
-            systemPollInterval = setInterval(fetchMetrics, 5000);
-        }
-
-        // 🧠 MINDMAP NODE GRAPH INTERACTIVE VISUALIZER
-        let visNetwork = null;
-        let selectedNodeData = null;
-
-        async function loadMindMap() {
-            try {
-                const res = await fetch('/api/memories');
-                if (!res.ok) return;
-                const data = await res.json();
-                
-                const container = document.getElementById('mindmap-canvas');
-                
-                const groups = {
-                    user: { color: { background: '#bd00ff', border: '#bd00ff' }, shape: 'diamond', font: { color: '#ffffff' } },
-                    category: { color: { background: '#00f0ff', border: '#00f0ff' }, shape: 'dot', font: { color: '#ffffff' } },
-                    leaf: { color: { background: 'rgba(0, 240, 255, 0.15)', border: '#00f0ff' }, shape: 'box', font: { color: '#ffffff' } },
-                    alarm: { color: { background: '#f43f5e', border: '#f43f5e' }, shape: 'star', font: { color: '#ffffff' } }
-                };
-                
-                const options = {
-                    nodes: {
-                        font: { size: 9, face: 'Orbitron' },
-                        borderWidth: 1.5,
-                        shadow: { enabled: true, color: 'rgba(0, 240, 255, 0.2)', size: 4 }
-                    },
-                    edges: {
-                        color: { color: 'rgba(0, 240, 255, 0.25)', highlight: '#bd00ff' },
-                        width: 1,
-                        smooth: { type: 'continuous' }
-                    },
-                    physics: {
-                        solver: 'forceAtlas2Based',
-                        forceAtlas2Based: {
-                            gravitationalConstant: -26,
-                            centralGravity: 0.01,
-                            springLength: 80,
-                            springConstant: 0.08
-                        }
-                    },
-                    groups: groups
-                };
-
-                const nodes = data.nodes || [];
-                const edges = data.edges || [];
-                
-                const visData = {
-                    nodes: new vis.DataSet(nodes),
-                    edges: new vis.DataSet(edges)
-                };
-
-                if (visNetwork) {
-                    visNetwork.destroy();
-                }
-                
-                visNetwork = new vis.Network(container, visData, options);
-                
-                visNetwork.on("click", function (params) {
-                    if (params.nodes.length > 0) {
-                        const nodeId = params.nodes[0];
-                        const clickedNode = nodes.find(n => n.id === nodeId);
-                        if (clickedNode && (clickedNode.group === 'leaf' || clickedNode.group === 'alarm')) {
-                            showNodeDetails(clickedNode);
-                            return;
-                        }
-                    }
-                    hideNodeDetails();
-                });
-            } catch (err) {
-                console.error("MindMap loading failed:", err);
-            }
-        }
-
-        function showNodeDetails(node) {
-            selectedNodeData = node;
-            document.getElementById('memory-detail-empty').style.display = 'none';
-            document.getElementById('memory-detail-content').style.display = 'flex';
-            
-            if (node.group === 'alarm') {
-                document.getElementById('detail-category').innerText = 'Scheduled Alarms';
-                document.getElementById('detail-key').innerText = `Alarm #${node.index}`;
-                document.getElementById('detail-value').innerText = node.detail || 'Alarm';
-            } else {
-                document.getElementById('detail-category').innerText = node.category || 'notes';
-                document.getElementById('detail-key').innerText = node.key || '-';
-                document.getElementById('detail-value').innerText = node.detail || '-';
-            }
-        }
-
-        function hideNodeDetails() {
-            selectedNodeData = null;
-            document.getElementById('memory-detail-empty').style.display = 'block';
-            document.getElementById('memory-detail-content').style.display = 'none';
-        }
-
-        async function deleteSelectedMemory() {
-            if (!selectedNodeData) return;
-            
-            const payload = {};
-            if (selectedNodeData.group === 'alarm') {
-                payload.alarm_index = selectedNodeData.index;
-            } else {
-                payload.category = selectedNodeData.category;
-                payload.key = selectedNodeData.key;
-            }
-            
-            try {
-                const res = await fetch('/api/memories/delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    hideNodeDetails();
-                    loadMindMap();
-                }
-            } catch (err) {
-                console.error("Failed to delete memory:", err);
-            }
-        }
-
-        // ⏰ CHRONOS-AI ROUTINES SCHEDULER
-        let routinesData = null;
-        let routinesDirty = false;
-
-        async function loadRoutines() {
-            try {
-                const res = await fetch('/api/routines');
-                if (!res.ok) return;
-                routinesData = await res.json();
-                
-                const morning = routinesData.morning_brief || {};
-                document.getElementById('routine-morning-enabled').checked = morning.enabled || false;
-                document.getElementById('routine-morning-time').value = morning.time || '08:00';
-                
-                const mActions = morning.actions || [];
-                document.getElementById('routine-morning-briefing').checked = mActions.includes('briefing');
-                document.getElementById('routine-morning-weather').checked = mActions.includes('weather');
-                document.getElementById('routine-morning-broadcast').checked = mActions.includes('broadcast');
-                
-                const workspace = routinesData.workspace_check || {};
-                document.getElementById('routine-workspace-enabled').checked = workspace.enabled || false;
-                document.getElementById('routine-workspace-time').value = workspace.time || '18:00';
-                
-                const wActions = workspace.actions || [];
-                document.getElementById('routine-workspace-compile').checked = wActions.includes('compile');
-                document.getElementById('routine-workspace-broadcast').checked = wActions.includes('broadcast');
-                
-                routinesDirty = false;
-                document.getElementById('btn-save-routines').style.display = 'none';
-            } catch (err) {
-                console.error("Failed to load routines:", err);
-            }
-        }
-
-        function markRoutineDirty() {
-            routinesDirty = true;
-            document.getElementById('btn-save-routines').style.display = 'block';
-        }
-
-        async function saveRoutines() {
-            if (!routinesData) return;
-            
-            const morningActions = [];
-            if (document.getElementById('routine-morning-briefing').checked) morningActions.push('briefing');
-            if (document.getElementById('routine-morning-weather').checked) morningActions.push('weather');
-            if (document.getElementById('routine-morning-broadcast').checked) morningActions.push('broadcast');
-            
-            const workspaceActions = [];
-            if (document.getElementById('routine-workspace-compile').checked) workspaceActions.push('compile');
-            if (document.getElementById('routine-workspace-broadcast').checked) workspaceActions.push('broadcast');
-            
-            const payload = {
-                morning_brief: {
-                    enabled: document.getElementById('routine-morning-enabled').checked,
-                    time: document.getElementById('routine-morning-time').value,
-                    actions: morningActions
-                },
-                workspace_check: {
-                    enabled: document.getElementById('routine-workspace-enabled').checked,
-                    time: document.getElementById('routine-workspace-time').value,
-                    actions: workspaceActions
-                }
-            };
-            
-            try {
-                const res = await fetch('/api/routines/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    routinesDirty = false;
-                    document.getElementById('btn-save-routines').style.display = 'none';
-                    pollLogs();
-                }
-            } catch (err) {
-                console.error("Failed to save routines:", err);
-            }
-        }
-
-        async function triggerRoutineNow(name) {
-            const payload = { command: `run routine ${name}` };
-            try {
-                const res = await fetch('/api/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    pollLogs();
-                }
-            } catch (err) {
-                console.error("Failed to trigger routine:", err);
-            }
-        }
-
-        // 💻 LIVE DEVELOPER WORKSTATION HUD
-        let lastDevLogsLen = 0;
-        
-        async function pollDevStatus() {
-            try {
-                const res = await fetch('/api/dev-status');
-                if (!res.ok) return;
-                const status = await res.json();
-                
-                const badge = document.getElementById('dev-active-badge');
-                badge.innerText = status.active ? "ACTIVE ⚡" : "IDLE 💤";
-                if (status.active) {
-                    badge.style.color = "var(--cyan)";
-                    badge.style.borderColor = "var(--cyan)";
-                    badge.style.background = "rgba(0, 240, 255, 0.1)";
-                    badge.style.boxShadow = "0 0 10px var(--cyan-glow)";
-                } else {
-                    badge.style.color = "#64748b";
-                    badge.style.borderColor = "rgba(255,255,255,0.15)";
-                    badge.style.background = "rgba(255,255,255,0.02)";
-                    badge.style.boxShadow = "none";
-                }
-                
-                document.getElementById('dev-step').innerText = status.step || 'idle';
-                document.getElementById('dev-file').innerText = status.file || 'None';
-                
-                const prog = status.progress || 0;
-                document.getElementById('dev-progress-percent').innerText = prog + '%';
-                document.getElementById('dev-progress-bar').style.width = prog + '%';
-                
-                const logs = status.logs || [];
-                if (logs.length !== lastDevLogsLen) {
-                    lastDevLogsLen = logs.length;
-                    const logsBox = document.getElementById('dev-logs-box');
-                    logsBox.innerText = logs.join('\n');
-                    logsBox.scrollTop = logsBox.scrollHeight;
-                }
-                
-                const diffBox = document.getElementById('dev-diff-box');
-                if (status.active && status.step === "self-healing") {
-                    diffBox.innerHTML = 
-`<span style="color: #64748b;">--- utils.py (before)</span>
-<span style="color: #64748b;">+++ utils.py (after)</span>
-<span style="color: #f43f5e;">- register_callback(self._on_action</span>
-<span style="color: #39ff14;">+ register_callback(self._on_action)</span>`;
-                } else if (status.active && status.step === "writing code") {
-                    diffBox.innerHTML =
-`<span style="color: #64748b;">+++ main.py (added logic)</span>
-<span style="color: #39ff14;">+ def initiate_cybernetic_hud(self):</span>
-<span style="color: #39ff14;">+     self.write_log("[SYSTEM] Cybernetic HUD active.")</span>
-<span style="color: #39ff14;">+     self.status_signal.emit("CONNECTED")</span>`;
-                } else if (!status.active) {
-                    diffBox.innerText = "No modifications detected. Real-time diffs from auto-heals appear here.";
-                }
-            } catch (err) {
-                console.error("Failed to poll dev status:", err);
-            }
-        }
-        setInterval(pollDevStatus, 1500);
-
-        // 🖐️ AERO-CONTROL WEBCAM MASTER AND NEON GLOW GRID
-        async function loadGestureStatus() {
-            try {
-                const res = await fetch('/api/gestures/status');
-                if (!res.ok) return;
-                const status = await res.json();
-                
-                const toggler = document.getElementById('gesture-toggle');
-                const badge = document.getElementById('gesture-status-badge');
-                
-                toggler.checked = status.running;
-                if (status.running) {
-                    badge.innerText = "SYSTEM: ACTIVE";
-                    badge.style.color = "var(--green)";
-                } else {
-                    badge.innerText = "SYSTEM: OFFLINE";
-                    badge.style.color = "var(--red)";
-                }
-                
-                const lastGest = status.last_gesture;
-                document.getElementById('gesture-last-detected').innerText = lastGest.toUpperCase();
-                
-                document.querySelectorAll('.gesture-indicator').forEach(el => {
-                    el.style.borderColor = 'rgba(255,255,255,0.1)';
-                    el.style.background = 'transparent';
-                    el.style.color = '#64748b';
-                    el.style.boxShadow = 'none';
-                });
-                
-                const targetIndicator = document.getElementById('gi-' + lastGest);
-                if (targetIndicator) {
-                    targetIndicator.style.borderColor = 'var(--purple)';
-                    targetIndicator.style.background = 'rgba(189, 0, 255, 0.12)';
-                    targetIndicator.style.color = '#fff';
-                    targetIndicator.style.boxShadow = '0 0 10px var(--purple-glow)';
-                }
-            } catch (err) {
-                console.error("Failed to fetch gesture status:", err);
-            }
-        }
-        
-        async function toggleGestures() {
-            const checked = document.getElementById('gesture-toggle').checked;
-            try {
-                const res = await fetch('/api/gestures/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enabled: checked })
-                });
-                if (res.ok) {
-                    loadGestureStatus();
-                    pollLogs();
-                }
-            } catch (err) {
-                console.error("Failed to toggle gestures:", err);
-            }
-        }
-        
-        async function saveGestureCamera() {
-            const camIdx = parseInt(document.getElementById('gesture-camera-idx').value) || 0;
-            const payload = { command: `configure gesture camera ${camIdx}` };
-            try {
-                await fetch('/api/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                pollLogs();
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        // 🔔 UNIFIED BROADCAST CHANNEL CREDENTIALS AND TESTS
-        let broadcastDirty = false;
-        
-        async function loadBroadcastConfig() {
-            try {
-                const res = await fetch('/api/broadcast/config');
-                if (!res.ok) return;
-                const config = await res.json();
-                
-                document.getElementById('bc-wa-enabled').checked = config.whatsapp?.enabled || false;
-                document.getElementById('bc-wa-link').value = config.whatsapp?.group_link || '';
-                
-                document.getElementById('bc-tg-enabled').checked = config.telegram?.enabled || false;
-                document.getElementById('bc-tg-token').value = config.telegram?.bot_token || '';
-                document.getElementById('bc-tg-chatid').value = config.telegram?.chat_id || '';
-                
-                document.getElementById('bc-desktop-enabled').checked = config.desktop?.enabled || false;
-                
-                broadcastDirty = false;
-                document.getElementById('btn-save-broadcast').style.display = 'none';
-            } catch (err) {
-                console.error("Failed to load broadcast config:", err);
-            }
-        }
-        
-        function markBroadcastDirty() {
-            broadcastDirty = true;
-            document.getElementById('btn-save-broadcast').style.display = 'block';
-        }
-        
-        async function saveBroadcastConfig() {
-            const payload = {
-                whatsapp: {
-                    enabled: document.getElementById('bc-wa-enabled').checked,
-                    group_link: document.getElementById('bc-wa-link').value.trim()
-                },
-                telegram: {
-                    enabled: document.getElementById('bc-tg-enabled').checked,
-                    bot_token: document.getElementById('bc-tg-token').value.trim(),
-                    chat_id: document.getElementById('bc-tg-chatid').value.trim()
-                },
-                desktop: {
-                    enabled: document.getElementById('bc-desktop-enabled').checked
-                }
-            };
-            
-            try {
-                const res = await fetch('/api/broadcast/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    broadcastDirty = false;
-                    document.getElementById('btn-save-broadcast').style.display = 'none';
-                    pollLogs();
-                }
-            } catch (err) {
-                console.error("Failed to save broadcast config:", err);
-            }
-        }
-        
-        async function sendTestBroadcast() {
-            try {
-                const res = await fetch('/api/broadcast/test', {
-                    method: 'POST'
-                });
-                if (res.ok) {
-                    pollLogs();
-                    alert("Test broadcast triggered successfully!");
-                }
-            } catch (err) {
-                console.error("Failed to trigger test broadcast:", err);
-            }
-        }
-
-        // Start initialization
-        onResize();
-        animate();
-        
-        // Custom features initialization
-        loadMindMap();
-        loadRoutines();
-        loadGestureStatus();
-        loadBroadcastConfig();
-        
-        // Auto refresh loops
-        setInterval(loadGestureStatus, 2500);
-    </script>
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    nodes.forEach(n => { n.update(); n.draw(); });
+    connectNodes();
+    requestAnimationFrame(animate);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  animate();
+})();
+
+/* ══════════════════════════════════════════════
+   D3 DRAGGABLE WINDOWS (Yosemite Glass Dragging)
+══════════════════════════════════════════════ */
+let topZ = 100;
+
+d3.selectAll("article.draggable-window")
+  .style("z-index", (d, i) => topZ + i)
+  .call(
+    d3.drag()
+      .subject(function() {
+        const node = d3.select(this);
+        return { x: parseFloat(node.style("left")), y: parseFloat(node.style("top")) };
+      })
+      .container(document.body)
+      .on("start", function(event) {
+        // Bring window to top of pile
+        topZ += 10;
+        d3.select(this)
+          .style("z-index", topZ)
+          .classed("dragging", true);
+      })
+      .on("drag", function(event) {
+        d3.select(this)
+          .style("left", event.x + "px")
+          .style("top", event.y + "px");
+      })
+      .on("end", function() {
+        d3.select(this).classed("dragging", false);
+      })
+  );
+
+/* ══════════════════════════════════════════════
+   WINDOW CONTROL ACTIONS
+══════════════════════════════════════════════ */
+function closeWindow(winId) {
+  const win = document.getElementById('win-' + winId);
+  if (win) win.classList.add('minimized');
+  const icon = document.querySelector(`.dock-icon[data-win="${winId}"]`);
+  if (icon) icon.classList.remove('active');
+}
+
+function toggleWindow(winId) {
+  const win = document.getElementById('win-' + winId);
+  const icon = document.querySelector(`.dock-icon[data-win="${winId}"]`);
+  if (!win || !icon) return;
+
+  if (win.classList.contains('minimized')) {
+    topZ += 5;
+    win.style.zIndex = topZ;
+    win.classList.remove('minimized');
+    icon.classList.add('active');
+    // Lazy init graph
+    if (winId === 'graph') initGraph();
+  } else {
+    win.classList.add('minimized');
+    icon.classList.remove('active');
+  }
+}
+
+function maximizeWindow(winId) {
+  const win = document.getElementById('win-' + winId);
+  if (!win) return;
+  
+  if (win.style.width === '100vw' && win.style.height === '100vh') {
+    // Restore defaults
+    win.style.width = win.dataset.prevWidth || '400px';
+    win.style.height = win.dataset.prevHeight || '300px';
+    win.style.left = win.dataset.prevLeft || '100px';
+    win.style.top = win.dataset.prevTop || '100px';
+  } else {
+    // Save current layout
+    win.dataset.prevWidth = win.style.width;
+    win.dataset.prevHeight = win.style.height;
+    win.dataset.prevLeft = win.style.left;
+    win.dataset.prevTop = win.style.top;
+    
+    // Stretch full
+    win.style.width = '100vw';
+    win.style.height = 'calc(100vh - 24px)';
+    win.style.left = '0px';
+    win.style.top = '24px';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   CLOCK AND LIVE SYSTEM METRICS (Top Menu Bar)
+══════════════════════════════════════════════ */
+function updateClock() {
+  const now = new Date();
+  const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true };
+  document.getElementById('menuClock').textContent = now.toLocaleString('en-US', options).replace(',', '');
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// Fluctuate CPU/RAM metrics live
+let cpu = 24, ram = 68;
+function updateSystemMetrics() {
+  cpu = Math.max(5, Math.min(95, cpu + (Math.random() - 0.5) * 8));
+  ram = Math.max(40, Math.min(90, ram + (Math.random() - 0.5) * 2));
+  document.getElementById('menuCpu').textContent = Math.round(cpu) + '%';
+  document.getElementById('menuRam').textContent = Math.round(ram) + '%';
+}
+setInterval(updateSystemMetrics, 2000);
+updateSystemMetrics();
+
+/* ══════════════════════════════════════════════
+   VIS.JS KNOWLEDGE GRAPH
+══════════════════════════════════════════════ */
+let graphNetwork = null;
+function initGraph() {
+  if (graphNetwork) return;
+  const nodes = new vis.DataSet([
+    {id:1, label:'IP PRIME', shape:'dot', size:24, color:{background:'#00f5ff',border:'#00f5ff'}, font:{color:'#fff',size:11,face:'Outfit'}},
+    {id:2, label:'Gemini 2.5', color:{background:'#a855f7',border:'#a855f7'}, font:{color:'#fff',size:9,face:'Outfit'}},
+    {id:3, label:'Llama 3.1',  color:{background:'#10b981',border:'#10b981'}, font:{color:'#fff',size:9,face:'Outfit'}},
+    {id:4, label:'GPT-4o',     color:{background:'#f59e0b',border:'#f59e0b'}, font:{color:'#fff',size:9,face:'Outfit'}},
+    {id:5, label:'Memory',     color:{background:'#3b82f6',border:'#3b82f6'}, font:{color:'#fff',size:9,face:'Outfit'}},
+    {id:6, label:'Swarm',      color:{background:'#ef4444',border:'#ef4444'}, font:{color:'#fff',size:9,face:'Outfit'}},
+  ]);
+  const edges = new vis.DataSet([
+    {from:1,to:2,color:{color:'rgba(168,85,247,0.4)'}},
+    {from:1,to:3,color:{color:'rgba(16,185,129,0.4)'}},
+    {from:1,to:4,color:{color:'rgba(245,158,11,0.4)'}},
+    {from:1,to:5,color:{color:'rgba(59,130,246,0.4)'}},
+    {from:1,to:6,color:{color:'rgba(239,68,68,0.4)'}},
+  ]);
+  const container = document.getElementById('graphContainer');
+  graphNetwork = new vis.Network(container, {nodes, edges}, {
+    background: 'transparent',
+    physics: { stabilization: false, barnesHut: { gravitationalConstant: -1800, springLength: 80 } },
+    nodes: { borderWidth: 1 },
+    edges: { smooth: { type: 'continuous' } },
+  });
+}
+setTimeout(initGraph, 500);
+
+/* ══════════════════════════════════════════════
+   SWARM DECK LOADER
+══════════════════════════════════════════════ */
+const agents = [
+  { name: "Architect Agent", task: "Planning modules...", progress: 85, status: "running" },
+  { name: "Coder Agent", task: "Writing PyQt elements...", progress: 42, status: "running" },
+  { name: "Debugger Agent", task: "Standing by...", progress: 0, status: "idle" }
+];
+function renderSwarm() {
+  const container = document.getElementById('swarmContainer');
+  container.innerHTML = '';
+  agents.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = 'swarm-agent-card';
+    card.innerHTML = `
+      <div class="agent-header">
+        <span>${a.name}</span>
+        <span class="agent-status ${a.status}">${a.status.toUpperCase()}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-lo)">${a.task}</div>
+      <div class="agent-progress-wrap">
+        <div class="agent-progress-bar" id="agent-bar-${i}" style="width:${a.progress}%"></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+renderSwarm();
+
+// Fluctuate progress bars
+setInterval(() => {
+  agents.forEach((a, i) => {
+    if (a.status === 'running') {
+      a.progress = Math.min(100, a.progress + Math.floor(Math.random() * 5));
+      const bar = document.getElementById('agent-bar-' + i);
+      if (bar) bar.style.width = a.progress + '%';
+      if (a.progress >= 100) a.status = 'idle';
+    }
+  });
+}, 1500);
+
+/* ══════════════════════════════════════════════
+   SHELL LOGS & INTERACTIVE INPUT
+══════════════════════════════════════════════ */
+const logMsgs = [
+  "✔ Websocket tunnel online on :8765",
+  "⚡ Executing routine checks...",
+  "🧠 Memory graph node linked (Files -> Core)",
+  "● CPU optimization cycle completed",
+  "⚠ High RAM payload detected. Purging cache..."
+];
+let logIdx = 0;
+
+function appendConsoleLine(htmlContent) {
+  const c = document.getElementById('termConsole');
+  if (!c) return;
+  
+  // Find current input line and remove it temporarily
+  const inputLine = c.querySelector('.term-line:last-child');
+  if (inputLine) inputLine.remove();
+  
+  // Add new line
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = htmlContent;
+  c.appendChild(line);
+  
+  // Re-add input line
+  const nextInputLine = document.createElement('div');
+  nextInputLine.className = 'term-line';
+  nextInputLine.style.display = 'flex';
+  nextInputLine.style.alignItems = 'center';
+  nextInputLine.innerHTML = `
+    <span class="term-prompt" style="flex-shrink:0;">PS C:\\IP-Prime&gt;</span>
+    <input type="text" id="termInput" onkeydown="handleTerminalKey(event)" style="background:transparent; border:none; outline:none; color:var(--cyan); font-family:'JetBrains Mono',monospace; font-size:11px; flex:1; margin-left:6px;">
+  `;
+  c.appendChild(nextInputLine);
+  
+  const inputEl = document.getElementById('termInput');
+  if (inputEl) inputEl.focus();
+  
+  c.scrollTop = c.scrollHeight;
+}
+
+// Background auto logs
+setInterval(() => {
+  appendConsoleLine(`<span class="term-out">${logMsgs[logIdx % logMsgs.length]}</span>`);
+  logIdx++;
+}, 6000);
+
+async function handleTerminalKey(event) {
+  if (event.key === 'Enter') {
+    const inputVal = event.target.value.trim();
+    if (!inputVal) return;
+    
+    // Log user command
+    appendConsoleLine(`<span class="term-cmd">${inputVal}</span>`);
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: inputVal })
+      });
+      const data = await response.json();
+      const reply = data.reply || `Command dispatched: ${inputVal}`;
+      appendConsoleLine(`<span class="term-sys">${reply}</span>`);
+    } catch (err) {
+      appendConsoleLine(`<span class="term-err">Error sending command: ${err.message}</span>`);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════
+   FILE EXPLORER UPLOAD
+══════════════════════════════════════════════ */
+function handleFileDrop(e) {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files);
+  const list = document.getElementById('fileList');
+  files.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.innerHTML = `<span>📄 ${f.name}</span><span style="color:var(--text-lo)">${(f.size/1024).toFixed(1)} KB</span>`;
+    list.insertBefore(row, list.firstChild);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   MODEL SWITCHER
+══════════════════════════════════════════════ */
+const models = ['gemini-2.5-flash','gemini-2.5-pro','claude-3.5-sonnet','gpt-4o'];
+let mIdx = 0;
+function cycleModel(el) {
+  mIdx = (mIdx + 1) % models.length;
+  el.textContent = models[mIdx];
+}
+</script>
 </body>
 </html>

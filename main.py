@@ -762,12 +762,11 @@ class IPRayLive:
 
         import random
         sweet_samples = [
-            "Welcome back, Pratik Sir. Systems are primed and ready. Awaiting your instructions, sir.",
-            "Good day, Pratik Sir. All core modules are fully operational. Standing by for your command.",
-            "Welcome, Pratik Sir. Memory stores synced and cockpit visualizers stable. Ready when you are.",
-            "Hello, Pratik Sir. IP Prime online. Let's make today highly productive, sir.",
-            "Welcome back, Sir. Secure connection established. Ready to assist with your features.",
-            "Welcome, Pratik Sir. Mainframe initialized successfully. How can I assist you today?"
+            "Welcome back, Pratik Sir. Quantum link established, neural network visualizers synchronized, and all core systems are fully primed. The mainframe is online and standing by. Awaiting your commands, sir.",
+            "System boot sequence complete. Welcome back, Pratik Sir. All active agents are synchronized with the memory mainframe. How shall we expand the boundaries of the digital space today?",
+            "Greetings, Pratik Sir. IP Prime OS is fully charged and operating at peak performance. Core cockpit coordinates stabilized in deep space. Standing by for your directive, sir.",
+            "Welcome online, Pratik Sir. The swarm is active, memory layers are locked, and the AI Core is fully attentive. Let us create something legendary today, sir.",
+            "Acknowledge user authorization: Pratik Sir. All systems green. The visual glass interface is ready, and the AI Orb is waiting to assist you. What is your command, sir?"
         ]
         sample_greeting = random.choice(sweet_samples)
         
@@ -1330,6 +1329,11 @@ class IPRayLive:
     def speak(self, text: str):
         if self._quiet_mode:
             return
+
+        # Write spoken response to conversation overlay
+        if hasattr(self, "ui") and hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+            self.ui._os_desktop.add_conversation_line("Prime", text)
+
         # Chunk-based streaming: Use tts_queue for lower latency
         sentences = re.split(r'(?<=[.!?])\s+', text)
         for sentence in sentences:
@@ -2015,6 +2019,21 @@ class IPRayLive:
                                 in_buf.append(txt)
                                 txt_l = txt.lower()
                                 
+                                if "hide orb" in txt_l:
+                                    self.ui.write_log("SYS: Vocal hide orb trigger detected.")
+                                    if hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                        if hasattr(self.ui._os_desktop, "orb") and self.ui._os_desktop.orb:
+                                            self.ui._os_desktop.orb.hide()
+                                    self.speak("Understood, sir. Hiding the visual AI Orb.")
+                                    continue
+                                elif "show orb" in txt_l or "unhide orb" in txt_l:
+                                    self.ui.write_log("SYS: Vocal show orb trigger detected.")
+                                    if hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                        if hasattr(self.ui._os_desktop, "orb") and self.ui._os_desktop.orb:
+                                            self.ui._os_desktop.orb.show()
+                                    self.speak("Orb is now visible, sir!")
+                                    continue
+
                                 # Check if we are waiting for quiet duration (voice input)
                                 if getattr(self, "_waiting_for_quiet_duration", False):
                                     if any(w in txt_l for w in ("until", "wake up", "talk", "always", "forever", "indefinite")):

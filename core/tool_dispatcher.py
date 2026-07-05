@@ -268,6 +268,38 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             action = args.get("action", "").lower().strip()
             path_arg = args.get("path_arg", "")
             
+            # Route to custom PyQt6 glass window overlays if running inside the OS shell
+            if ui and hasattr(ui, "_os_desktop") and ui._os_desktop:
+                win_key = {
+                    "calc": "calc",
+                    "explorer": "files",
+                    "settings": "config",
+                    "clock": "config",
+                    "paint": "notes"
+                }.get(app)
+                
+                # Check for standard voice command launches
+                if app == "notepad" or app == "editor":
+                    win_key = "editor"
+                elif app == "terminal" or app == "shell" or app == "cmd":
+                    win_key = "shell"
+                elif app == "youtube":
+                    win_key = "youtube"
+                elif app == "whatsapp":
+                    win_key = "whatsapp"
+                elif app == "instagram":
+                    win_key = "instagram"
+                elif app == "notes":
+                    win_key = "notes"
+                elif app == "tasks" or app == "processes":
+                    win_key = "tasks"
+
+                if win_key:
+                    win = ui._os_desktop.windows.get(win_key)
+                    if win:
+                        loop.call_soon_threadsafe(win.show_window)
+                        return f"Success: Opened custom Yosemite glass window for '{app}' in the OS shell."
+            
             if app == "calc":
                 r = await loop.run_in_executor(None, lambda: automate_calculator(action=action))
             elif app == "clock":

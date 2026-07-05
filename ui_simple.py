@@ -987,6 +987,9 @@ class _RootShim:
 # ═══════════════════════════════════════════════════════════════════════════════
 class IPRayUI:
     def __init__(self, face_path: str, size=None):
+        # Must set this BEFORE QApplication is created so QWebEngineView works
+        if not QApplication.instance():
+            QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts, True)
         self._app = QApplication.instance() or QApplication(sys.argv)
         self._app.setStyle("Fusion")
         self._app.setQuitOnLastWindowClosed(False)
