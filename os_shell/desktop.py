@@ -731,6 +731,34 @@ class IPPrimeOSDesktop(QMainWindow):
         win_files.move(630, 480)
         
         files_layout = QVBoxLayout()
+        
+        # Explorer Top Toolbar
+        top_bar = QHBoxLayout()
+        self.explorer_path_lbl = QLabel(win_files)
+        self.explorer_path_lbl.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
+        self.explorer_path_lbl.setStyleSheet("color: #b4cdd4;")
+        self.explorer_path_lbl.setText("~")
+        top_bar.addWidget(self.explorer_path_lbl, 1)
+        
+        self.analyze_btn = QPushButton("🤖 Analyze", win_files)
+        self.analyze_btn.setFont(QFont("Outfit", 8, QFont.Weight.Bold))
+        self.analyze_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #8b5cf6, stop:1 #6d28d9);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                color: white;
+                padding: 3px 8px;
+            }
+            QPushButton:hover {
+                opacity: 0.85;
+            }
+        """)
+        self.analyze_btn.clicked.connect(self._analyze_current_codebase)
+        top_bar.addWidget(self.analyze_btn)
+        
+        files_layout.addLayout(top_bar)
+        
         self.files_list = QListWidget(win_files)
         self.files_list.setStyleSheet("""
             QListWidget {
@@ -1022,6 +1050,12 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def _populate_files(self):
         self.files_list.clear()
+        try:
+            rel = self.current_dir.relative_to(Path.home())
+            self.explorer_path_lbl.setText(f"~/ {rel}")
+        except Exception:
+            self.explorer_path_lbl.setText(str(self.current_dir))
+            
         if self.current_dir != self.current_dir.parent:
             self.files_list.addItem("📁 .. (Go Up)")
         try:
@@ -1032,6 +1066,92 @@ class IPPrimeOSDesktop(QMainWindow):
                     self.files_list.addItem(f"📄 {p.name}")
         except Exception as e:
             self.files_list.addItem(f"Error loading files: {e}")
+
+    def _analyze_current_codebase(self):
+        # Trigger HUD status change
+        if hasattr(self, "agent_progress_bars"):
+            pbar = self.agent_progress_bars.get("architect")
+            lbl = self.agent_status_labels.get("architect")
+            if pbar and lbl:
+                pbar.setValue(95)
+                lbl.setText("ANALYZING")
+        self.update()
+        
+        # Run scan in a background thread to prevent freezing the GUI
+        def worker():
+            try:
+                import py_compile
+                path = self.current_dir
+                
+                # Metrics dictionaries
+                counts = {}
+                lines_count = 0
+                errors = []
+                
+                # Scan directory recursively
+                for root, dirs, files in os.walk(path):
+                    # Skip hidden directories and virtual environments
+                    dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ["__pycache__", ".venv", "venv", "build"]]
+                    for file in files:
+                        ext = os.path.splitext(file)[1].lower()
+                        if not ext:
+                            continue
+                        counts[ext] = counts.get(ext, 0) + 1
+                        
+                        # Count lines for text code files
+                        file_path = Path(root) / file
+                        if ext in [".py", ".html", ".css", ".js", ".json", ".md", ".txt"]:
+                            try:
+                                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                                    lines_count += len(f.readlines())
+                            except Exception:
+                                pass
+                                
+                        # Run py_compile check for syntax errors
+                        if ext == ".py":
+                            try:
+                                py_compile.compile(str(file_path), doraise=True)
+                            except py_compile.PyCompileError as err:
+                                errors.append(f"- **{file_path.name}**: {err.msg}")
+                                
+                # Create Markdown report content
+                report_lines = [
+                    f"# 🤖 Codebase Analysis Report: {path.name}",
+                    f"**Generated on:** {datetime.datetime.now().strftime('%Y-%m-%d %I:%M %p')}",
+                    f"**Location:** `{path}`",
+                    "",
+                    "## 📊 File Count Statistics",
+                ]
+                for ext, num in sorted(counts.items(), key=lambda x: x[1], reverse=True):
+                    report_lines.append(f"- **{ext}** files: {num}")
+                    
+                report_lines.extend([
+                    "",
+                    f"## 📈 Volume Metrics",
+                    f"- **Total Code & Document Lines (LOC):** {lines_count:,} lines",
+                    "",
+                    "## 🛡️ Syntax & Compilation Check",
+                ])
+                
+                if errors:
+                    report_lines.append("⚠️ Compilation errors detected:")
+                    report_lines.extend(errors)
+                else:
+                    report_lines.append("🟢 All Python source files passed syntax check successfully!")
+                    
+                # Save report file
+                report_file = path / ".codebase_analysis.md"
+                report_file.write_text("\n".join(report_lines), encoding="utf-8")
+                
+                # Open in editor on main UI thread
+                QTimer.singleShot(0, lambda: self._open_in_editor(report_file))
+                
+                # Speak success response via main voice dispatcher
+                self.write_log_to_terminal(f"SYSTEM: Codebase analysis complete. Generated report at {report_file.name}")
+            except Exception as e:
+                print(f"[Explorer] Analysis failed: {e}")
+                
+        threading.Thread(target=worker, daemon=True).start()
 
     def _on_file_double_clicked(self, item):
         name = item.text()
@@ -1399,6 +1519,36 @@ class IPPrimeOSDesktop(QMainWindow):
             if win:
                 win.move(coords[0], coords[1])
 
+    def _get_swarm_status(self) -> tuple[str, str]:
+        """
+        Returns (status_text, color_name) representing the active agent swarm state.
+        Colors: glowing cyan, green, purple, amber, violet.
+        """
+        # Check active sub-agent progress bars first
+        if hasattr(self, "agent_progress_bars"):
+            p_coder = self.agent_progress_bars.get("coder")
+            p_debug = self.agent_progress_bars.get("debugger")
+            p_arch = self.agent_progress_bars.get("architect")
+            
+            if p_coder and p_coder.value() > 15:
+                return "CODING (Writing code & modules...)", "#00f5ff"
+            if p_debug and p_debug.value() > 15:
+                return "DEBUGGING (Verifying with pytest...)", "#10b981"
+            if p_arch and p_arch.value() > 15:
+                return "ARCHITECTING (Mapping files & structures...)", "#8b5cf6"
+                
+        # Check AI Orb vocal state next
+        if hasattr(self, "orb") and self.orb:
+            state = getattr(self.orb, "state", "IDLE").upper()
+            if state == "SPEAKING":
+                return "SPEAKING (Responding to Pratik Sir...)", "#a855f7"
+            if state == "THINKING":
+                return "THINKING (Analyzing neural pathways...)", "#fbbf24"
+            if state == "LISTENING":
+                return "LISTENING (Hearing wake queries...)", "#10b981"
+                
+        return "IDLE (Standing by for commands...)", "#06b6d4"
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -1421,6 +1571,22 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(QColor(6, 182, 212))) # Glowing Cyan
         painter.drawEllipse(QPointF(40 + text_w + 8, 41), 4, 4)
+
+        # Draw Swarm Status HUD directly below logo
+        painter.save()
+        status_text, status_color_hex = self._get_swarm_status()
+        status_color = QColor(status_color_hex)
+        
+        # Draw glowing dot for HUD
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QBrush(status_color))
+        painter.drawEllipse(QPointF(44.0, 74.0), 3.5, 3.5)
+        
+        # Draw status label
+        painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
+        painter.setPen(QColor(180, 205, 212, 170)) # Slate-cyan secondary text
+        painter.drawText(56, 78, f"IP PRIME: {status_text}")
+        painter.restore()
 
         # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()

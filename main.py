@@ -617,6 +617,7 @@ class IPRayLive:
         Coordinates the smart fallback TTS chain:
         Layer 1: Gemini Live (WebRTC realtime stream)
         Layer 2: ElevenLabs (Premium file-based TTS fallback)
+        Layer 2.5: Edge-TTS (Free Neural cloud fallback)
         Layer 3: Local Offline Process (pyttsx3 completely isolated in an independent Process)
         """
         while True:
@@ -633,9 +634,68 @@ class IPRayLive:
             # Layer 2: Try ElevenLabs Premium Fallback
             if self._try_elevenlabs(text):
                 continue
+
+            # Layer 2.5: Try Edge-TTS Free Cloud Fallback
+            if self._try_edge_tts(text):
+                continue
                 
             # Layer 3: Local Offline Process (Guaranteed local voice fallback)
             self._speak_offline(text)
+
+    def _play_mp3_natively(self, filepath: str) -> bool:
+        """
+        Plays the specified MP3 file natively using PyQt6.QtMultimedia.QMediaPlayer.
+        Blocks the TTS queue worker thread execution using a QEventLoop until audio playback is complete.
+        """
+        try:
+            from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+            from PyQt6.QtCore import QUrl, QEventLoop
+            
+            # Setup player and audio output
+            player = QMediaPlayer()
+            audio_output = QAudioOutput()
+            player.setAudioOutput(audio_output)
+            
+            # Set volume from preferences
+            rt = self._realtime_settings()
+            volume = float(rt.get("volume", 1.0)) # 0.0 to 1.0
+            audio_output.setVolume(volume)
+            
+            # Set source file
+            file_url = QUrl.fromLocalFile(filepath)
+            player.setSource(file_url)
+            
+            # Setup loop to block wait
+            loop = QEventLoop()
+            
+            def handle_state_change(state):
+                if state == QMediaPlayer.MediaStatus.EndOfMedia or state == QMediaPlayer.MediaStatus.InvalidMedia:
+                    loop.quit()
+                    
+            player.mediaStatusChanged.connect(handle_state_change)
+            
+            # Set speaking state to prevent mic listening feedback loops
+            if hasattr(self, "ui") and self.ui:
+                self.ui.set_state("SPEAKING")
+            
+            # Start playing
+            player.play()
+            
+            # Wait for end of media
+            loop.exec()
+            
+            # Reset listening state
+            if hasattr(self, "ui") and self.ui and not self.ui.muted:
+                self.ui.set_state("LISTENING")
+                
+            # Release resources
+            player.stop()
+            del player
+            del audio_output
+            return True
+        except Exception as e:
+            print(f"[IP PRIME] Native QMediaPlayer playback failed: {e}")
+            return False
 
     def _try_gemini_live(self, text: str) -> bool:
         try:
@@ -651,12 +711,48 @@ class IPRayLive:
 
     def _try_elevenlabs(self, text: str) -> bool:
         try:
-            from actions.advanced_communicator import speak_elevenlabs
+            from actions.advanced_communicator import speak_elevenlabs, SPEECH_FILE
             res = speak_elevenlabs(text, player=self.ui)
             if "Generated simulated audio" in res or "API call failed" in res:
                 return False
-            return True
+            
+            # Play ElevenLabs audio natively!
+            if SPEECH_FILE.exists() and SPEECH_FILE.stat().st_size > 0:
+                return self._play_mp3_natively(str(SPEECH_FILE))
+            return False
         except Exception:
+            return False
+
+    def _try_edge_tts(self, text: str) -> bool:
+        try:
+            import edge_tts
+            import os
+            from actions.prime_utils import get_base_dir
+            
+            temp_dir = get_base_dir() / "memory"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            temp_file = temp_dir / "edge_tts_temp.mp3"
+            
+            # Run Edge-TTS download asynchronously using the main asyncio loop
+            async def run_download():
+                communicate = edge_tts.Communicate(text, "en-US-GuyNeural")
+                await communicate.save(str(temp_file))
+                
+            future = asyncio.run_coroutine_threadsafe(run_download(), self._loop)
+            future.result(timeout=10) # wait up to 10s for download to finish
+            
+            if temp_file.exists() and temp_file.stat().st_size > 0:
+                # Play audio natively
+                played = self._play_mp3_natively(str(temp_file))
+                
+                # Clean up file
+                try: os.remove(temp_file)
+                except Exception: pass
+                
+                return played
+            return False
+        except Exception as e:
+            print(f"[IP PRIME] Edge-TTS generation failed: {e}")
             return False
 
     def _speak_offline(self, text: str):

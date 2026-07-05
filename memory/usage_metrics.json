@@ -2879,12 +2879,84 @@
       "tool": "autonomous_cli_helper",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:38:06",
+      "tool": "multimodal_perception",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:39:36",
+      "tool": "prime_gesture_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:39:50",
+      "tool": "prime_gesture_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:40:11",
+      "tool": "multimodal_perception",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:40:55",
+      "tool": "multimodal_perception",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:42:06",
+      "tool": "journal",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:49:37",
+      "tool": "pentagi_engine",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:51:34",
+      "tool": "brain_stats",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:51:55",
+      "tool": "prime_dashboard",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:52:11",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:52:13",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T13:53:42",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 480,
-    "est_tokens": 384000,
-    "est_usd": 0.0576
+    "tool_calls": 492,
+    "est_tokens": 393600,
+    "est_usd": 0.05904
   },
   "by_day": {
     "2026-05-29": {
@@ -2963,9 +3035,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 23,
-      "est_tokens": 18400,
-      "est_usd": 0.00276
+      "tool_calls": 35,
+      "est_tokens": 28000,
+      "est_usd": 0.0042
     }
   }
 }
