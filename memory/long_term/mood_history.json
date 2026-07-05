@@ -1,20 +1,5 @@
 [
     {
-        "timestamp": "2026-07-04 19:58",
-        "input": "ओपन YouTube फॉर मी",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 19:59",
-        "input": "ला इम ओपन YouTube",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 19:59",
-        "input": "ब डी ओपन YouTube फॉर मी",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-04 20:04",
         "input": "ถา",
         "mood": "neutral"
@@ -247,6 +232,21 @@
     {
         "timestamp": "2026-07-05 09:49",
         "input": ".",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 09:57",
+        "input": "प्रा इम आबिलेटीले मिलाएर",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 09:57",
+        "input": "นี่ นะ",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 09:57",
+        "input": "चल दोन मिनट",
         "mood": "neutral"
     }
 ]

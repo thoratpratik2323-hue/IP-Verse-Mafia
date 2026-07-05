@@ -2747,5 +2747,40 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-07-05T09:57:59.709119",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the user's current location.",
+        "parameters": {
+          "city": "Mumbai"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Get the schedule breakdown for the day.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List any active alerts or overdue tasks.",
+        "parameters": {
+          "action": "active_alerts"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]

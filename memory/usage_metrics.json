@@ -2801,12 +2801,24 @@
       "tool": "smart_home_scene",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T09:56:55",
+      "tool": "brain_stats",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T09:57:33",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 467,
-    "est_tokens": 373600,
-    "est_usd": 0.05604
+    "tool_calls": 469,
+    "est_tokens": 375200,
+    "est_usd": 0.05628
   },
   "by_day": {
     "2026-05-29": {
@@ -2885,9 +2897,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 10,
-      "est_tokens": 8000,
-      "est_usd": 0.0012
+      "tool_calls": 12,
+      "est_tokens": 9600,
+      "est_usd": 0.00144
     }
   }
 }

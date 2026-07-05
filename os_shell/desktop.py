@@ -911,10 +911,14 @@ class IPPrimeOSDesktop(QMainWindow):
         win_yt.hide_window()
         yt_layout = QVBoxLayout()
         self.web_yt = QWebEngineView(win_yt)
-        self.web_yt.setUrl(QUrl("https://www.youtube.com"))
         yt_layout.addWidget(self.web_yt)
         win_yt.set_content_layout(yt_layout)
         self.windows["youtube"] = win_yt
+
+        def load_yt(visible):
+            if visible and self.web_yt.url().isEmpty():
+                self.web_yt.setUrl(QUrl("https://www.youtube.com"))
+        win_yt.visibility_changed.connect(load_yt)
 
         # WhatsApp
         win_wa = GlassWindow("💬 WhatsApp", self)
@@ -923,10 +927,14 @@ class IPPrimeOSDesktop(QMainWindow):
         win_wa.hide_window()
         wa_layout = QVBoxLayout()
         self.web_wa = QWebEngineView(win_wa)
-        self.web_wa.setUrl(QUrl("https://web.whatsapp.com"))
         wa_layout.addWidget(self.web_wa)
         win_wa.set_content_layout(wa_layout)
         self.windows["whatsapp"] = win_wa
+
+        def load_wa(visible):
+            if visible and self.web_wa.url().isEmpty():
+                self.web_wa.setUrl(QUrl("https://web.whatsapp.com"))
+        win_wa.visibility_changed.connect(load_wa)
 
         # Instagram
         win_insta = GlassWindow("📸 Instagram", self)
@@ -935,10 +943,14 @@ class IPPrimeOSDesktop(QMainWindow):
         win_insta.hide_window()
         insta_layout = QVBoxLayout()
         self.web_insta = QWebEngineView(win_insta)
-        self.web_insta.setUrl(QUrl("https://www.instagram.com"))
         insta_layout.addWidget(self.web_insta)
         win_insta.set_content_layout(insta_layout)
         self.windows["instagram"] = win_insta
+
+        def load_insta(visible):
+            if visible and self.web_insta.url().isEmpty():
+                self.web_insta.setUrl(QUrl("https://www.instagram.com"))
+        win_insta.visibility_changed.connect(load_insta)
 
         # Autopilot Coder (Dynamic coding visualizer)
         win_auto = GlassWindow("💻 Autopilot Coder", self)

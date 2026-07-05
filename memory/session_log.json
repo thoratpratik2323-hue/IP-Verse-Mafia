@@ -1,26 +1,6 @@
 {
-  "last_updated": "2026-07-05 09:49",
+  "last_updated": "2026-07-05 09:57",
   "turns": [
-    {
-      "user": "",
-      "assistant": "Welcome back, Pratik Sir. Systems are primed and ready. Awaiting your instructions, sir.",
-      "ts": "2026-06-27 09:43"
-    },
-    {
-      "user": "",
-      "assistant": "Good day, Pratik Sir. All core modules are fully operational. Standing by for your command.",
-      "ts": "2026-06-27 10:47"
-    },
-    {
-      "user": "<noise>",
-      "assistant": "",
-      "ts": "2026-06-27 10:48"
-    },
-    {
-      "user": "<noise>",
-      "assistant": "Haha, Pratik, kya puzzles bana rahe ho, bhai? Clear karke batao kya instruction hai? Mujhe samajh nahi aa raha",
-      "ts": "2026-06-27 10:48"
-    },
     {
       "user": "ग च्छ न बोलायचं मी",
       "assistant": "Acha, Pratik, no problem, bhai! Let's chat casually. Batao, kya chal raha",
@@ -2500,7 +2480,27 @@
       "user": ".",
       "assistant": "Acha Pratik, bhai! Kaise ho? Batao, kya plan hai aaj ka? Koi cool project ya hack karna hai?",
       "ts": "2026-07-05 09:49"
+    },
+    {
+      "user": "",
+      "assistant": "Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer systems is a criminal offence under the IT Act 2000 (India) and similar laws worldwide. Welcome back, Pratik Sir. Quantum link established, neural network visualizers synchronized, and all core systems are fully primed. The mainframe is online and standing by. Awaiting your commands, sir.",
+      "ts": "2026-07-05 09:56"
+    },
+    {
+      "user": "प्रा इम आबिलेटीले मिलाएर",
+      "assistant": "Pratik, Unlimited Brain aur saare tools fully operational hain, sir! Hacker Mode mein hum complex coding, security audits, autonomous workflows, aur yahan tak ki real-time internet research bhi kar sakte hain. Batao kya tackle karna hai?",
+      "ts": "2026-07-05 09:57"
+    },
+    {
+      "user": "นี่ นะ",
+      "assistant": "Sorry Pratik, kuch technical glitch ki wajah se live news",
+      "ts": "2026-07-05 09:57"
+    },
+    {
+      "user": "चल दोन मिनट",
+      "assistant": "Acha Pratik, thik hai. Main system stats aur network monitoring check karta hoon. Kuch interesting mila toh bataunga definitely.",
+      "ts": "2026-07-05 09:57"
     }
   ],
-  "summary": "IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: आपल्याला लागले | IP Prime: Acha Pratik, bhai! Thik hai, maine 'sleep scene activate kar diya hai. Mast so jao bhai, good night! Acha Pratik, bhai! Maine 'sleep' scene activate kar diya ha | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. | User: . | IP Prime: Acha Pratik, bhai! Kaise ho? Batao, kya plan hai aaj ka? Koi cool project ya hack karna hai?"
+  "summary": "User: . | IP Prime: Acha Pratik, bhai! Kaise ho? Batao, kya plan hai aaj ka? Koi cool project ya hack karna hai? | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: प्रा इम आबिलेटीले मिलाएर | IP Prime: Pratik, Unlimited Brain aur saare tools fully operational hain, sir! Hacker Mode mein hum complex coding, security audits, autonomous workflows, aur yahan tak k | User: นี่ นะ | IP Prime: Sorry Pratik, kuch technical glitch ki wajah se live news | User: चल दोन मिनट | IP Prime: Acha Pratik, thik hai. Main system stats aur network monitoring check karta hoon. Kuch interesting mila toh bataunga definitely."
 }
