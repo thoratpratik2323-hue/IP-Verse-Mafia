@@ -2365,7 +2365,9 @@ class IPPrimeOSDesktop(QMainWindow):
             w = self.width()
             h = self.height()
             start_x = w - 380
-            start_y = h - 430 # Lowered to align with the bottom corner
+            
+            # Anchor the bottom line exactly at h - 25 to touch the bottom-right corner
+            start_y = h - 25 - (len(self.log_history) - 1) * 21
             
             for i, line in enumerate(self.log_history):
                 painter.drawText(start_x, start_y + (i * 21), line)
