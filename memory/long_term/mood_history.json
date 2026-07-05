@@ -1,25 +1,5 @@
 [
     {
-        "timestamp": "2026-07-05 10:18",
-        "input": "make new fi le for this one.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 10:18",
-        "input": "कै प् टन अ मेरिका वेब पेज",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 13:39",
-        "input": "ओपन विजन",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 13:39",
-        "input": "can you see my hand",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-05 13:40",
         "input": "Okay start.",
         "mood": "neutral"
@@ -247,6 +227,26 @@
     {
         "timestamp": "2026-07-05 17:44",
         "input": "O kay pri me can you just tell me ha cker mode on",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:49",
+        "input": "Hey bro are you able to listen me properly?",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:50",
+        "input": "O kay let's code something.",
+        "mood": "energetic"
+    },
+    {
+        "timestamp": "2026-07-05 17:50",
+        "input": "Okay let 's make a Hu lk web page.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:51",
+        "input": "Okay.",
         "mood": "neutral"
     }
 ]

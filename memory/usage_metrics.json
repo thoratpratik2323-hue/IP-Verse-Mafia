@@ -1,54 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-05-29T21:22:46",
-      "tool": "prime_writing",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:24:06",
-      "tool": "browser_control",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:24:32",
-      "tool": "youtube_video",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:24:51",
-      "tool": "spotify_ambient_dj",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:26:19",
-      "tool": "prime_media",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-30T07:30:16",
-      "tool": "force_nvidia",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-30T07:31:13",
-      "tool": "auto_route",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-30T07:51:36",
-      "tool": "get_awesome_repo_info",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-05-30T07:51:59",
       "tool": "morning_briefer",
       "tokens": 800,
@@ -2999,12 +2951,60 @@
       "tool": "browser_control",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:50:39",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:50:57",
+      "tool": "terminal_doctor",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:51:05",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:51:21",
+      "tool": "force_gemini",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:51:58",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:52:03",
+      "tool": "orchestrated_coder",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:52:04",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:52:08",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 503,
-    "est_tokens": 402400,
-    "est_usd": 0.06036
+    "tool_calls": 511,
+    "est_tokens": 408800,
+    "est_usd": 0.06132
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 46,
-      "est_tokens": 36800,
-      "est_usd": 0.00552
+      "tool_calls": 54,
+      "est_tokens": 43200,
+      "est_usd": 0.00648
     }
   }
 }

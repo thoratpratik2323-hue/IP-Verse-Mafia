@@ -83,22 +83,18 @@ class IPRayUI(_SelectedIPRayUI):
             elif clean_text.startswith("You:"):
                 msg = clean_text[len("You:"):].strip()
                 self._os_desktop.add_conversation_line("User", msg)
-            elif clean_text.startswith("IP Prime:"):
-                msg = clean_text[len("IP Prime:"):].strip()
-                self._os_desktop.add_conversation_line("Prime", msg)
-            elif clean_text.startswith("IP Prime (Brain):"):
-                msg = clean_text[len("IP Prime (Brain):"):].strip()
-                self._os_desktop.add_conversation_line("Prime", msg)
-            elif clean_text.startswith("IP Prime (NVIDIA):"):
-                msg = clean_text[len("IP Prime (NVIDIA):"):].strip()
-                self._os_desktop.add_conversation_line("Prime", msg)
-            elif clean_text.startswith("IP Prime (FREELLM):"):
-                msg = clean_text[len("IP Prime (FREELLM):"):].strip()
-                self._os_desktop.add_conversation_line("Prime", msg)
+            elif clean_text.startswith("IP Prime"):
+                parts = clean_text.split(":", 1)
+                if len(parts) > 1:
+                    self._os_desktop.add_conversation_line("Prime", parts[1].strip())
+                else:
+                    self._os_desktop.add_conversation_line("Prime", clean_text)
             elif clean_text.startswith("SYS:"):
                 msg = clean_text[len("SYS:"):].strip()
                 if not msg.startswith("Fallback Engine"):
                     self._os_desktop.add_conversation_line("System", msg)
+            else:
+                self._os_desktop.add_conversation_line("System", clean_text)
 
 
 def get_ui():
