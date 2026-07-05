@@ -3358,5 +3358,20 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": []
         }
+    },
+    {
+        "name": "linkedin_agent",
+        "description": "LinkedIn Profile Connection Assistant. Open profile and generate customized invite notes to establish networks securely.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Action: 'connect' (default) or 'generate_note'"},
+                "profile_url": {"type": "STRING", "description": "Target LinkedIn profile URL"},
+                "name": {"type": "STRING", "description": "Name of the target person"},
+                "bio": {"type": "STRING", "description": "Headline/Bio details of the target person to personalize invitation"},
+                "context": {"type": "STRING", "description": "Custom connection context or shared group/interest"}
+            },
+            "required": []
+        }
     }
 ]
