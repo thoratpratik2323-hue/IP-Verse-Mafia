@@ -1851,8 +1851,8 @@ class IPPrimeOSDesktop(QMainWindow):
         if not hasattr(self, "_typewriter_char_idx") or self._typewriter_char_idx == 0:
             self._typewriter_char_idx = 0
             self.log_history.append("")
-            if len(self.log_history) > 22:
-                self.log_history = self.log_history[-22:]
+            if len(self.log_history) > 18:
+                self.log_history = self.log_history[-18:]
                 
         self._typewriter_char_idx += 1
         current_printed = target_line[:self._typewriter_char_idx]
@@ -1935,6 +1935,10 @@ class IPPrimeOSDesktop(QMainWindow):
             
         if not self._typewriter_timer.isActive():
             self._typewriter_timer.start(25)
+
+    def write_log(self, text: str):
+        if text:
+            self.add_conversation_line("System", text)
 
     def write_log_to_terminal(self, text: str):
         if text:
@@ -2100,7 +2104,7 @@ class IPPrimeOSDesktop(QMainWindow):
         # Header Label
         painter.setFont(QFont("Outfit", 9, QFont.Weight.Bold))
         painter.setPen(QColor(6, 182, 212, 190)) # Cyan
-        painter.drawText(start_x, start_y, "🧬 SWARM QUEUE FEED:")
+        painter.drawText(start_x, start_y, "🧬 IDLE AI:")
         
         y_offset = start_y + 20
         agents = [
@@ -2175,7 +2179,7 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.restore()
 
         # Draw Swarm Queue panel
-        # self._draw_swarm_queue_panel(painter, 40, 105)
+        self._draw_swarm_queue_panel(painter, 40, 195)
 
         # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()
@@ -2215,7 +2219,7 @@ class IPPrimeOSDesktop(QMainWindow):
             w = self.width()
             h = self.height()
             start_x = w - 380
-            start_y = h - 510 # Starts higher to fit 22 lines all the way down to bottom corner
+            start_y = h - 430 # Lowered to align with the bottom corner
             
             for i, line in enumerate(self.log_history):
                 painter.drawText(start_x, start_y + (i * 21), line)
