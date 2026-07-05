@@ -52,8 +52,48 @@ def _get_local_ip() -> str:
 
 
 # --- Feature 8: Smart Meeting Transcriber & Note-Taker ---
-def meeting_notetaker(action: str = "start", duration_seconds: int = 15) -> str:
+def meeting_notetaker(
+    action: str = "start",
+    duration_seconds: int = 15,
+    meeting_url: str | None = None,
+    meeting_title: str | None = None
+) -> str:
     """Feature 8: Smart Meeting Transcriber & Note-Taker"""
+    if meeting_url:
+        import os
+        import requests
+        api_key = os.getenv("MEETING_BAAS_API_KEY")
+        if not api_key:
+            return (
+                "Bhai, Clara meeting bot deploy karne ke liye MEETING_BAAS_API_KEY set hona zaroori hai. "
+                "Mujhe dynamic meeting joiner use karne ke liye environment variable provide karein!"
+            )
+        
+        headers = {
+            "x-meeting-baas-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "meeting_url": meeting_url,
+            "bot_name": "Clara AI (Notetaker)",
+            "bot_image": "https://ui-avatars.com/api/?name=Clara+AI&background=ec4899&color=fff",
+            "entry_message": "Hi everyone! I am Clara, an AI assistant. I'm just here to record and take notes.",
+            "recording_mode": "speaker_view",
+            "transcription_enabled": True,
+            "transcription_config": {
+                "provider": "gladia"
+            }
+        }
+        try:
+            r = requests.post("https://api.meetingbaas.com/bots", json=payload, headers=headers)
+            if r.status_code in [200, 201]:
+                bot_id = r.json().get("bot_id")
+                return f"✅ [Clara Bot] deployed successfully! Meeting BaaS bot is joining '{meeting_title or 'Meeting'}' (ID: {bot_id})"
+            else:
+                return f"❌ [Clara Bot] failed to join call: {r.json().get('error') or r.text}"
+        except Exception as e:
+            return f"❌ [Clara Bot] request failed: {e}"
+
     if action == "start":
         # Simulate recording and transcribing microphone input
         transcript_draft = [

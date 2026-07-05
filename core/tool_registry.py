@@ -590,7 +590,7 @@ TOOL_DECLARATIONS: list[dict] = [
     },
     {
         "name": "meeting_notetaker",
-        "description": "Feature 8: Smart Meeting Transcriber & Note-Taker. Starts or stops recording meeting notes, generating a structured markdown file of transcript and action items on the Desktop.",
+        "description": "Feature 8: Smart Meeting Transcriber & Note-Taker. Starts or stops recording meeting notes, or deploys a Clara AI notetaker bot to join a Google Meet, Zoom, or Microsoft Teams call.",
         "parameters": {
             "type": "OBJECT",
             "properties": {
@@ -601,6 +601,14 @@ TOOL_DECLARATIONS: list[dict] = [
                 "duration_seconds": {
                     "type": "INTEGER",
                     "description": "Simulated duration of the meeting to record"
+                },
+                "meeting_url": {
+                    "type": "STRING",
+                    "description": "The Google Meet, Zoom, or Microsoft Teams link for the Clara AI bot to join and record"
+                },
+                "meeting_title": {
+                    "type": "STRING",
+                    "description": "The title or subject of the meeting"
                 }
             },
             "required": []

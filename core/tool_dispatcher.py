@@ -525,7 +525,9 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
         elif name == "meeting_notetaker":
             r = await loop.run_in_executor(None, lambda: meeting_notetaker(
                 action=args.get("action", "start"),
-                duration_seconds=int(args.get("duration_seconds", 15))
+                duration_seconds=int(args.get("duration_seconds", 15)),
+                meeting_url=args.get("meeting_url"),
+                meeting_title=args.get("meeting_title")
             ))
             result = r or "Done."
 
