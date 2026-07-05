@@ -47,12 +47,30 @@ class _MindGraphCanvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._pulse = 0.0
+        self.orbitals = {
+            "Architect": {"parent_idx": 1, "target_opacity": 0.0, "current_opacity": 0.0, "label": "idle"},
+            "Coder":     {"parent_idx": 2, "target_opacity": 0.0, "current_opacity": 0.0, "label": "idle"},
+            "Debugger":  {"parent_idx": 3, "target_opacity": 0.0, "current_opacity": 0.0, "label": "idle"}
+        }
         t = QTimer(self)
         t.timeout.connect(self._tick)
         t.start(40)
 
+    def set_orbital_active(self, name, active, label=""):
+        if name in self.orbitals:
+            self.orbitals[name]["target_opacity"] = 1.0 if active else 0.0
+            if active and label:
+                self.orbitals[name]["label"] = label
+
     def _tick(self):
         self._pulse = (self._pulse + 0.04) % (2 * 3.14159)
+        # Smoothly decay/interpolate opacities
+        for data in self.orbitals.values():
+            diff = data["target_opacity"] - data["current_opacity"]
+            if abs(diff) > 0.01:
+                data["current_opacity"] += diff * 0.1
+            else:
+                data["current_opacity"] = data["target_opacity"]
         self.update()
 
     def paintEvent(self, event):
@@ -88,6 +106,47 @@ class _MindGraphCanvas(QWidget):
             p.setBrush(QBrush(node["color"]))
             p.setPen(QPen(QColor(255, 255, 255, 160), 1.5))
             p.drawEllipse(QPointF(nx, ny), node["size"], node["size"])
+
+        # Draw orbitals
+        for key, data in self.orbitals.items():
+            if data["current_opacity"] <= 0.01:
+                continue
+                
+            parent_idx = data["parent_idx"]
+            px, py = positions[parent_idx]
+            
+            # Compute orbital coordinate revolving slowly around parent
+            angle = self._pulse * 1.5 + (parent_idx * 1.2)
+            dist = 40.0 # orbit radius
+            ox = px + dist * math.cos(angle)
+            oy = py + dist * math.sin(angle)
+            
+            opacity = int(data["current_opacity"] * 255)
+            c = _GRAPH_NODES[parent_idx]["color"]
+            node_color = QColor(c.red(), c.green(), c.blue(), opacity)
+            
+            # Draw link line
+            line_pen = QPen(QColor(c.red(), c.green(), c.blue(), int(opacity * 0.4)), 1.2, Qt.PenStyle.DashLine)
+            p.setPen(line_pen)
+            p.drawLine(QPointF(px, py), QPointF(ox, oy))
+            
+            # Draw orbital node glow
+            grad = QRadialGradient(ox, oy, 12)
+            grad.setColorAt(0, QColor(c.red(), c.green(), c.blue(), int(opacity * 0.3)))
+            grad.setColorAt(1, QColor(c.red(), c.green(), c.blue(), 0))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QBrush(grad))
+            p.drawEllipse(QPointF(ox, oy), 12, 12)
+            
+            # Draw orbital core node
+            p.setBrush(QBrush(node_color))
+            p.setPen(QPen(QColor(255, 255, 255, int(opacity * 0.65)), 1.0))
+            p.drawEllipse(QPointF(ox, oy), 5, 5)
+            
+            # Draw text label next to orbital
+            p.setFont(QFont("Outfit", 7, QFont.Weight.Medium))
+            p.setPen(QColor(255, 255, 255, int(opacity * 0.8)))
+            p.drawText(QPointF(ox + 8, oy + 3), data["label"])
 
             # Label
             p.setPen(QColor(30, 40, 60))
@@ -522,8 +581,8 @@ class IPPrimeOSDesktop(QMainWindow):
         win_graph.move(440, 100)
         
         graph_layout = QVBoxLayout()
-        graph_canvas = _MindGraphCanvas(win_graph)
-        graph_layout.addWidget(graph_canvas)
+        self.graph_canvas = _MindGraphCanvas(win_graph)
+        graph_layout.addWidget(self.graph_canvas)
         win_graph.set_content_layout(graph_layout)
         self.windows["graph"] = win_graph
 
@@ -1318,6 +1377,16 @@ class IPPrimeOSDesktop(QMainWindow):
                         pbar.setValue(val - 5)
                     else:
                         lbl.setText("IDLE")
+                        
+        # Update graph canvas orbitals based on active agent progress bars
+        if hasattr(self, "graph_canvas") and self.graph_canvas:
+            for key, name in [("coder", "Coder"), ("debugger", "Debugger"), ("architect", "Architect")]:
+                pbar = self.agent_progress_bars.get(key)
+                lbl = self.agent_status_labels.get(key)
+                if pbar and lbl and pbar.value() > 15:
+                    self.graph_canvas.set_orbital_active(name, True, f"{pbar.value()}%")
+                else:
+                    self.graph_canvas.set_orbital_active(name, False)
         
         self.update() # Trigger paintEvent to repaint the wallpaper telemetry!
 
@@ -1600,6 +1669,47 @@ class IPPrimeOSDesktop(QMainWindow):
                 
         return "IDLE (Standing by for commands...)", "#06b6d4"
 
+    def _draw_swarm_queue_panel(self, painter, start_x, start_y):
+        painter.save()
+        
+        # Header Label
+        painter.setFont(QFont("Outfit", 9, QFont.Weight.Bold))
+        painter.setPen(QColor(6, 182, 212, 190)) # Cyan
+        painter.drawText(start_x, start_y, "🧬 SWARM QUEUE FEED:")
+        
+        y_offset = start_y + 20
+        agents = [
+            ("coder", "💻 Coder"),
+            ("debugger", "🛡️ Debugger"),
+            ("architect", "📐 Architect")
+        ]
+        
+        for key, display_name in agents:
+            status = "IDLE"
+            val = 0
+            if hasattr(self, "agent_status_labels") and key in self.agent_status_labels:
+                status = self.agent_status_labels[key].text()
+            if hasattr(self, "agent_progress_bars") and key in self.agent_progress_bars:
+                val = self.agent_progress_bars[key].value()
+                
+            # If value is low, keep it IDLE
+            if val <= 15:
+                status = "IDLE"
+                
+            status_desc = status
+            if status != "IDLE":
+                status_desc = f"{status} ({val}%)"
+                color = QColor(0, 245, 255, 200) # Glowing Cyan/Blue for active
+            else:
+                color = QColor(148, 163, 184, 150) # Desaturated Slate for Idle
+                
+            painter.setFont(QFont("Outfit", 8, QFont.Weight.Medium))
+            painter.setPen(color)
+            painter.drawText(start_x, y_offset, f"• {display_name}: {status_desc}")
+            y_offset += 16
+            
+        painter.restore()
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -1638,6 +1748,9 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setPen(QColor(180, 205, 212, 170)) # Slate-cyan secondary text
         painter.drawText(56, 78, f"IP PRIME: {status_text}")
         painter.restore()
+
+        # Draw Swarm Queue panel
+        self._draw_swarm_queue_panel(painter, 40, 105)
 
         # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()

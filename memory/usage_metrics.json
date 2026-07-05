@@ -2951,12 +2951,24 @@
       "tool": "open_app",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:11:22",
+      "tool": "computer_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:12:29",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 492,
-    "est_tokens": 393600,
-    "est_usd": 0.05904
+    "tool_calls": 494,
+    "est_tokens": 395200,
+    "est_usd": 0.05928
   },
   "by_day": {
     "2026-05-29": {
@@ -3035,9 +3047,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 35,
-      "est_tokens": 28000,
-      "est_usd": 0.0042
+      "tool_calls": 37,
+      "est_tokens": 29600,
+      "est_usd": 0.00444
     }
   }
 }
