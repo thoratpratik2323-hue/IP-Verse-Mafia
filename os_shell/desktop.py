@@ -1422,6 +1422,35 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setBrush(QBrush(QColor(6, 182, 212))) # Glowing Cyan
         painter.drawEllipse(QPointF(40 + text_w + 8, 41), 4, 4)
 
+        # Draw dynamic, stylish greeting message depending on the time of day
+        painter.save()
+        now = datetime.datetime.now()
+        hour = now.hour
+        if 5 <= hour < 12:
+            time_greet = "Morning"
+        elif 12 <= hour < 17:
+            time_greet = "Afternoon"
+        elif 17 <= hour < 21:
+            time_greet = "Evening"
+        else:
+            time_greet = "Night"
+            
+        # Draw "Good" (spaced and lightweight)
+        painter.setFont(QFont("Outfit", 13, QFont.Weight.Light))
+        painter.setPen(QColor(6, 182, 212, 190)) # Elegant Cyan
+        painter.drawText(40, 110, "Good")
+        
+        # Draw Time of Day Greeting (bold and prominent)
+        painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
+        painter.setPen(QColor(248, 250, 252, 240)) # Solid white
+        painter.drawText(40, 142, f"{time_greet}, Sir")
+        
+        # Draw subtitle / welcome back
+        painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
+        painter.setPen(QColor(180, 205, 212, 150)) # Soft desaturated slate-cyan
+        painter.drawText(40, 164, "Standing by for commands.")
+        painter.restore()
+
         # Draw dynamic output log feed directly on the background
         if hasattr(self, "log_history") and self.log_history:
             painter.save()
