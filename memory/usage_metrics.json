@@ -2963,12 +2963,48 @@
       "tool": "web_search_quick",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:13:06",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:13:32",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:14:05",
+      "tool": "deep_research",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:14:09",
+      "tool": "web_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:15:29",
+      "tool": "live_translator",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:15:37",
+      "tool": "live_translator",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 494,
-    "est_tokens": 395200,
-    "est_usd": 0.05928
+    "tool_calls": 500,
+    "est_tokens": 400000,
+    "est_usd": 0.06
   },
   "by_day": {
     "2026-05-29": {
@@ -3047,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 37,
-      "est_tokens": 29600,
-      "est_usd": 0.00444
+      "tool_calls": 43,
+      "est_tokens": 34400,
+      "est_usd": 0.00516
     }
   }
 }

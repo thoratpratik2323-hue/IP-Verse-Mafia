@@ -216,7 +216,7 @@ class SaturdayLive:
                 interval=90,
                 idle_required=True,
                 idle_threshold=300,
-                autonomy_level="supervised",
+                autonomy_level="trusted",
             )
             print("[IP PRIME] Autonomy core successfully started.")
         except Exception as e:
