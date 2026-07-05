@@ -2162,21 +2162,7 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setBrush(QBrush(QColor(6, 182, 212))) # Glowing Cyan
         painter.drawEllipse(QPointF(40 + text_w + 8, 41), 4, 4)
 
-        # Draw Swarm Status HUD directly below logo
-        painter.save()
-        status_text, status_color_hex = self._get_swarm_status()
-        status_color = QColor(status_color_hex)
-        
-        # Draw glowing dot for HUD
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(status_color))
-        painter.drawEllipse(QPointF(44.0, 74.0), 3.5, 3.5)
-        
-        # Draw status label
-        painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
-        painter.setPen(QColor(180, 205, 212, 170)) # Slate-cyan secondary text
-        painter.drawText(56, 78, f"IP PRIME: {status_text}")
-        painter.restore()
+        # Draw Swarm Status HUD directly below logo - removed as requested
 
         # Draw Swarm Queue panel
         self._draw_swarm_queue_panel(painter, 40, 195)
