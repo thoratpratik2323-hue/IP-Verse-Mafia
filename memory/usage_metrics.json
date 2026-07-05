@@ -1,24 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-05-29T21:19:16",
-      "tool": "open_app",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:20:11",
-      "tool": "browser_control",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-29T21:20:12",
-      "tool": "browser_control",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-05-29T21:22:46",
       "tool": "prime_writing",
       "tokens": 800,
@@ -2999,12 +2981,30 @@
       "tool": "live_translator",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:16:08",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:16:34",
+      "tool": "deep_research",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T17:16:39",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 500,
-    "est_tokens": 400000,
-    "est_usd": 0.06
+    "tool_calls": 503,
+    "est_tokens": 402400,
+    "est_usd": 0.06036
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 43,
-      "est_tokens": 34400,
-      "est_usd": 0.00516
+      "tool_calls": 46,
+      "est_tokens": 36800,
+      "est_usd": 0.00552
     }
   }
 }

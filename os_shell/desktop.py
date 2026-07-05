@@ -471,7 +471,7 @@ class IPPrimeOSDesktop(QMainWindow):
         self.menu_bar.setStyleSheet("""
             QWidget {
                 background-color: rgba(15, 23, 42, 0.75);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                border-bottom: none;
             }
             QLabel {
                 color: #ffffff;
@@ -1426,8 +1426,8 @@ class IPPrimeOSDesktop(QMainWindow):
         if not hasattr(self, "_typewriter_char_idx") or self._typewriter_char_idx == 0:
             self._typewriter_char_idx = 0
             self.log_history.append("")
-            if len(self.log_history) > 14:
-                self.log_history = self.log_history[-14:]
+            if len(self.log_history) > 22:
+                self.log_history = self.log_history[-22:]
                 
         self._typewriter_char_idx += 1
         current_printed = target_line[:self._typewriter_char_idx]
@@ -1790,26 +1790,27 @@ class IPPrimeOSDesktop(QMainWindow):
             w = self.width()
             h = self.height()
             start_x = w - 380
-            start_y = h - 380
+            start_y = h - 510 # Starts higher to fit 22 lines all the way down to bottom corner
             
             for i, line in enumerate(self.log_history):
-                painter.drawText(start_x, start_y + (i * 22), line)
+                painter.drawText(start_x, start_y + (i * 21), line)
             painter.restore()
 
-        # Draw CPU & RAM stats in the bottom-left corner
+        # Draw CPU & RAM stats and IP Verse Verified in the bottom-left corner
         painter.save()
         log_font = QFont("JetBrains Mono", 8)
         painter.setFont(log_font)
         painter.setPen(QColor(255, 255, 255, 140)) # Soft semi-transparent white
         stats_text = f"CPU: {self._hud_cpu}   RAM: {self._hud_ram}"
         painter.drawText(40, self.height() - 25, stats_text)
-        painter.restore()
-
-        # Draw "IP Verse Verified" in the bottom-right corner
-        painter.save()
+        
+        # Calculate offset to draw IP Verse Verified next to the CPU/RAM stats
+        metrics = painter.fontMetrics()
+        stats_w = metrics.horizontalAdvance(stats_text)
+        
         painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
-        painter.setPen(QColor(6, 182, 212, 160)) # Glowing Cyan/Slate with 160 opacity
-        painter.drawText(self.width() - 150, self.height() - 25, "IP Verse Verified")
+        painter.setPen(QColor(6, 182, 212, 160)) # Glowing Cyan
+        painter.drawText(40 + stats_w + 20, self.height() - 25, "IP Verse Verified")
         painter.restore()
 
     def closeEvent(self, event):
