@@ -408,8 +408,11 @@ class GlassWindow(QWidget):
 
 # ─── Main OS Desktop ───────────────────────────────────────────────
 class IPPrimeOSDesktop(QMainWindow):
+    stats_updated = pyqtSignal(int, int)
+
     def __init__(self, face_path="assets/logo.png", ui_facade=None):
         super().__init__()
+        self.stats_updated.connect(self._update_stats_ui)
         self.face_path = face_path
         self.ui_facade = ui_facade
         self.bg_pixmap = None
@@ -432,6 +435,7 @@ class IPPrimeOSDesktop(QMainWindow):
         except Exception as e:
             print(f"[Desktop] Failed to start local server backend: {e}")
 
+        self.cached_bg_pixmap = None
         # Load custom wallpaper if selected by user
         self.bg_path = Path("assets/space_bg.jpg")
         self.bg_path.parent.mkdir(exist_ok=True)
@@ -439,6 +443,7 @@ class IPPrimeOSDesktop(QMainWindow):
             self.bg_pixmap = QPixmap(str(self.bg_path))
 
         self.init_ui()
+        self._update_cached_bg()
 
         # Dynamic floating AI Orb
         self.orb = AIOrb(self)
@@ -1854,7 +1859,7 @@ class IPPrimeOSDesktop(QMainWindow):
                 import random
                 cpu_val = random.randint(2, 8)
                 
-            QTimer.singleShot(0, lambda: self._update_stats_ui(cpu_val, ram_val))
+            self.stats_updated.emit(cpu_val, ram_val)
         threading.Thread(target=worker, daemon=True).start()
 
     def _update_stats_ui(self, cpu_val, ram_val):
@@ -1904,6 +1909,16 @@ class IPPrimeOSDesktop(QMainWindow):
         if hasattr(self, "orb") and self.orb:
             self.orb.set_state(state)
 
+    def _update_cached_bg(self):
+        if self.bg_pixmap and not self.bg_pixmap.isNull():
+            self.cached_bg_pixmap = self.bg_pixmap.scaled(
+                self.size(),
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                Qt.TransformationMode.SmoothTransformation
+            )
+        else:
+            self.cached_bg_pixmap = None
+
     def _choose_wallpaper(self):
         from PyQt6.QtWidgets import QFileDialog
         import shutil
@@ -1915,6 +1930,7 @@ class IPPrimeOSDesktop(QMainWindow):
                 pixmap = QPixmap(file_path)
                 if not pixmap.isNull():
                     self.bg_pixmap = pixmap
+                    self._update_cached_bg()
                     shutil.copy(file_path, str(self.bg_path))
                     self.update()
             except Exception as e:
@@ -1926,6 +1942,7 @@ class IPPrimeOSDesktop(QMainWindow):
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 self.bg_pixmap = pixmap
+                self._update_cached_bg()
                 shutil.copy(file_path, str(self.bg_path))
                 self.update()
                 return True
@@ -1956,7 +1973,7 @@ class IPPrimeOSDesktop(QMainWindow):
             self._typewriter_queue.pop(0)
             self._typewriter_char_idx = 0
 
-    def add_conversation_line(self, role: str, text: str):
+    def add_conversation_line(self, role: str, text: str, skip_typewriter=False):
         if not hasattr(self, "log_history"):
             self.log_history = []
         if not hasattr(self, "_typewriter_queue"):
@@ -1996,6 +2013,9 @@ class IPPrimeOSDesktop(QMainWindow):
             import threading
             threading.Thread(target=store_vector, daemon=True).start()
 
+        if skip_typewriter:
+            return
+
         if role == "User":
             prefix = "User: "
         elif role == "Prime":
@@ -2028,6 +2048,31 @@ class IPPrimeOSDesktop(QMainWindow):
             
         if not self._typewriter_timer.isActive():
             self._typewriter_timer.start(25)
+
+    def stream_prime_response(self, text_fragment: str):
+        if not text_fragment:
+            return
+        if not hasattr(self, "log_history") or not self.log_history:
+            self.log_history = []
+            
+        if not self.log_history:
+            self.log_history.append("Prime: " + text_fragment)
+        else:
+            last_line = self.log_history[-1]
+            if not last_line.startswith("Prime: "):
+                self.log_history.append("Prime: " + text_fragment)
+            else:
+                separator = " " if not last_line.endswith(" ") and not text_fragment.startswith(" ") else ""
+                new_text = last_line + separator + text_fragment
+                if len(new_text) <= 45:
+                    self.log_history[-1] = new_text
+                else:
+                    self.log_history.append("Prime: " + text_fragment)
+                    
+        if len(self.log_history) > 18:
+            self.log_history = self.log_history[-18:]
+            
+        self.update()
 
     def write_log(self, text: str):
         if text:
@@ -2125,6 +2170,8 @@ class IPPrimeOSDesktop(QMainWindow):
         self.menu_bar.setGeometry(0, 0, 0, 0)
         self.dock.setGeometry(0, 0, 0, 0)
         self.dock.hide()
+        
+        self._update_cached_bg()
 
         if hasattr(self, "orb") and self.orb:
             self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2 - 60)

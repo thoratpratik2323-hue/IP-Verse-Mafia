@@ -1,12 +1,12 @@
 {
     "date": "2026-07-05",
     "apps": {
-        "antigravity": 4160,
-        "explorer": 970,
+        "antigravity": 4230,
+        "explorer": 1000,
         "pythonw": 130,
         "msedge": 720,
         "shellexperiencehost": 100,
-        "python": 13730,
+        "python": 13800,
         "windowsterminal": 100,
         "lockapp": 20,
         "credentialuibroker": 10,
@@ -15,9 +15,9 @@
         "whatsapp.root": 10,
         "applicationframehost": 30,
         "notepad": 10,
-        "cmd": 10,
+        "cmd": 20,
         "chrome": 50,
-        "firefox": 390
+        "firefox": 400
     },
     "limits": {}
 }

@@ -2108,6 +2108,12 @@ class IPRayLive:
                             txt = _clean_transcript(sc.output_transcription.text)
                             if txt:
                                 out_buf.append(txt)
+                                if hasattr(self, "ui") and hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                    from PyQt6.QtCore import QTimer
+                                    def update_ui(t=txt):
+                                        if hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                            self.ui._os_desktop.stream_prime_response(t)
+                                    QTimer.singleShot(0, update_ui)
 
                         if sc.input_transcription and sc.input_transcription.text:
                             txt = _clean_transcript(sc.input_transcription.text)
@@ -2474,7 +2480,14 @@ class IPRayLive:
                                     self.ui.write_log(f"You: {full_in}")
                                     self.route_user_message(full_in, is_voice=True)
                                 if full_out:
-                                    self.ui.write_log(f"IP Prime: {full_out}")
+                                    if hasattr(self, "ui") and hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                        from PyQt6.QtCore import QTimer
+                                        def save_db(o=full_out):
+                                            if hasattr(self.ui, "_os_desktop") and self.ui._os_desktop:
+                                                self.ui._os_desktop.add_conversation_line("Prime", o, skip_typewriter=True)
+                                        QTimer.singleShot(0, save_db)
+                                    else:
+                                        self.ui.write_log(f"IP Prime: {full_out}")
                                 if full_in or full_out:
                                     u, a = full_in, full_out
                                     def run_logs_and_mood():
