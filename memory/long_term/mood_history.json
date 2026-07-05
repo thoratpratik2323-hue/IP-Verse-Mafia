@@ -1,11 +1,6 @@
 [
     {
         "timestamp": "2026-07-05 13:43",
-        "input": "we will do",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 13:43",
         "input": "Okay pri me can you just",
         "mood": "neutral"
     },
@@ -247,6 +242,11 @@
     {
         "timestamp": "2026-07-05 17:54",
         "input": "ఈ చికెన్ ఎక్కడ చూసుకుంటే మ",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:54",
+        "input": ".",
         "mood": "neutral"
     }
 ]

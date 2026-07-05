@@ -3,11 +3,6 @@
   "turns": [
     {
       "user": "",
-      "assistant": "Welcome, Pratik",
-      "ts": "2026-06-27 14:49"
-    },
-    {
-      "user": "",
       "assistant": "Good day, Pratik Sir. All core modules are fully operational. Standing by for your command.",
       "ts": "2026-06-27 15:06"
     },
@@ -2500,7 +2495,12 @@
       "user": "ఈ చికెన్ ఎక్కడ చూసుకుంటే మ",
       "assistant": "Theek hai, bro. Koi tension nahi hai! Kuch aur help chahiye?",
       "ts": "2026-07-05 17:54"
+    },
+    {
+      "user": ".",
+      "assistant": "Koi baat nahi, Pratik! Hum improve karte rahenge. Ab aage kya plan hai?",
+      "ts": "2026-07-05 17:54"
     }
   ],
-  "summary": "User: კაი მა ს კაი კარგი კარ გი | IP Prime: Kya bol rahe ho Pratik? Aawaaz thodi cut rahi hai. Dubara batao kya? | IP Prime: Sorry Pratik, tumhari baat clearly samajh nahi aa rahi hai. Kya repeat kar sakte ho? | User: . | IP Prime: Sahi hai, bro! Ekdum mast lag raha hai na? Aur kuch changes karne hain ismein | User: 別 管理 者 の 方 が | IP Prime: Achcha, college information chahiye? Koi baat nahi. College | User: ఈ చికెన్ ఎక్కడ చూసుకుంటే మ | IP Prime: Theek hai, bro. Koi tension nahi hai! Kuch aur help chahiye?"
+  "summary": "IP Prime: Sorry Pratik, tumhari baat clearly samajh nahi aa rahi hai. Kya repeat kar sakte ho? | User: . | IP Prime: Sahi hai, bro! Ekdum mast lag raha hai na? Aur kuch changes karne hain ismein | User: 別 管理 者 の 方 が | IP Prime: Achcha, college information chahiye? Koi baat nahi. College | User: ఈ చికెన్ ఎక్కడ చూసుకుంటే మ | IP Prime: Theek hai, bro. Koi tension nahi hai! Kuch aur help chahiye? | User: . | IP Prime: Koi baat nahi, Pratik! Hum improve karte rahenge. Ab aage kya plan hai?"
 }
