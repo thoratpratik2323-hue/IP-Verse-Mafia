@@ -20,7 +20,8 @@ from PyQt6.QtCore import Qt, QPoint, QPointF, QRectF, QTimer, pyqtSignal, QSize
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect,
-    QProgressBar, QListWidget, QFrame, QTextEdit, QComboBox
+    QProgressBar, QListWidget, QFrame, QTextEdit, QComboBox,
+    QTextBrowser, QSplitter
 )
 from PyQt6.QtGui import (
     QPainter, QColor, QRadialGradient, QLinearGradient,
@@ -865,15 +866,21 @@ class IPPrimeOSDesktop(QMainWindow):
         self.windows["notes"] = win_notes
 
         # ✍️ Window 8: Text Code Editor (Integrated with File Explorer)
-        self.win_editor = GlassWindow("✍️ Code Editor", self)
-        self.win_editor.resize(450, 380)
+        self.win_editor = GlassWindow("✍️ Code Editor (Varon/Cobra Sandbox)", self)
+        self.win_editor.resize(800, 480)
         self.win_editor.move(260, 150)
         self.win_editor.hide_window()
 
-        edit_layout = QVBoxLayout()
+        self.editor_splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        left_container = QWidget()
+        left_layout = QVBoxLayout(left_container)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(6)
+
         self.editor_path_lbl = QLabel("No File Selected", self.win_editor)
         self.editor_path_lbl.setStyleSheet("font-size: 10px; font-family: 'JetBrains Mono';")
-        edit_layout.addWidget(self.editor_path_lbl)
+        left_layout.addWidget(self.editor_path_lbl)
 
         self.editor_text = QTextEdit(self.win_editor)
         self.editor_text.setStyleSheet("""
@@ -883,20 +890,104 @@ class IPPrimeOSDesktop(QMainWindow):
                 font-size: 11px;
             }
         """)
-        edit_layout.addWidget(self.editor_text)
+        left_layout.addWidget(self.editor_text, 1)
 
-        self.editor_save_btn = QPushButton("💾 Save Changes", self.win_editor)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(6)
+
+        self.editor_save_btn = QPushButton("💾 Save", self.win_editor)
         self.editor_save_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(3, 105, 161, 0.8);
-                color: white; border-radius: 4px; padding: 6px; font-weight: bold;
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
             }
             QPushButton:hover { background-color: rgba(3, 105, 161, 1.0); }
         """)
         self.editor_save_btn.clicked.connect(self._save_editor_file)
-        edit_layout.addWidget(self.editor_save_btn)
+        buttons_layout.addWidget(self.editor_save_btn)
 
-        self.win_editor.set_content_layout(edit_layout)
+        self.editor_run_btn = QPushButton("⚡ Run Code", self.win_editor)
+        self.editor_run_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(16, 185, 129, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(16, 185, 129, 1.0); }
+        """)
+        self.editor_run_btn.clicked.connect(self._run_editor_code)
+        buttons_layout.addWidget(self.editor_run_btn)
+
+        self.editor_mamba_btn = QPushButton("🦚 Mamba Optimize", self.win_editor)
+        self.editor_mamba_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(124, 58, 237, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(124, 58, 237, 1.0); }
+        """)
+        self.editor_mamba_btn.clicked.connect(self._optimize_with_mamba)
+        buttons_layout.addWidget(self.editor_mamba_btn)
+
+        self.editor_preview_btn = QPushButton("🌐 Preview", self.win_editor)
+        self.editor_preview_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(234, 179, 8, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(234, 179, 8, 1.0); }
+        """)
+        self.editor_preview_btn.clicked.connect(self._toggle_editor_preview)
+        buttons_layout.addWidget(self.editor_preview_btn)
+
+        left_layout.addLayout(buttons_layout)
+
+        self.editor_console = QTextEdit(self.win_editor)
+        self.editor_console.setStyleSheet("""
+            QTextEdit {
+                background-color: #0b0f19;
+                color: #34d399;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 10px;
+                border-radius: 4px;
+                border: 1px solid rgba(52, 211, 153, 0.2);
+            }
+        """)
+        self.editor_console.setReadOnly(True)
+        self.editor_console.setFixedHeight(110)
+        self.editor_console.hide()
+        left_layout.addWidget(self.editor_console)
+
+        self.editor_splitter.addWidget(left_container)
+
+        self.preview_container = QWidget()
+        preview_layout = QVBoxLayout(self.preview_container)
+        preview_layout.setContentsMargins(0, 0, 0, 0)
+        preview_layout.setSpacing(6)
+
+        preview_title = QLabel("🌐 Live HTML Render Preview")
+        preview_title.setStyleSheet("font-size: 10px; font-weight: bold; color: rgba(255, 255, 255, 0.8);")
+        preview_layout.addWidget(preview_title)
+
+        self.preview_browser = QTextBrowser()
+        self.preview_browser.setStyleSheet("""
+            QTextBrowser {
+                background-color: white;
+                color: black;
+                border-radius: 6px;
+            }
+        """)
+        preview_layout.addWidget(self.preview_browser, 1)
+
+        self.editor_splitter.addWidget(self.preview_container)
+        self.preview_container.hide()
+
+        self.editor_text.textChanged.connect(self._update_live_preview)
+
+        main_editor_layout = QHBoxLayout()
+        main_editor_layout.setContentsMargins(0, 0, 0, 0)
+        main_editor_layout.addWidget(self.editor_splitter)
+
+        self.win_editor.set_content_layout(main_editor_layout)
         self.windows["editor"] = self.win_editor
 
         # 📊 Window 9: Task Manager (Live System Process monitor with kill functionality)
@@ -1244,6 +1335,118 @@ class IPPrimeOSDesktop(QMainWindow):
                 self._populate_files()
             except Exception as e:
                 self.editor_path_lbl.setText(f"❌ Save Failed: {e}")
+
+    def _toggle_editor_preview(self):
+        if self.preview_container.isVisible():
+            self.preview_container.hide()
+            self.editor_preview_btn.setText("🌐 Preview")
+        else:
+            self.preview_container.show()
+            self.editor_preview_btn.setText("🌐 Hide Preview")
+            self._update_live_preview()
+
+    def _update_live_preview(self):
+        if self.preview_container.isVisible():
+            text = self.editor_text.toPlainText()
+            self.preview_browser.setHtml(text)
+
+    def _run_editor_code(self):
+        self.editor_console.show()
+        self.editor_console.setPlainText("Saving changes and launching sandbox execution...\n")
+        
+        if hasattr(self, "current_editor_file") and self.current_editor_file:
+            self._save_editor_file()
+            file_path = self.current_editor_file
+        else:
+            temp_dir = Path("C:/Users/thora/.gemini/antigravity/scratch/IP Prime")
+            file_path = temp_dir / "temp_sandbox_script.py"
+            try:
+                file_path.write_text(self.editor_text.toPlainText(), encoding="utf-8")
+            except Exception as e:
+                self.editor_console.append(f"Error creating temp execution script: {e}\n")
+                return
+        
+        def worker():
+            import subprocess
+            ext = file_path.suffix.lower()
+            if ext == ".py":
+                venv_python = Path(".venv/Scripts/python.exe")
+                cmd = f'"{venv_python}" "{file_path}"' if venv_python.exists() else f'python "{file_path}"'
+            elif ext in (".js", ".ts"):
+                cmd = f'node "{file_path}"'
+            else:
+                cmd = f'"{file_path}"'
+                
+            try:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    shell=True,
+                    bufsize=1
+                )
+                while True:
+                    line = proc.stdout.readline()
+                    if not line:
+                        break
+                    QTimer.singleShot(0, lambda l=line: self.editor_console.insertPlainText(l))
+                proc.wait()
+                QTimer.singleShot(0, lambda: self.editor_console.insertPlainText(f"\n--- Process Finished (Exit Code: {proc.returncode}) ---\n"))
+            except Exception as e:
+                QTimer.singleShot(0, lambda err=str(e): self.editor_console.insertPlainText(f"Failed to run: {err}\n"))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _optimize_with_mamba(self):
+        self.editor_console.show()
+        self.editor_console.setPlainText("🦚 Mamba AI: Reading code and analyzing structural optimizations...\n")
+        code = self.editor_text.toPlainText()
+        if not code.strip():
+            self.editor_console.append("Empty code editor, sir.")
+            return
+
+        def worker():
+            try:
+                from actions.prime_utils import UnifiedModelClient
+                client = UnifiedModelClient()
+                prompt = (
+                    "You are CobraAI Mamba, an elite coding optimizer. "
+                    "Optimize the following code for maximum efficiency, style consistency, and Pythonic layout. "
+                    "Provide ONLY the improved code inside the output. Do NOT write markdown code fences, "
+                    "do NOT write explanations. Return ONLY the raw optimized code:\n\n"
+                    f"{code}"
+                )
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt
+                )
+                optimized = response.text.strip()
+                if optimized:
+                    if optimized.startswith("```"):
+                        lines = optimized.splitlines()
+                        if lines[0].startswith("```"):
+                            lines = lines[1:]
+                        if lines and lines[-1].startswith("```"):
+                            lines = lines[:-1]
+                        optimized = "\n".join(lines)
+                    
+                    QTimer.singleShot(0, lambda o=optimized: self._apply_optimized_code(o, code))
+                else:
+                    QTimer.singleShot(0, lambda: self.editor_console.append("❌ Mamba AI returned empty optimization, sir."))
+            except Exception as e:
+                QTimer.singleShot(0, lambda err=str(e): self.editor_console.append(f"❌ Mamba AI error: {err}\n"))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_optimized_code(self, optimized_code, backup_code):
+        self.editor_text.setPlainText(optimized_code)
+        self.editor_console.append("🟢 Mamba AI: Optimization applied successfully! (Original code backed up in clipboard)")
+        app = QApplication.instance()
+        if app:
+            clipboard = app.clipboard()
+            if clipboard:
+                clipboard.setText(backup_code)
 
     def _refresh_processes(self):
         def worker():
