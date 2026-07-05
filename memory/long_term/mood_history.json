@@ -1,15 +1,5 @@
 [
     {
-        "timestamp": "2026-07-05 17:08",
-        "input": "ओ के फ्रे ंड डिसेबल हैकर लो",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:09",
-        "input": "ओके ब्रो कै न ज स्ट डि स्क्राइ ब व्हाई है कर मो ड इज इंपोर्टेंट",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-05 17:10",
         "input": "ओ के प्रा इम कै न जस्ट टेल मी हाउ मच ऑ टो नॉ मस ए आई ए जेंट यू आर लाइ क टे ल मी द पर सेंट दै ट यू यू आर",
         "mood": "neutral"
@@ -247,6 +237,16 @@
     {
         "timestamp": "2026-07-05 23:08",
         "input": "can de sign a web page for Ca ptain Ame rica make it co ol and ad d some pho to s of Ca ptain Ame rica and make it the best web page for it.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:17",
+        "input": "प्रे म ज स्ट ड्यू योर इंट्रो",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:17",
+        "input": "O kay can you just bui ld the ca ptain Ame rica we b page with the gre at thing s like ima ge s and stu ff al so use make it best",
         "mood": "neutral"
     }
 ]

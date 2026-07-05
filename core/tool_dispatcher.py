@@ -59,6 +59,7 @@ from actions.screenshot_code_gen import screenshot_code_gen
 from actions.live_code_reviewer import live_code_reviewer
 from actions.email_summarizer import email_summarizer
 from actions.mobile_telekinesis import mobile_telekinesis
+from actions.connector_jobs import connector_jobs
 from actions.smart_home import smart_home_enhanced
 from actions.autonomous_shell_helper import autonomous_cli_helper
 from actions.file_explorer import file_explorer
@@ -308,6 +309,16 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
 
         elif name == "boss_orchestrator":
             r = await loop.run_in_executor(None, lambda: boss_orchestrator(parameters=args, player=player))
+            result = r or "Done."
+
+        elif name == "connector_jobs":
+            r = await loop.run_in_executor(None, lambda: connector_jobs(
+                action=args.get("action", "search"),
+                query=args.get("query"),
+                location=args.get("location"),
+                job_details=args.get("job_details"),
+                player=player
+            ))
             result = r or "Done."
 
         elif name == "asset_scaffolder":

@@ -3332,5 +3332,31 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["target"]
         }
+    },
+    {
+        "name": "connector_jobs",
+        "description": "Hyper-local job listing platform. Search for jobs or post new jobs to match local skills with opportunity.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Action: 'search' (default) or 'post'"},
+                "query": {"type": "STRING", "description": "Keywords, title, or skills to search for"},
+                "location": {"type": "STRING", "description": "Local city or region"},
+                "job_details": {
+                    "type": "OBJECT",
+                    "description": "Required when action is 'post'. Details of the job.",
+                    "properties": {
+                        "title": {"type": "STRING", "description": "Title of the job"},
+                        "employer": {"type": "STRING", "description": "Company or business name"},
+                        "location": {"type": "STRING", "description": "Job location"},
+                        "type": {"type": "STRING", "description": "Full-Time, Part-Time, Internship, etc."},
+                        "skills": {"type": "ARRAY", "items": {"type": "STRING"}, "description": "List of required skills"},
+                        "description": {"type": "STRING", "description": "Brief description of role"}
+                    },
+                    "required": ["title"]
+                }
+            },
+            "required": []
+        }
     }
 ]

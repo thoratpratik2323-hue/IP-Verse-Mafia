@@ -1,12 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-02T09:57:38",
-      "tool": "brain_store_fact",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-02T09:57:40",
       "tool": "brain_store_fact",
       "tokens": 800,
@@ -2999,12 +2993,18 @@
       "tool": "dev_agent",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:18:00",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 527,
-    "est_tokens": 421600,
-    "est_usd": 0.06324
+    "tool_calls": 528,
+    "est_tokens": 422400,
+    "est_usd": 0.06336
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 70,
-      "est_tokens": 56000,
-      "est_usd": 0.0084
+      "tool_calls": 71,
+      "est_tokens": 56800,
+      "est_usd": 0.00852
     }
   }
 }
