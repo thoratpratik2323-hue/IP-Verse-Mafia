@@ -1439,20 +1439,15 @@ class IPPrimeOSDesktop(QMainWindow):
         box_w = 400.0
         box_x = float(self.width() - box_w - 40)
         
-        # Draw "Good" (spaced and lightweight)
-        painter.setFont(QFont("Outfit", 13, QFont.Weight.Light))
-        painter.setPen(QColor(6, 182, 212, 190)) # Elegant Cyan
-        painter.drawText(QRectF(box_x, 90.0, box_w, 24.0), Qt.AlignmentFlag.AlignRight, "Good")
+        # Draw "Good" (spaced and bold/bigger)
+        painter.setFont(QFont("Outfit", 22, QFont.Weight.Bold))
+        painter.setPen(QColor(6, 182, 212, 210)) # Elegant Cyan
+        painter.drawText(QRectF(box_x, 65.0, box_w, 32.0), Qt.AlignmentFlag.AlignRight, "Good")
         
         # Draw Time of Day Greeting (bold and prominent)
         painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
         painter.setPen(QColor(248, 250, 252, 240)) # Solid white
-        painter.drawText(QRectF(box_x, 114.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
-        
-        # Draw subtitle / welcome back
-        painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
-        painter.setPen(QColor(180, 205, 212, 150)) # Soft desaturated slate-cyan
-        painter.drawText(QRectF(box_x, 154.0, box_w, 20.0), Qt.AlignmentFlag.AlignRight, "Standing by for commands.")
+        painter.drawText(QRectF(box_x, 100.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
         painter.restore()
 
         # Draw dynamic output log feed directly on the background
