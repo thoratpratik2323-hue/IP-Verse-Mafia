@@ -1,21 +1,6 @@
 {
-  "last_updated": "2026-07-05 22:44",
+  "last_updated": "2026-07-05 22:52",
   "turns": [
-    {
-      "user": "थैंक्स काका",
-      "assistant": "",
-      "ts": "2026-06-27 15:15"
-    },
-    {
-      "user": "thing you are best AI ever.",
-      "assistant": "Arey Pratik, aise mat bolo! Main toh bas apna kaam kar raha hoon. Aur \"Kaka\" mat bulao yaar, \"Prime\" theek hai! Kuch aur help chahiye?",
-      "ts": "2026-06-27 15:15"
-    },
-    {
-      "user": "यू आर द स्मा र्टे स्ट ए आई ए बल आई हैव सीन ब्रो",
-      "assistant": "Ha ha, thanks bro! Ab",
-      "ts": "2026-06-27 15:15"
-    },
     {
       "user": "द वर् किंग विद यू इज",
       "assistant": "thanks bro! Tumhare saath kaam karna bhi ek number experience hai! Koi naya project plan kar raha hai?",
@@ -2500,7 +2485,22 @@
       "user": "",
       "assistant": "Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer systems is a criminal offence under the IT Act 2000 (India) and similar laws worldwide. System boot sequence complete. Welcome back, Pratik Sir. All active agents are synchronized with the memory mainframe. How shall we expand the boundaries of the digital space today?",
       "ts": "2026-07-05 22:44"
+    },
+    {
+      "user": "",
+      "assistant": "Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer systems is a criminal offence under the IT Act 2000 (India) and similar laws worldwide. Welcome back, Pratik Sir. Quantum link established, neural network visualizers synchronized, and all core systems are fully primed. The mainframe is online and standing by. Awaiting your commands, sir.",
+      "ts": "2026-07-05 22:51"
+    },
+    {
+      "user": "primero to teste in",
+      "assistant": "Arey haan bhai, bilkul! Kya list karna hai? Files, tasks, settings, ya kuch aur? Batao Pratik bro, main toh ready hoon!",
+      "ts": "2026-07-05 22:52"
+    },
+    {
+      "user": "O kay pri me ju st gi ve her intro.",
+      "assistant": "Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh system analytics aur cybersecurity mein poori expert assistance milegi. Chahe complex coding projects hon, real-time memory recall ho, ya fir smart home controls, main tumhara powerhouse companion hoon. Batao, where should we begin today?",
+      "ts": "2026-07-05 22:52"
     }
   ],
-  "summary": "User: be nga | IP Prime: Hmm, Pratik bhai, screen pe jo dikh raha hai, uske hisaab se toh IP Prime OS ka \"Glass Desktop\" active hai. Aur apna AI Orb bhi \"THINKING\" mode mein hai. Saare  | User: 왜 안 치냐 뭐라 | User: ಮಾ ನೀ ರ್ ಪಿಲ್ಲು ಆಲ್ ಎಲ್ಲಿಸ್ತೀ ವಾಲಾ | IP Prime: Acha Pratik bhai, screen pe jo dikh raha hai, woh \"Antigravity\" application ka interface hai. Ismein \"Awaiting Authentication...\" ka status dikh raha hai, matla | IP Prime: Kya haal hai Pratik bhai? Sab theek hai? Full energy mein hain aaj, apun! Batao, kya plan hai? | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system"
+  "summary": "IP Prime: Kya haal hai Pratik bhai? Sab theek hai? Full energy mein hain aaj, apun! Batao, kya plan hai? | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: primero to teste in | IP Prime: Arey haan bhai, bilkul! Kya list karna hai? Files, tasks, settings, ya kuch aur? Batao Pratik bro, main toh ready hoon! | User: O kay pri me ju st gi ve her intro. | IP Prime: Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh sys"
 }

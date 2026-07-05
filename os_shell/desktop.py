@@ -1174,6 +1174,22 @@ class IPPrimeOSDesktop(QMainWindow):
                 self.web_insta.setUrl(QUrl("https://www.instagram.com"))
         win_insta.visibility_changed.connect(load_insta)
 
+        # Cobra AI 2.0 Web Live App
+        win_cobra = GlassWindow("🐍 Cobra AI 2.0", self)
+        win_cobra.resize(800, 520)
+        win_cobra.move(300, 90)
+        win_cobra.hide_window()
+        cobra_layout = QVBoxLayout()
+        self.web_cobra = QWebEngineView(win_cobra)
+        cobra_layout.addWidget(self.web_cobra)
+        win_cobra.set_content_layout(cobra_layout)
+        self.windows["cobra_web"] = win_cobra
+
+        def load_cobra(visible):
+            if visible and self.web_cobra.url().isEmpty():
+                self.web_cobra.setUrl(QUrl("https://cobra-aing.vercel.app/"))
+        win_cobra.visibility_changed.connect(load_cobra)
+
         # Autopilot Coder (Dynamic coding visualizer)
         win_auto = GlassWindow("💻 Autopilot Coder", self)
         win_auto.resize(480, 320)
@@ -1224,7 +1240,8 @@ class IPPrimeOSDesktop(QMainWindow):
             "config": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #64748b, stop:1 #475569); border: 1px solid #334155;",
             "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #059669); border: 1px solid #047857;",
             "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;",
-            "nainipix": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #a855f7); border: 1px solid #8a3ab9;"
+            "nainipix": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #a855f7); border: 1px solid #8a3ab9;",
+            "cobra_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #06b6d4); border: 1px solid #059669;"
         }
 
         # Add Launcher button first
@@ -1238,11 +1255,11 @@ class IPPrimeOSDesktop(QMainWindow):
         # Connect window overlays & add dock toggle buttons
         for key, win in self.windows.items():
             win.hide_window()
-            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision", "nainipix"]:
+            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision", "nainipix", "cobra_web"]:
                 icon_emoji = {
                     "core": "🧬", "graph": "🧠", "swarm": "💻", 
                     "files": "📁", "config": "⚙️", "autopilot": "🤖", "vision": "👁️",
-                    "nainipix": "🎨"
+                    "nainipix": "🎨", "cobra_web": "🐍"
                 }.get(key, "⚙️")
                 btn = QPushButton(icon_emoji, self.dock)
                 btn.setToolTip(win.windowTitle())
