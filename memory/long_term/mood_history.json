@@ -1,21 +1,6 @@
 [
     {
         "timestamp": "2026-07-05 10:18",
-        "input": "close notepad",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 10:18",
-        "input": "ओ पन ऑ टो पा य लट कोडर",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 10:18",
-        "input": "ओ पन ऑ टो पायलट कोडर",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 10:18",
         "input": "make new fi le for this one.",
         "mood": "neutral"
     },
@@ -247,6 +232,21 @@
     {
         "timestamp": "2026-07-05 17:32",
         "input": ".",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:43",
+        "input": "ए प्रा इम हार्ड टु लेसन प्रॉपर लिंग",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 17:44",
+        "input": "O kay can you just tell me which new fe atures are already in you",
+        "mood": "energetic"
+    },
+    {
+        "timestamp": "2026-07-05 17:44",
+        "input": "O kay pri me can you just tell me ha cker mode on",
         "mood": "neutral"
     }
 ]

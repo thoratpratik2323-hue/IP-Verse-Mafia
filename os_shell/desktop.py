@@ -2175,7 +2175,7 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.restore()
 
         # Draw Swarm Queue panel
-        self._draw_swarm_queue_panel(painter, 40, 105)
+        # self._draw_swarm_queue_panel(painter, 40, 105)
 
         # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()
