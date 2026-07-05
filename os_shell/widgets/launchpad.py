@@ -34,7 +34,8 @@ class LaunchpadItem(QWidget):
             "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #00f5ff, stop:1 #008b99); border: 1px solid #005f66;",
             "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;",
             "nainipix": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #a855f7); border: 1px solid #8a3ab9;",
-            "cobra_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #06b6d4); border: 1px solid #059669;"
+            "cobra_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #06b6d4); border: 1px solid #059669;",
+            "ravx_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #a855f7, stop:1 #6366f1); border: 1px solid #7c3aed;"
         }
         bg_style = styles.get(key, "background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18);")
         
@@ -174,6 +175,7 @@ class LaunchpadOverlay(QWidget):
             ("instagram", "Instagram", "📸"),
             ("nainipix", "NainiPix Studio", "🎨"),
             ("cobra_web", "Cobra AI 2.0", "🐍"),
+            ("ravx_web", "RAVX OS", "🎛️"),
             ("shell", "Terminal", "🖥️")
         ]
         

@@ -1190,6 +1190,22 @@ class IPPrimeOSDesktop(QMainWindow):
                 self.web_cobra.setUrl(QUrl("https://cobra-aing.vercel.app/"))
         win_cobra.visibility_changed.connect(load_cobra)
 
+        # RAVX OS Web Live App
+        win_ravx = GlassWindow("🎛️ RAVX OS", self)
+        win_ravx.resize(800, 520)
+        win_ravx.move(320, 100)
+        win_ravx.hide_window()
+        ravx_layout = QVBoxLayout()
+        self.web_ravx = QWebEngineView(win_ravx)
+        ravx_layout.addWidget(self.web_ravx)
+        win_ravx.set_content_layout(ravx_layout)
+        self.windows["ravx_web"] = win_ravx
+
+        def load_ravx(visible):
+            if visible and self.web_ravx.url().isEmpty():
+                self.web_ravx.setUrl(QUrl("https://ravx-os.vercel.app/"))
+        win_ravx.visibility_changed.connect(load_ravx)
+
         # Autopilot Coder (Dynamic coding visualizer)
         win_auto = GlassWindow("💻 Autopilot Coder", self)
         win_auto.resize(480, 320)
@@ -1241,7 +1257,8 @@ class IPPrimeOSDesktop(QMainWindow):
             "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #059669); border: 1px solid #047857;",
             "vision": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ec4899, stop:1 #a855f7); border: 1px solid #7c3aed;",
             "nainipix": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #a855f7); border: 1px solid #8a3ab9;",
-            "cobra_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #06b6d4); border: 1px solid #059669;"
+            "cobra_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10b981, stop:1 #06b6d4); border: 1px solid #059669;",
+            "ravx_web": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #a855f7, stop:1 #6366f1); border: 1px solid #7c3aed;"
         }
 
         # Add Launcher button first
@@ -1255,11 +1272,11 @@ class IPPrimeOSDesktop(QMainWindow):
         # Connect window overlays & add dock toggle buttons
         for key, win in self.windows.items():
             win.hide_window()
-            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision", "nainipix", "cobra_web"]:
+            if key in ["core", "graph", "swarm", "files", "config", "autopilot", "vision", "nainipix", "cobra_web", "ravx_web"]:
                 icon_emoji = {
                     "core": "🧬", "graph": "🧠", "swarm": "💻", 
                     "files": "📁", "config": "⚙️", "autopilot": "🤖", "vision": "👁️",
-                    "nainipix": "🎨", "cobra_web": "🐍"
+                    "nainipix": "🎨", "cobra_web": "🐍", "ravx_web": "🎛️"
                 }.get(key, "⚙️")
                 btn = QPushButton(icon_emoji, self.dock)
                 btn.setToolTip(win.windowTitle())
