@@ -409,10 +409,14 @@ class GlassWindow(QWidget):
 # ─── Main OS Desktop ───────────────────────────────────────────────
 class IPPrimeOSDesktop(QMainWindow):
     stats_updated = pyqtSignal(int, int)
+    stream_received = pyqtSignal(str)
+    conversation_added = pyqtSignal(str, str, bool)
 
     def __init__(self, face_path="assets/logo.png", ui_facade=None):
         super().__init__()
         self.stats_updated.connect(self._update_stats_ui)
+        self.stream_received.connect(self.stream_prime_response)
+        self.conversation_added.connect(self.add_conversation_line)
         self.face_path = face_path
         self.ui_facade = ui_facade
         self.bg_pixmap = None
