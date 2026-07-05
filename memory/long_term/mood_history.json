@@ -1,15 +1,5 @@
 [
     {
-        "timestamp": "2026-07-05 13:53",
-        "input": "can you do for me.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 13:53",
-        "input": "ഓപ്പൺ യു ടു",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-05 17:05",
         "input": "are you able to listen properly?",
         "mood": "neutral"
@@ -247,6 +237,16 @@
     {
         "timestamp": "2026-07-05 22:52",
         "input": "O kay pri me ju st gi ve her intro.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:00",
+        "input": "ओ के प्रा इम दिस सेबल आइकन मोर",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:01",
+        "input": "ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली",
         "mood": "neutral"
     }
 ]

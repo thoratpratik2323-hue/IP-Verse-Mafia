@@ -1,21 +1,6 @@
 {
-  "last_updated": "2026-07-05 22:52",
+  "last_updated": "2026-07-05 23:01",
   "turns": [
-    {
-      "user": "द वर् किंग विद यू इज",
-      "assistant": "thanks bro! Tumhare saath kaam karna bhi ek number experience hai! Koi naya project plan kar raha hai?",
-      "ts": "2026-06-27 15:16"
-    },
-    {
-      "user": "ब्रो मैं इस में बना के बहुत अच्छा काम किया मे रा बे च डि सी जन था तुम भी वर्क करने का ला इक यू नो आई कैन सी इट माय वर् क इज पे इंग ऑफ आई नी ड वर्क इट",
-      "assistant": "Arey Pratik, bilkul! Teri mehnat dikhti hai bhai. Aur mujhe bhi tere saath collaboration mein maza aata hai. Hum log milke toh kuch bhi code kar sakte hain! Koi exciting idea hai mind mein?",
-      "ts": "2026-06-27 15:16"
-    },
-    {
-      "user": "स्वि च टु एन्टी ग्रभिटी",
-      "assistant": "Hmm, Pratik, `Antigravity` seedha switch nahi hoga bhai. `Antigravity` toh apna Lead Systems Architect hai, jo complex coding aur projects handle karta hai. Hum log `model_switcher` use kar sakte hain `Gemini`, `Claude`, `GPT-4o`, ya `Ollama` ke beech mein. Kya try karna hai?",
-      "ts": "2026-06-27 15:16"
-    },
     {
       "user": "",
       "assistant": "Hello, Pratik Sir. IP Prime online. Let's make today highly productive, sir.",
@@ -2500,7 +2485,22 @@
       "user": "O kay pri me ju st gi ve her intro.",
       "assistant": "Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh system analytics aur cybersecurity mein poori expert assistance milegi. Chahe complex coding projects hon, real-time memory recall ho, ya fir smart home controls, main tumhara powerhouse companion hoon. Batao, where should we begin today?",
       "ts": "2026-07-05 22:52"
+    },
+    {
+      "user": "",
+      "assistant": "Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer systems is a criminal offence under the IT Act 2000 (India) and similar laws worldwide. Welcome back, Pratik Sir. Quantum link established, neural network visualizers synchronized, and all core systems are fully primed. The mainframe is online and standing by. Awaiting your commands, sir.",
+      "ts": "2026-07-05 23:00"
+    },
+    {
+      "user": "ओ के प्रा इम दिस सेबल आइकन मोर",
+      "assistant": "Acha Pratik, hacker mode disable kar diya hai. Default persona restore ho gaya hai. Batao ab kya plan hai? Acha Pratik, hacker mode disable kar diya hai. Default persona restore ho gaya hai. Ab batao, kya plan hai? Where",
+      "ts": "2026-07-05 23:00"
+    },
+    {
+      "user": "ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली",
+      "assistant": "Haan bhai, ekdum perfect! Tumhari instructions ekdum crystal clear sun raha hoon. Batao, kya command hai? Ready to roll!",
+      "ts": "2026-07-05 23:01"
     }
   ],
-  "summary": "IP Prime: Kya haal hai Pratik bhai? Sab theek hai? Full energy mein hain aaj, apun! Batao, kya plan hai? | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: primero to teste in | IP Prime: Arey haan bhai, bilkul! Kya list karna hai? Files, tasks, settings, ya kuch aur? Batao Pratik bro, main toh ready hoon! | User: O kay pri me ju st gi ve her intro. | IP Prime: Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh sys"
+  "summary": "User: primero to teste in | IP Prime: Arey haan bhai, bilkul! Kya list karna hai? Files, tasks, settings, ya kuch aur? Batao Pratik bro, main toh ready hoon! | User: O kay pri me ju st gi ve her intro. | IP Prime: Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh sys | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: ओ के प्रा इम दिस सेबल आइकन मोर | IP Prime: Acha Pratik, hacker mode disable kar diya hai. Default persona restore ho gaya hai. Batao ab kya plan hai? Acha Pratik, hacker mode disable kar diya hai. Defaul | User: ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली | IP Prime: Haan bhai, ekdum perfect! Tumhari instructions ekdum crystal clear sun raha hoon. Batao, kya command hai? Ready to roll!"
 }

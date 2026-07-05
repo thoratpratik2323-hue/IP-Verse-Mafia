@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect,
     QProgressBar, QListWidget, QFrame, QTextEdit, QComboBox,
-    QTextBrowser, QSplitter, QInputDialog
+    QTextBrowser, QSplitter, QInputDialog, QLineEdit
 )
 from PyQt6.QtGui import (
     QPainter, QColor, QRadialGradient, QLinearGradient,
@@ -1035,36 +1035,137 @@ class IPPrimeOSDesktop(QMainWindow):
         self.windows["editor"] = self.win_editor
 
         # 📊 Window 9: Task Manager (Live System Process monitor with kill functionality)
-        win_tasks = GlassWindow("📊 Task Manager", self)
-        win_tasks.resize(340, 280)
-        win_tasks.move(960, 480)
+        win_tasks = GlassWindow("📊 Task Manager (SysDash Monitor)", self)
+        win_tasks.resize(560, 320)
+        win_tasks.move(700, 360)
 
-        tasks_layout = QVBoxLayout()
-        tasks_info_lbl = QLabel("Double-click process or click below to Terminate", win_tasks)
-        tasks_info_lbl.setStyleSheet("font-size: 10px;")
-        tasks_layout.addWidget(tasks_info_lbl)
+        tasks_layout = QHBoxLayout()
+        tasks_layout.setContentsMargins(10, 10, 10, 10)
+        tasks_layout.setSpacing(12)
+
+        # ─── Left Panel (SysDash Telemetry) ───
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(8)
+
+        sysdash_lbl = QLabel("⚡ System Telemetry (SysDash)")
+        sysdash_lbl.setStyleSheet("font-size: 10px; font-weight: bold; color: rgba(255, 255, 255, 0.8);")
+        left_layout.addWidget(sysdash_lbl)
+
+        # CPU Monitor
+        self.tasks_cpu_lbl = QLabel("CPU Usage: 0%")
+        self.tasks_cpu_lbl.setStyleSheet("font-size: 9px; font-family: 'JetBrains Mono'; color: #06b6d4;")
+        left_layout.addWidget(self.tasks_cpu_lbl)
+
+        self.tasks_cpu_bar = QProgressBar(win_tasks)
+        self.tasks_cpu_bar.setFixedHeight(8)
+        self.tasks_cpu_bar.setTextVisible(False)
+        self.tasks_cpu_bar.setStyleSheet("""
+            QProgressBar {
+                background-color: rgba(255, 255, 255, 0.08);
+                border: none; border-radius: 4px;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #06b6d4, stop:1 #10b981);
+                border-radius: 4px;
+            }
+        """)
+        left_layout.addWidget(self.tasks_cpu_bar)
+
+        # RAM Monitor
+        self.tasks_ram_lbl = QLabel("RAM Usage: 0%")
+        self.tasks_ram_lbl.setStyleSheet("font-size: 9px; font-family: 'JetBrains Mono'; color: #a855f7;")
+        left_layout.addWidget(self.tasks_ram_lbl)
+
+        self.tasks_ram_bar = QProgressBar(win_tasks)
+        self.tasks_ram_bar.setFixedHeight(8)
+        self.tasks_ram_bar.setTextVisible(False)
+        self.tasks_ram_bar.setStyleSheet("""
+            QProgressBar {
+                background-color: rgba(255, 255, 255, 0.08);
+                border: none; border-radius: 4px;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8b5cf6, stop:1 #ec4899);
+                border-radius: 4px;
+            }
+        """)
+        left_layout.addWidget(self.tasks_ram_bar)
+
+        left_layout.addSpacing(10)
+
+        # Launch SysDash Desktop button
+        self.sysdash_btn = QPushButton("🐍 Launch SysDash Desktop", win_tasks)
+        self.sysdash_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(16, 185, 129, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(16, 185, 129, 1.0); }
+        """)
+        self.sysdash_btn.clicked.connect(self._launch_sysdash_electron)
+        left_layout.addWidget(self.sysdash_btn)
+        
+        left_layout.addStretch()
+        tasks_layout.addWidget(left_panel, 2)
+
+        # ─── Vertical Separator Line ───
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.VLine)
+        sep.setFrameShadow(QFrame.Shadow.Sunken)
+        sep.setStyleSheet("color: rgba(255, 255, 255, 0.15);")
+        tasks_layout.addWidget(sep)
+
+        # ─── Right Panel (Process Monitor) ───
+        right_panel = QWidget()
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(6)
+
+        proc_title = QLabel("📊 Running Processes")
+        proc_title.setStyleSheet("font-size: 10px; font-weight: bold; color: rgba(255, 255, 255, 0.8);")
+        right_layout.addWidget(proc_title)
+
+        # Search Bar
+        self.proc_search = QLineEdit()
+        self.proc_search.setPlaceholderText("🔍 Search process...")
+        self.proc_search.setStyleSheet("""
+            QLineEdit {
+                background-color: rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                color: white;
+                padding: 4px 6px;
+                font-size: 9px;
+            }
+        """)
+        self.proc_search.textChanged.connect(self._filter_processes)
+        right_layout.addWidget(self.proc_search)
 
         self.process_list = QListWidget(win_tasks)
         self.process_list.setStyleSheet("""
             QListWidget {
                 border-radius: 6px;
                 font-family: 'JetBrains Mono';
-                font-size: 10px;
+                font-size: 9px;
             }
         """)
         self.process_list.itemDoubleClicked.connect(self._kill_selected_process)
-        tasks_layout.addWidget(self.process_list)
+        right_layout.addWidget(self.process_list, 1)
 
-        self.kill_btn = QPushButton("🚫 Terminate Selected Process", win_tasks)
+        self.kill_btn = QPushButton("🚫 Terminate selected", win_tasks)
         self.kill_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(220, 38, 38, 0.8);
-                color: white; border-radius: 4px; padding: 6px; font-weight: bold;
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 9px;
             }
             QPushButton:hover { background-color: rgba(220, 38, 38, 1.0); }
         """)
         self.kill_btn.clicked.connect(self._kill_selected_process_btn)
-        tasks_layout.addWidget(self.kill_btn)
+        right_layout.addWidget(self.kill_btn)
+
+        tasks_layout.addWidget(right_panel, 3)
 
         win_tasks.set_content_layout(tasks_layout)
         self.windows["tasks"] = win_tasks
@@ -1769,6 +1870,20 @@ class IPPrimeOSDesktop(QMainWindow):
         except Exception as e:
             print(f"[Desktop] Process kill failed: {e}")
 
+    def _launch_sysdash_electron(self):
+        try:
+            import os
+            subprocess.Popen("npm run dev", shell=True, cwd=os.path.abspath("sysdash"))
+        except Exception as e:
+            print(f"[Desktop] Failed to launch SysDash: {e}")
+
+    def _filter_processes(self, text):
+        query = text.lower()
+        if hasattr(self, "process_list"):
+            for i in range(self.process_list.count()):
+                item = self.process_list.item(i)
+                item.setHidden(query not in item.text().lower())
+
     def _on_calc_click(self, text):
         curr = self.calc_display.text()
         if text == 'C':
@@ -1908,6 +2023,16 @@ class IPPrimeOSDesktop(QMainWindow):
         self.ram_lbl.setText(f"RAM: {self._hud_ram}")
         if hasattr(self, "chart") and self.chart:
             self.chart.add_value(cpu_val)
+
+        # Update SysDash telemetry widgets
+        if hasattr(self, "tasks_cpu_lbl") and self.tasks_cpu_lbl:
+            self.tasks_cpu_lbl.setText(f"CPU Usage: {cpu_val}%")
+        if hasattr(self, "tasks_cpu_bar") and self.tasks_cpu_bar:
+            self.tasks_cpu_bar.setValue(cpu_val)
+        if hasattr(self, "tasks_ram_lbl") and self.tasks_ram_lbl:
+            self.tasks_ram_lbl.setText(f"RAM Usage: {ram_val}%")
+        if hasattr(self, "tasks_ram_bar") and self.tasks_ram_bar:
+            self.tasks_ram_bar.setValue(ram_val)
 
         # Update process list only if Task Manager window is visible
         if hasattr(self, "windows") and "tasks" in self.windows:

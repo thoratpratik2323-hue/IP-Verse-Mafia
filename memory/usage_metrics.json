@@ -2,12 +2,6 @@
   "sessions": [
     {
       "ts": "2026-05-30T08:38:50",
-      "tool": "prime_infinite_memory",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-05-30T08:38:50",
       "tool": "shutdown_ip_ray",
       "tokens": 800,
       "usd": 0.00012
@@ -2999,12 +2993,18 @@
       "tool": "capture_and_analyze_screen",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:00:21",
+      "tool": "disable_hacker_mode",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 522,
-    "est_tokens": 417600,
-    "est_usd": 0.06264
+    "tool_calls": 523,
+    "est_tokens": 418400,
+    "est_usd": 0.06276
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 65,
-      "est_tokens": 52000,
-      "est_usd": 0.0078
+      "tool_calls": 66,
+      "est_tokens": 52800,
+      "est_usd": 0.00792
     }
   }
 }
