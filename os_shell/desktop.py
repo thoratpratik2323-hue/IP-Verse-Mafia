@@ -1166,7 +1166,7 @@ class IPPrimeOSDesktop(QMainWindow):
         def worker():
             try:
                 import psutil as _ps
-                cpu_val = int(_ps.cpu_percent())
+                cpu_val = int(_ps.cpu_percent(interval=0.1))
                 ram_val = int(_ps.virtual_memory().percent)
                 QTimer.singleShot(0, lambda: self._update_stats_ui(cpu_val, ram_val))
             except Exception:
@@ -1471,13 +1471,13 @@ class IPPrimeOSDesktop(QMainWindow):
                 painter.drawText(start_x, start_y + (i * 22), line)
             painter.restore()
 
-        # Draw CPU & RAM stats in the bottom-right corner
+        # Draw CPU & RAM stats in the bottom-left corner
         painter.save()
         log_font = QFont("JetBrains Mono", 8)
         painter.setFont(log_font)
         painter.setPen(QColor(255, 255, 255, 140)) # Soft semi-transparent white
         stats_text = f"CPU: {self._hud_cpu}   RAM: {self._hud_ram}"
-        painter.drawText(self.width() - 180, self.height() - 48, stats_text)
+        painter.drawText(40, self.height() - 48, stats_text)
         painter.restore()
 
         # Draw "IP Verse Verified" in the bottom-right corner
