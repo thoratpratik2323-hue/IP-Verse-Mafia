@@ -1,25 +1,5 @@
 [
     {
-        "timestamp": "2026-07-05 17:05",
-        "input": "are you able to listen properly?",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:06",
-        "input": "ઓકે પ્રા ઈ મ ક્યા ં યજ ્ઞ ઇન્ટરકશન",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:07",
-        "input": "Okay can you just give your in tro duction in de tail and simple version.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:08",
-        "input": "ओ के प्रा इम व्हाट कैन यू डू फॉर मी",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-05 17:08",
         "input": "ओ के फ्रे ंड डिसेबल हैकर लो",
         "mood": "neutral"
@@ -247,6 +227,26 @@
     {
         "timestamp": "2026-07-05 23:01",
         "input": "ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:06",
+        "input": "ఓ కే ఓ పెన్ డాష్ బోర్డ్",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:06",
+        "input": "नहीं जस्ट कै न ओपन इट फॉर मी",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:07",
+        "input": "Microsoft Tech.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:08",
+        "input": "can de sign a web page for Ca ptain Ame rica make it co ol and ad d some pho to s of Ca ptain Ame rica and make it the best web page for it.",
         "mood": "neutral"
     }
 ]

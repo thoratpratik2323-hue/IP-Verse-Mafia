@@ -1,31 +1,6 @@
 {
-  "last_updated": "2026-07-05 23:01",
+  "last_updated": "2026-07-05 23:08",
   "turns": [
-    {
-      "user": "",
-      "assistant": "Hello, Pratik Sir. IP Prime online. Let's make today highly productive, sir.",
-      "ts": "2026-06-27 15:29"
-    },
-    {
-      "user": "ए टा इम आर यू एबल टू लिसन मी",
-      "assistant": "Haan bhai, bilkul sun raha hoon! Batao, kya bol rahe ho? Koi plan hai aaj ke liye?",
-      "ts": "2026-06-27 15:30"
-    },
-    {
-      "user": ".",
-      "assistant": "",
-      "ts": "2026-06-27 15:31"
-    },
-    {
-      "user": "ये जादू जादू है।",
-      "assistant": "Ha ha, jaadu nahi Pratik,",
-      "ts": "2026-06-27 15:31"
-    },
-    {
-      "user": "너무 아름다운",
-      "assistant": "Arey Pratik, bilkul! Yeh sab tools aur automation magic jaisa hi hai, bhai! Aur tere goals aur vision ke liye main poora ready hoon. Batao, kya shuru karein?",
-      "ts": "2026-06-27 15:31"
-    },
     {
       "user": "प्राइ मरी स्टार्ट",
       "assistant": "",
@@ -2500,7 +2475,32 @@
       "user": "ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली",
       "assistant": "Haan bhai, ekdum perfect! Tumhari instructions ekdum crystal clear sun raha hoon. Batao, kya command hai? Ready to roll!",
       "ts": "2026-07-05 23:01"
+    },
+    {
+      "user": "",
+      "assistant": "Welcome online, Pratik Sir. The swarm is active, memory layers are locked, and the AI Core is fully attentive. Let us create something legendary today, sir.",
+      "ts": "2026-07-05 23:05"
+    },
+    {
+      "user": "ఓ కే ఓ పెన్ డాష్ బోర్డ్",
+      "assistant": "Acha Pratik, Web HUD dashboard pehle se hi start hai, port 5000 par. Shayad browser mein already open hoga.",
+      "ts": "2026-07-05 23:06"
+    },
+    {
+      "user": "नहीं जस्ट कै न ओपन इट फॉर मी",
+      "assistant": "Okay bro, Chrome mein dashboard open kar diya hai. Check karo.",
+      "ts": "2026-07-05 23:06"
+    },
+    {
+      "user": "Microsoft Tech.",
+      "assistant": "Sure Pratik, Edge khul gaya hai.",
+      "ts": "2026-07-05 23:07"
+    },
+    {
+      "user": "can de sign a web page for Ca ptain Ame rica make it co ol and ad d some pho to s of Ca ptain Ame rica and make it the best web page for it.",
+      "assistant": "",
+      "ts": "2026-07-05 23:08"
     }
   ],
-  "summary": "User: primero to teste in | IP Prime: Arey haan bhai, bilkul! Kya list karna hai? Files, tasks, settings, ya kuch aur? Batao Pratik bro, main toh ready hoon! | User: O kay pri me ju st gi ve her intro. | IP Prime: Suno Pratik bhai, main IP Prime hoon, tumhara autonomous digital personal assistant aur tumhare 'IP Verse' ka ek essential part. Hacker Mode active hai, toh sys | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system | User: ओ के प्रा इम दिस सेबल आइकन मोर | IP Prime: Acha Pratik, hacker mode disable kar diya hai. Default persona restore ho gaya hai. Batao ab kya plan hai? Acha Pratik, hacker mode disable kar diya hai. Defaul | User: ओ के ब्रो कै न यू लिसन मी प्रॉपर्ली | IP Prime: Haan bhai, ekdum perfect! Tumhari instructions ekdum crystal clear sun raha hoon. Batao, kya command hai? Ready to roll!"
+  "summary": "IP Prime: Welcome online, Pratik Sir. The swarm is active, memory layers are locked, and the AI Core is fully attentive. Let us create something legendary today, sir. | User: ఓ కే ఓ పెన్ డాష్ బోర్డ్ | IP Prime: Acha Pratik, Web HUD dashboard pehle se hi start hai, port 5000 par. Shayad browser mein already open hoga. | User: नहीं जस्ट कै न ओपन इट फॉर मी | IP Prime: Okay bro, Chrome mein dashboard open kar diya hai. Check karo. | User: Microsoft Tech. | IP Prime: Sure Pratik, Edge khul gaya hai. | User: can de sign a web page for Ca ptain Ame rica make it co ol and ad d some pho to s of Ca ptain Ame rica and make it the b"
 }

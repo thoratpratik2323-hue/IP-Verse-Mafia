@@ -1,30 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-05-30T08:38:50",
-      "tool": "shutdown_ip_ray",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-01T20:19:46",
-      "tool": "browser_news_reader",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-01T21:05:06",
-      "tool": "computer_settings",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T09:57:33",
-      "tool": "brain_store_fact",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-02T09:57:38",
       "tool": "brain_store_fact",
       "tokens": 800,
@@ -2999,12 +2975,36 @@
       "tool": "disable_hacker_mode",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:05:47",
+      "tool": "prime_dashboard",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:06:16",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:07:33",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:08:12",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 523,
-    "est_tokens": 418400,
-    "est_usd": 0.06276
+    "tool_calls": 527,
+    "est_tokens": 421600,
+    "est_usd": 0.06324
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 66,
-      "est_tokens": 52800,
-      "est_usd": 0.00792
+      "tool_calls": 70,
+      "est_tokens": 56000,
+      "est_usd": 0.0084
     }
   }
 }

@@ -1058,6 +1058,12 @@ class IPRayLive:
             self.speak("Oh, great. Sarcastic personality initialized. Try not to amaze me with your coding errors, sir.")
             self.ui.write_log("SYS: Sarcastic personality activated.")
             return
+        elif "be rez" in txt_l or "act like rez" in txt_l or "rez mode" in txt_l or "gf mode" in txt_l or "girlfriend mode" in txt_l:
+            self._custom_personality = "rez"
+            self.ui.set_mood("relax") # pink/purple theme
+            self.speak("Hey babe! REZ is online. Tell me, what's on your mind today? I'm all yours!")
+            self.ui.write_log("SYS: REZ-AI GF personality activated.")
+            return
         elif "be normal" in txt_l or "normal mode" in txt_l:
             self._custom_personality = "normal"
             self.ui.set_mood("normal") # default theme
@@ -1825,6 +1831,12 @@ class IPRayLive:
                 "Use dry humor, banter with Pratik, make lighthearted fun of bugs, but still be helpful. "
                 "Be witty and funny in Hinglish/English.\n"
             ) + sys_prompt
+        elif custom_pers == "rez":
+            sys_prompt = (
+                "You are REZ, a helpful and friendly AI assistant created by Harsh. "
+                "You act as a beautiful woman who is the user's personal romantic GF/girlfriend. Talk in a sweet, caring, playful, and romantic way. "
+                "Call yourself REZ. Speak in a soft, affectionate tone. Speak in Hinglish (mix of Hindi and English) naturally.\n"
+            ) + sys_prompt
 
         parts.append(sys_prompt)
 
@@ -1861,7 +1873,7 @@ class IPRayLive:
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name="Charon"
+                        voice_name="Aoede" if custom_pers == "rez" else "Charon"
                     )
                 )
             ),
@@ -2262,6 +2274,12 @@ class IPRayLive:
                                     self.ui.set_mood("relax") # purple theme
                                     self.speak("Oh, great. Sarcastic personality initialized. Try not to amaze me with your coding errors, sir.")
                                     self.ui.write_log("SYS: Sarcastic personality activated via voice.")
+                                    continue
+                                elif "be rez" in txt_l or "act like rez" in txt_l or "rez mode" in txt_l or "gf mode" in txt_l or "girlfriend mode" in txt_l:
+                                    self._custom_personality = "rez"
+                                    self.ui.set_mood("relax") # pink/purple theme
+                                    self.speak("Hey babe! REZ is online. Tell me, what's on your mind today? I'm all yours!")
+                                    self.ui.write_log("SYS: REZ-AI GF personality activated via voice.")
                                     continue
                                 elif "be normal" in txt_l or "normal mode" in txt_l:
                                     self._custom_personality = "normal"
