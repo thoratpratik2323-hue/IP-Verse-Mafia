@@ -30,7 +30,8 @@ class LaunchpadItem(QWidget):
             "youtube": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ff4b4b, stop:1 #cc0000); border: 1px solid #990000;",
             "whatsapp": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #25d366, stop:1 #128c7e); border: 1px solid #075e54;",
             "instagram": "background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f09433, stop:0.5 #dc2743, stop:1 #bc1888); border: 1px solid #8a3ab9;",
-            "shell": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e293b, stop:1 #0f172a); border: 1px solid #020617;"
+            "shell": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e293b, stop:1 #0f172a); border: 1px solid #020617;",
+            "autopilot": "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #00f5ff, stop:1 #008b99); border: 1px solid #005f66;"
         }
         bg_style = styles.get(key, "background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18);")
         
@@ -157,6 +158,7 @@ class LaunchpadOverlay(QWidget):
             ("core", "Neural Core", "🧬"),
             ("graph", "Mind Graph", "🧠"),
             ("swarm", "Swarm Deck", "💻"),
+            ("autopilot", "Autopilot Coder", "🤖"),
             ("files", "Workspace Files", "📁"),
             ("config", "Control Center", "⚙️"),
             ("notes", "Sticky Note", "📝"),
