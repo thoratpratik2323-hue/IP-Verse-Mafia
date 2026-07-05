@@ -1,42 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-02T10:03:08",
-      "tool": "terminal_doctor",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:05:31",
-      "tool": "morning_briefer",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:06:27",
-      "tool": "code_helper",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:06:51",
-      "tool": "prime_infinite_memory",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:08:16",
-      "tool": "open_app",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:08:31",
-      "tool": "prime_dashboard",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-02T10:44:27",
       "tool": "browser_news_reader",
       "tokens": 800,
@@ -2999,12 +2963,48 @@
       "tool": "code_helper",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:09",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:20",
+      "tool": "browser_control",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:23",
+      "tool": "web_search_quick",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:50",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:53",
+      "tool": "file_explorer",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T23:21:58",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 535,
-    "est_tokens": 428000,
-    "est_usd": 0.0642
+    "tool_calls": 541,
+    "est_tokens": 432800,
+    "est_usd": 0.06492
   },
   "by_day": {
     "2026-05-29": {
@@ -3083,9 +3083,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 78,
-      "est_tokens": 62400,
-      "est_usd": 0.00936
+      "tool_calls": 84,
+      "est_tokens": 67200,
+      "est_usd": 0.01008
     }
   }
 }

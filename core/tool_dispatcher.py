@@ -61,6 +61,7 @@ from actions.email_summarizer import email_summarizer
 from actions.mobile_telekinesis import mobile_telekinesis
 from actions.connector_jobs import connector_jobs
 from actions.linkedin_agent import linkedin_agent
+from actions.irab_agent import irab_agent
 from actions.smart_home import smart_home_enhanced
 from actions.autonomous_shell_helper import autonomous_cli_helper
 from actions.file_explorer import file_explorer
@@ -329,6 +330,14 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                 name=args.get("name"),
                 bio=args.get("bio"),
                 context=args.get("context")
+            ))
+            result = r or "Done."
+
+        elif name == "irab_agent":
+            r = await loop.run_in_executor(None, lambda: irab_agent(
+                goal=args.get("goal"),
+                num_sources=int(args.get("num_sources", 3)),
+                player=player
             ))
             result = r or "Done."
 

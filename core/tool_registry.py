@@ -3373,5 +3373,17 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": []
         }
+    },
+    {
+        "name": "irab_agent",
+        "description": "IRAB (IRIS Agentic Browser) workflow engine. Performs goal-driven multi-page search, content scraping, synthesis and exports a detailed research report to the Desktop.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "goal": {"type": "STRING", "description": "The high-level research goal or question to answer"},
+                "num_sources": {"type": "INTEGER", "description": "Number of sources to fetch and analyze (default is 3)"}
+            },
+            "required": ["goal"]
+        }
     }
 ]

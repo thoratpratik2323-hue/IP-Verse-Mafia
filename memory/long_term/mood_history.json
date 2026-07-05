@@ -1,20 +1,5 @@
 [
     {
-        "timestamp": "2026-07-05 17:12",
-        "input": "that saved now that",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:12",
-        "input": "Okay fri end can you just te ll me that whe n will be the re ne at 2 0 2 6 is also",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-05 17:12",
-        "input": "आगे कायते ब्याज?",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-05 17:13",
         "input": "Bro can ju st tell me wha t is Co ke Ja n par ty mo vement that I would hap pen in 2 0 2 6 ju st now by yo ung ster s stu ff just se arch in Go ogle all over inter net and tell me wha t is that.",
         "mood": "neutral"
@@ -247,6 +232,21 @@
     {
         "timestamp": "2026-07-05 23:20",
         "input": "ब्रो दि स इज डि फरेंट थिंग आई गे स नॉ ट द पोर्टफोलियो",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:21",
+        "input": "Can you just op en it in my browser?",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:21",
+        "input": "नहीं खुला",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 23:22",
+        "input": "कै न यू जस्ट ओ पन दट लोक ेश न इन माय फाइल एक्सप्लोरर",
         "mood": "neutral"
     }
 ]
