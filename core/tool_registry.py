@@ -56,6 +56,24 @@ TOOL_DECLARATIONS: list[dict] = [
         }
     },
     {
+        "name": "close_app",
+        "description": (
+            "Closes any application, window, or software currently open on the computer. "
+            "Use this whenever the user asks to close, terminate, shutdown, or exit any app "
+            "or window."
+        ),
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "app_name": {
+                    "type": "STRING",
+                    "description": "Exact name of the application or window to close (e.g. 'WhatsApp', 'Calculator', 'Editor')"
+                }
+            },
+            "required": ["app_name"]
+        }
+    },
+    {
         "name": "web_search",
         "description": "Searches the web for any information.",
         "parameters": {

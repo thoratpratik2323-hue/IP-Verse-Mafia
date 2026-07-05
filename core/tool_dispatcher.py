@@ -125,6 +125,55 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: open_app(parameters=args, response=None, player=player))
             result = r or f"Opened {args.get('app_name')}."
 
+        elif name == "close_app":
+            app = args.get("app_name", "").strip().lower()
+            if not app:
+                result = "No application name provided."
+            else:
+                ui = player
+                win_key = None
+                
+                # Match window shortcut targets
+                if app in ["calc", "calculator"]:
+                    win_key = "calc"
+                elif app in ["explorer", "files", "workspace files"]:
+                    win_key = "files"
+                elif app in ["settings", "control center", "clock"]:
+                    win_key = "config"
+                elif app in ["notepad", "editor", "code editor"]:
+                    win_key = "editor"
+                elif app in ["terminal", "shell", "cmd"]:
+                    win_key = "shell"
+                elif app == "youtube":
+                    win_key = "youtube"
+                elif app == "whatsapp":
+                    win_key = "whatsapp"
+                elif app == "instagram":
+                    win_key = "instagram"
+                elif app == "notes" or app == "sticky note":
+                    win_key = "notes"
+                elif app in ["tasks", "processes", "task manager"]:
+                    win_key = "tasks"
+                elif app in ["autopilot", "autopilot coder", "coder"]:
+                    win_key = "autopilot"
+                elif app in ["vision", "prime vision"]:
+                    win_key = "vision"
+                
+                if ui and hasattr(ui, "_os_desktop") and ui._os_desktop:
+                    if win_key:
+                        win = ui._os_desktop.windows.get(win_key)
+                        if win:
+                            loop.call_soon_threadsafe(win.hide_window)
+                            result = f"Success: Closed custom Yosemite glass window for '{app}'."
+                        else:
+                            result = f"Error: Window for '{app}' is not found."
+                    else:
+                        result = f"Error: Application '{app}' is not a registered Yosemite UI shell window."
+                else:
+                    import os
+                    os.system(f"taskkill /f /im {app}.exe")
+                    result = f"Command issued to terminate process '{app}.exe' natively on Windows."
+
         elif name == "weather_report":
             r = await loop.run_in_executor(None, lambda: weather_action(parameters=args, player=player))
             result = r or "Weather delivered."
