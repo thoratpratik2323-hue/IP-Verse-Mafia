@@ -283,6 +283,10 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                     win_key = "editor"
                 elif app == "terminal" or app == "shell" or app == "cmd":
                     win_key = "shell"
+                elif app in ["autopilot", "autopilot coder", "coder"]:
+                    win_key = "autopilot"
+                elif app in ["vision", "prime vision"]:
+                    win_key = "vision"
                 elif app == "youtube":
                     win_key = "youtube"
                 elif app == "whatsapp":

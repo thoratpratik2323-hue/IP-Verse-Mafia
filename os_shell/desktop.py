@@ -1437,6 +1437,13 @@ class IPPrimeOSDesktop(QMainWindow):
                 painter.drawText(start_x, start_y + (i * 22), line)
             painter.restore()
 
+        # Draw "IP Verse Verified" in the bottom-right corner
+        painter.save()
+        painter.setFont(QFont("Outfit", 9, QFont.Weight.Medium))
+        painter.setPen(QColor(6, 182, 212, 160)) # Glowing Cyan/Slate with 160 opacity
+        painter.drawText(self.width() - 150, self.height() - 25, "IP Verse Verified")
+        painter.restore()
+
     def closeEvent(self, event):
         show_windows_taskbar()
         super().closeEvent(event)

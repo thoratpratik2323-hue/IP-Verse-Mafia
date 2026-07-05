@@ -2837,12 +2837,54 @@
       "tool": "open_app",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:17:04",
+      "tool": "autonomous_autopilot",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:17:40",
+      "tool": "notepad_automation",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:17:42",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:18:00",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:18:55",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:18:59",
+      "tool": "terminal_doctor",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:19:10",
+      "tool": "autonomous_cli_helper",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 473,
-    "est_tokens": 378400,
-    "est_usd": 0.05676
+    "tool_calls": 480,
+    "est_tokens": 384000,
+    "est_usd": 0.0576
   },
   "by_day": {
     "2026-05-29": {
@@ -2921,9 +2963,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 16,
-      "est_tokens": 12800,
-      "est_usd": 0.00192
+      "tool_calls": 23,
+      "est_tokens": 18400,
+      "est_usd": 0.00276
     }
   }
 }
