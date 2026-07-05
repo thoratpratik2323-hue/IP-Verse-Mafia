@@ -381,7 +381,7 @@ class IPPrimeOSDesktop(QMainWindow):
 
         # Dynamic floating AI Orb
         self.orb = AIOrb(self)
-        self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2)
+        self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2 - 60)
         self.orb.show()
 
         self.setup_windows()
@@ -1344,7 +1344,7 @@ class IPPrimeOSDesktop(QMainWindow):
         self.dock.hide()
 
         if hasattr(self, "orb") and self.orb:
-            self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2)
+            self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2 - 60)
 
         if not getattr(self, "_windows_arranged", False) and hasattr(self, "windows") and self.windows:
             self._arrange_windows()
@@ -1409,8 +1409,9 @@ class IPPrimeOSDesktop(QMainWindow):
             painter.setPen(QColor(255, 255, 255, 180)) # Semi-transparent white
             
             w = self.width()
+            h = self.height()
             start_x = w - 380
-            start_y = 60
+            start_y = h - 380
             
             for i, line in enumerate(self.log_history):
                 painter.drawText(start_x, start_y + (i * 22), line)

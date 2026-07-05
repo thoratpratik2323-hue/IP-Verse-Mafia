@@ -246,7 +246,7 @@ def _launch_windows(app_name: str) -> bool:
             print(f"[open_app] shutil.which launch failed: {e}")
 
     # 5. Try standard protocol start (like ms-settings: or UWP app protocols)
-    if ":" in app_name or low in ("calculator", "paint", "settings", "photos", "weather", "store", "microsoft store"):
+    if ":" in app_name or low in ("calculator", "paint", "settings", "photos", "weather", "store", "microsoft store", "whatsapp"):
         proto_map = {
             "calculator": "calc:",
             "paint": "mspaint:",
@@ -254,7 +254,8 @@ def _launch_windows(app_name: str) -> bool:
             "photos": "ms-photos:",
             "weather": "bingweather:",
             "store": "ms-windows-store:",
-            "microsoft store": "ms-windows-store:"
+            "microsoft store": "ms-windows-store:",
+            "whatsapp": "whatsapp:"
         }
         proto = proto_map.get(low, app_name if ":" in app_name else f"{low}:")
         try:
@@ -263,20 +264,6 @@ def _launch_windows(app_name: str) -> bool:
             return True
         except Exception:
             pass
-
-    # 6. Fallback to start menu search if absolutely nothing else worked
-    try:
-        import pyautogui
-        pyautogui.PAUSE = 0.1
-        pyautogui.press("win")
-        time.sleep(0.7)
-        pyautogui.write(app_name, interval=0.05)
-        time.sleep(0.9)
-        pyautogui.press("enter")
-        time.sleep(2.5)
-        return True
-    except Exception as e:
-        print(f"[open_app] Start Menu search fallback failed: {e}")
 
     return False
 

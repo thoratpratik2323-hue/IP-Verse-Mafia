@@ -2813,12 +2813,36 @@
       "tool": "web_search_quick",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T09:59:21",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:00:01",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:00:07",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-05T10:00:13",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 469,
-    "est_tokens": 375200,
-    "est_usd": 0.05628
+    "tool_calls": 473,
+    "est_tokens": 378400,
+    "est_usd": 0.05676
   },
   "by_day": {
     "2026-05-29": {
@@ -2897,9 +2921,9 @@
       "est_usd": 0.01308
     },
     "2026-07-05": {
-      "tool_calls": 12,
-      "est_tokens": 9600,
-      "est_usd": 0.00144
+      "tool_calls": 16,
+      "est_tokens": 12800,
+      "est_usd": 0.00192
     }
   }
 }

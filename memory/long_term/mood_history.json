@@ -1,30 +1,5 @@
 [
     {
-        "timestamp": "2026-07-04 20:04",
-        "input": "ถา",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 20:04",
-        "input": "Oh bro.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 20:04",
-        "input": "ब्रो ट् स अप ऑन योर टर्मिनल",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 20:04",
-        "input": "O pen lot s of for me now.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-04 20:04",
-        "input": "[noise]",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-04 20:07",
         "input": "O kay pri me are you able to listen properly?",
         "mood": "neutral"
@@ -247,6 +222,31 @@
     {
         "timestamp": "2026-07-05 09:57",
         "input": "चल दोन मिनट",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 09:59",
+        "input": "open YouTube.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 10:00",
+        "input": "टा इम ओ पन WhatsApp",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 10:00",
+        "input": "bëjmë prandaj.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 10:00",
+        "input": "我看到了。",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-05 10:00",
+        "input": "ब ड़ी ओपन स्टेप",
         "mood": "neutral"
     }
 ]
