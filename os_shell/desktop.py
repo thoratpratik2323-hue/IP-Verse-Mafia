@@ -1636,7 +1636,7 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setFont(log_font)
         painter.setPen(QColor(255, 255, 255, 140)) # Soft semi-transparent white
         stats_text = f"CPU: {self._hud_cpu}   RAM: {self._hud_ram}"
-        painter.drawText(40, self.height() - 48, stats_text)
+        painter.drawText(40, self.height() - 25, stats_text)
         painter.restore()
 
         # Draw "IP Verse Verified" in the bottom-right corner
