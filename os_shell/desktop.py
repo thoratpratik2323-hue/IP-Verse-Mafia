@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect,
     QProgressBar, QListWidget, QFrame, QTextEdit, QComboBox,
-    QTextBrowser, QSplitter
+    QTextBrowser, QSplitter, QInputDialog
 )
 from PyQt6.QtGui import (
     QPainter, QColor, QRadialGradient, QLinearGradient,
@@ -939,6 +939,40 @@ class IPPrimeOSDesktop(QMainWindow):
         self.editor_preview_btn.clicked.connect(self._toggle_editor_preview)
         buttons_layout.addWidget(self.editor_preview_btn)
 
+        self.editor_creator_btn = QPushButton("🪄 Creator", self.win_editor)
+        self.editor_creator_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(219, 39, 119, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(219, 39, 119, 1.0); }
+        """)
+        self.editor_creator_btn.clicked.connect(self._run_creator_mode)
+        buttons_layout.addWidget(self.editor_creator_btn)
+
+        self.editor_scaffold_btn = QPushButton("📦 Scaffold", self.win_editor)
+        self.editor_scaffold_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(79, 70, 229, 0.8);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(79, 70, 229, 1.0); }
+        """)
+        self.editor_scaffold_btn.clicked.connect(self._run_scaffold_vite)
+        buttons_layout.addWidget(self.editor_scaffold_btn)
+
+        self.editor_autofix_btn = QPushButton("🟢 Auto-Fix", self.win_editor)
+        self.editor_autofix_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(16, 185, 129, 0.9);
+                color: white; border-radius: 4px; padding: 6px; font-weight: bold; font-size: 10px;
+            }
+            QPushButton:hover { background-color: rgba(16, 185, 129, 1.0); }
+        """)
+        self.editor_autofix_btn.clicked.connect(self._run_autofix)
+        self.editor_autofix_btn.hide()
+        buttons_layout.addWidget(self.editor_autofix_btn)
+
         left_layout.addLayout(buttons_layout)
 
         self.editor_console = QTextEdit(self.win_editor)
@@ -1353,6 +1387,7 @@ class IPPrimeOSDesktop(QMainWindow):
     def _run_editor_code(self):
         self.editor_console.show()
         self.editor_console.setPlainText("Saving changes and launching sandbox execution...\n")
+        QTimer.singleShot(0, self.editor_autofix_btn.hide)
         
         if hasattr(self, "current_editor_file") and self.current_editor_file:
             self._save_editor_file()
@@ -1393,6 +1428,8 @@ class IPPrimeOSDesktop(QMainWindow):
                     QTimer.singleShot(0, lambda l=line: self.editor_console.insertPlainText(l))
                 proc.wait()
                 QTimer.singleShot(0, lambda: self.editor_console.insertPlainText(f"\n--- Process Finished (Exit Code: {proc.returncode}) ---\n"))
+                if proc.returncode != 0:
+                    QTimer.singleShot(0, self.editor_autofix_btn.show)
             except Exception as e:
                 QTimer.singleShot(0, lambda err=str(e): self.editor_console.insertPlainText(f"Failed to run: {err}\n"))
 
@@ -1447,6 +1484,191 @@ class IPPrimeOSDesktop(QMainWindow):
             clipboard = app.clipboard()
             if clipboard:
                 clipboard.setText(backup_code)
+
+    def _run_creator_mode(self):
+        prompt, ok = QInputDialog.getMultiLineText(
+            self.win_editor,
+            "🪄 Cobra Creator Mode",
+            "Describe the responsive single-page website/app to generate:",
+            "A responsive MERN-style dark task dashboard with glassmorphism cards, micro-animations, and visual statistics."
+        )
+        if not (ok and prompt.strip()):
+            return
+            
+        self.editor_console.show()
+        self.editor_console.setPlainText(f"🪄 Cobra Creator: Designing responsive web layout for: \"{prompt[:60]}...\"\n")
+        
+        def worker():
+            try:
+                from actions.prime_utils import UnifiedModelClient
+                client = UnifiedModelClient()
+                sys_prompt = (
+                    "You are CobraAI Creator, an expert web generator. "
+                    "Based on the user request, generate a fully self-contained, responsive, beautiful single-page website/app. "
+                    "Combine all HTML, CSS, and JS inside a single file. Use Tailwind CSS via CDN hook or custom styling to make "
+                    "the design look absolutely stunning and premium. Do NOT include markdown code fences, do NOT include explanations, "
+                    "return ONLY valid HTML code.\n\n"
+                    f"User Request: {prompt}"
+                )
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=sys_prompt
+                )
+                html = response.text.strip()
+                if html:
+                    if html.startswith("```"):
+                        lines = html.splitlines()
+                        if lines[0].startswith("```"):
+                            lines = lines[1:]
+                        if lines and lines[-1].startswith("```"):
+                            lines = lines[:-1]
+                        html = "\n".join(lines)
+                        
+                    target_dir = Path("C:/Users/thora/.gemini/antigravity/scratch/IP Prime")
+                    target_file = target_dir / "generated_web_app.html"
+                    target_file.write_text(html, encoding="utf-8")
+                    
+                    QTimer.singleShot(0, lambda f=target_file, h=html: self._apply_creator_app(f, h))
+                else:
+                    QTimer.singleShot(0, lambda: self.editor_console.append("❌ Cobra Creator returned empty layout, sir."))
+            except Exception as e:
+                QTimer.singleShot(0, lambda err=str(e): self.editor_console.append(f"❌ Cobra Creator error: {err}\n"))
+                
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_creator_app(self, file_path, html_content):
+        self.current_editor_file = file_path
+        self.editor_path_lbl.setText(str(file_path))
+        self.editor_text.setPlainText(html_content)
+        self.editor_console.append("🟢 Cobra Creator: Web layout successfully generated and saved to generated_web_app.html!")
+        
+        self.preview_container.show()
+        self.editor_preview_btn.setText("🌐 Hide Preview")
+        self._update_live_preview()
+        self._populate_files()
+
+    def _run_scaffold_vite(self):
+        name, ok = QInputDialog.getText(
+            self.win_editor,
+            "📦 Scaffold Vite Workspace",
+            "Enter Vite project folder name:",
+            text="my-vite-project"
+        )
+        if not (ok and name.strip()):
+            return
+            
+        proj_dir = Path("C:/Users/thora/.gemini/antigravity/scratch/IP Prime") / name.strip()
+        try:
+            proj_dir.mkdir(parents=True, exist_ok=True)
+            (proj_dir / "src").mkdir(exist_ok=True)
+            
+            index_html = (
+                "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+                "    <meta charset=\"UTF-8\">\n"
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+                "    <title>Cobra Scaffolder Project</title>\n"
+                "    <script src=\"https://cdn.tailwindcss.com\"></script>\n"
+                "</head>\n<body class=\"bg-slate-900 text-white min-h-screen flex items-center justify-center\">\n"
+                "    <div id=\"root\"></div>\n"
+                "    <script type=\"module\" src=\"/src/main.jsx\"></script>\n"
+                "</body>\n</html>"
+            )
+            (proj_dir / "index.html").write_text(index_html, encoding="utf-8")
+            
+            main_jsx = (
+                "import React from 'react';\n"
+                "import ReactDOM from 'react-dom/client';\n"
+                "import App from './App.jsx';\n\n"
+                "ReactDOM.createRoot(document.getElementById('root')).render(\n"
+                "  <React.StrictMode>\n"
+                "    <App />\n"
+                "  </React.StrictMode>\n"
+                ");"
+            )
+            (proj_dir / "src" / "main.jsx").write_text(main_jsx, encoding="utf-8")
+            
+            app_jsx = (
+                "import React from 'react';\n\n"
+                "export default function App() {\n"
+                "  return (\n"
+                "    <div class=\"p-8 max-w-md bg-slate-800/80 border border-slate-700/50 backdrop-blur rounded-2xl shadow-xl text-center\">\n"
+                "      <h1 class=\"text-2xl font-bold bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent\">CobraAI Scaffold</h1>\n"
+                "      <p class=\"mt-2 text-slate-300 text-sm\">Vite + React template initialized successfully inside the Yosemite environment.</p>\n"
+                "      <div class=\"mt-6 flex justify-center gap-2\">\n"
+                "        <span class=\"px-3 py-1 bg-slate-700 text-xs rounded-full\">Vite</span>\n"
+                "        <span class=\"px-3 py-1 bg-slate-700 text-xs rounded-full\">React</span>\n"
+                "        <span class=\"px-3 py-1 bg-slate-700 text-xs rounded-full\">Tailwind</span>\n"
+                "      </div>\n"
+                "    </div>\n"
+                "  );\n"
+                "}"
+            )
+            (proj_dir / "src" / "App.jsx").write_text(app_jsx, encoding="utf-8")
+            
+            pkg_json = (
+                "{\n"
+                "  \"name\": \"" + name.strip() + "\",\n"
+                "  \"private\": true,\n"
+                "  \"version\": \"0.0.0\",\n"
+                "  \"type\": \"module\",\n"
+                "  \"scripts\": {\n"
+                "    \"dev\": \"vite\",\n"
+                "    \"build\": \"vite build\",\n"
+                "    \"preview\": \"vite preview\"\n"
+                "  }\n"
+                "}"
+            )
+            (proj_dir / "package.json").write_text(pkg_json, encoding="utf-8")
+            
+            self._open_in_editor(proj_dir / "index.html")
+            self.editor_console.show()
+            self.editor_console.setPlainText(f"📦 Scaffold Success: Vite + React environment generated inside /{name.strip()}!\n")
+            self._populate_files()
+        except Exception as e:
+            self.editor_path_lbl.setText(f"❌ Scaffold Failed: {e}")
+
+    def _run_autofix(self):
+        code = self.editor_text.toPlainText()
+        logs = self.editor_console.toPlainText()
+        self.editor_console.setPlainText("🩹 AI Sandbox Auto-Fixer: Analyzing traceback error and repair plan...\n")
+        self.editor_autofix_btn.hide()
+        
+        def worker():
+            try:
+                from actions.prime_utils import UnifiedModelClient
+                client = UnifiedModelClient()
+                prompt = (
+                    "You are CobraAI Auto-Fixer. The script below crashed with a traceback error. "
+                    "Analyze the code and error, and return ONLY the fully corrected code. "
+                    "Do NOT include markdown fences, explanations, or any notes. Return ONLY the raw fixed script:\n\n"
+                    f"Traceback Error:\n{logs}\n\n"
+                    f"Original Code:\n{code}"
+                )
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt
+                )
+                fixed = response.text.strip()
+                if fixed:
+                    if fixed.startswith("```"):
+                        lines = fixed.splitlines()
+                        if lines[0].startswith("```"):
+                            lines = lines[1:]
+                        if lines and lines[-1].startswith("```"):
+                            lines = lines[:-1]
+                        fixed = "\n".join(lines)
+                    QTimer.singleShot(0, lambda f=fixed: self._apply_fixed_script(f))
+                else:
+                    QTimer.singleShot(0, lambda: self.editor_console.append("❌ Auto-Fixer returned empty response, sir."))
+            except Exception as e:
+                QTimer.singleShot(0, lambda err=str(e): self.editor_console.append(f"❌ Auto-Fixer error: {err}\n"))
+                
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_fixed_script(self, fixed_code):
+        self.editor_text.setPlainText(fixed_code)
+        self.editor_console.append("🟢 Auto-Fix: Repair script applied! Re-running code sandbox...")
+        self._run_editor_code()
 
     def _refresh_processes(self):
         def worker():
