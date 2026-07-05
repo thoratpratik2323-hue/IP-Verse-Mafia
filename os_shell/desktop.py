@@ -1206,6 +1206,7 @@ class IPPrimeOSDesktop(QMainWindow):
         # Update Clock
         now = datetime.datetime.now()
         self.clock_lbl.setText(now.strftime("%a %d %b  %I:%M %p"))
+        self.update()
 
     def set_orb_state(self, state: str):
         if hasattr(self, "orb") and self.orb:
@@ -1436,6 +1437,15 @@ class IPPrimeOSDesktop(QMainWindow):
             for i, line in enumerate(self.log_history):
                 painter.drawText(start_x, start_y + (i * 22), line)
             painter.restore()
+
+        # Draw CPU & RAM stats in the bottom-right corner
+        painter.save()
+        log_font = QFont("JetBrains Mono", 8)
+        painter.setFont(log_font)
+        painter.setPen(QColor(255, 255, 255, 140)) # Soft semi-transparent white
+        stats_text = f"CPU: {self._hud_cpu}   RAM: {self._hud_ram}"
+        painter.drawText(self.width() - 180, self.height() - 48, stats_text)
+        painter.restore()
 
         # Draw "IP Verse Verified" in the bottom-right corner
         painter.save()

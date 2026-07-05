@@ -1,11 +1,6 @@
 {
-  "last_updated": "2026-07-05 10:18",
+  "last_updated": "2026-07-05 12:36",
   "turns": [
-    {
-      "user": "समझ नहीं आया भाई क्या बोलूं",
-      "assistant": "Arey Pratik, relax! Koi confusion nahi. Batao, kya kaam shuru karna hai aaj? Coding, research, ya kuch aur plan hai?",
-      "ts": "2026-06-27 11:52"
-    },
     {
       "user": "ഇല്ലേ? ഇത്",
       "assistant": "Haan Pratik, bolo kya baat hai? Main sun raha hoon.",
@@ -2500,7 +2495,12 @@
       "user": "कै प् टन अ मेरिका वेब पेज",
       "assistant": "",
       "ts": "2026-07-05 10:18"
+    },
+    {
+      "user": "",
+      "assistant": "Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer systems is a criminal offence under the IT Act 2000 (India) and similar laws worldwide. Welcome online, Pratik Sir. The swarm is active, memory layers are locked, and the AI Core is fully attentive. Let us create something legendary today, sir.",
+      "ts": "2026-07-05 12:36"
     }
   ],
-  "summary": "User: close notepad | IP Prime: Notepad close ho gaya Pratik. Aur koi command? | User: ओ पन ऑ टो पा य लट कोडर | IP Prime: Acha, autonomous coding workflow initiate karna hai, dost. Lekin, uske liye mujhe 'file_path' aur 'instruction' chahiye Pratik. Kaunse file par apply karna hai  | User: ओ पन ऑ टो पायलट कोडर | IP Prime: Bhai, main 'autonomous_autopilot' tool call kar raha hu, but parameters ke bina main kuch kar nahi sakta. Please specify the `file_path` and the `instruction` f | User: make new fi le for this one. | IP Prime: Kaunse instruction ke liye new file banani hai, Pratik? Please clearly batao, taaki main `dev_agent` ya `code_helper` ka use karke file create kar sakun. | User: कै प् टन अ मेरिका वेब पेज"
+  "summary": "User: ओ पन ऑ टो पा य लट कोडर | IP Prime: Acha, autonomous coding workflow initiate karna hai, dost. Lekin, uske liye mujhe 'file_path' aur 'instruction' chahiye Pratik. Kaunse file par apply karna hai  | User: ओ पन ऑ टो पायलट कोडर | IP Prime: Bhai, main 'autonomous_autopilot' tool call kar raha hu, but parameters ke bina main kuch kar nahi sakta. Please specify the `file_path` and the `instruction` f | User: make new fi le for this one. | IP Prime: Kaunse instruction ke liye new file banani hai, Pratik? Please clearly batao, taaki main `dev_agent` ya `code_helper` ka use karke file create kar sakun. | User: कै प् टन अ मेरिका वेब पेज | IP Prime: Hacker Mode active. All tools are for educational use and testing on systems you own or have explicit permission to test. Unauthorized access to computer system"
 }
