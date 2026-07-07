@@ -62,6 +62,7 @@ from actions.mobile_telekinesis import mobile_telekinesis
 from actions.connector_jobs import connector_jobs
 from actions.linkedin_agent import linkedin_agent
 from actions.irab_agent import irab_agent
+from actions.riven_agent import riven_recommend
 from actions.smart_home import smart_home_enhanced
 from actions.autonomous_shell_helper import autonomous_cli_helper
 from actions.file_explorer import file_explorer
@@ -338,6 +339,15 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
                 goal=args.get("goal"),
                 num_sources=int(args.get("num_sources", 3)),
                 player=player
+            ))
+            result = r or "Done."
+
+        elif name == "riven_recommend":
+            r = await loop.run_in_executor(None, lambda: riven_recommend(
+                action=args.get("action", "recommend"),
+                title=args.get("title"),
+                movie_details=args.get("movie_details"),
+                top_n=int(args.get("top_n", 3))
             ))
             result = r or "Done."
 

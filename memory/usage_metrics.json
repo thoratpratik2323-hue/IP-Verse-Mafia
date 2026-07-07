@@ -1,54 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-02T10:44:27",
-      "tool": "browser_news_reader",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:54:55",
-      "tool": "brain_store_fact",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:56:55",
-      "tool": "brain_store_fact",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:58:38",
-      "tool": "computer_settings",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:59:18",
-      "tool": "spotify_dj_mode",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T10:59:53",
-      "tool": "focus_mode",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T11:00:42",
-      "tool": "brain_search",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-02T11:05:47",
-      "tool": "code_helper",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-02T11:06:25",
       "tool": "browser_control",
       "tokens": 800,
@@ -2999,12 +2951,60 @@
       "tool": "dev_agent",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T10:41:24",
+      "tool": "image_generator",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T10:41:40",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:00:13",
+      "tool": "system_monitor",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:00:35",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:02:30",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:02:31",
+      "tool": "dev_agent",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:10:41",
+      "tool": "advanced_communicator",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-06T13:10:49",
+      "tool": "prime_writing",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 541,
-    "est_tokens": 432800,
-    "est_usd": 0.06492
+    "tool_calls": 549,
+    "est_tokens": 439200,
+    "est_usd": 0.06588
   },
   "by_day": {
     "2026-05-29": {
@@ -3086,6 +3086,11 @@
       "tool_calls": 84,
       "est_tokens": 67200,
       "est_usd": 0.01008
+    },
+    "2026-07-06": {
+      "tool_calls": 8,
+      "est_tokens": 6400,
+      "est_usd": 0.00096
     }
   }
 }

@@ -3385,5 +3385,28 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": ["goal"]
         }
+    },
+    {
+        "name": "riven_recommend",
+        "description": "Riven movie recommendation engine. Suggests similar movies using TF-IDF and Cosine Similarity, or allows adding new movies to the database.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "Action: 'recommend' (default) or 'add'"},
+                "title": {"type": "STRING", "description": "Title of the movie to find recommendations for"},
+                "top_n": {"type": "INTEGER", "description": "Number of recommendations to return (default 3)"},
+                "movie_details": {
+                    "type": "OBJECT",
+                    "description": "Required when action is 'add'. Details of the movie to add.",
+                    "properties": {
+                        "title": {"type": "STRING", "description": "Title of the movie"},
+                        "genres": {"type": "STRING", "description": "Comma-separated genres"},
+                        "description": {"type": "STRING", "description": "Brief description of the movie plot"}
+                    },
+                    "required": ["title"]
+                }
+            },
+            "required": []
+        }
     }
 ]
