@@ -152,6 +152,49 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | **🍎 Widgets Sidebar Drawer** | **Left-side sliding widgets drawer containing Weather card, Live CPU/RAM progress bars, Calendar/Clock, and persistent Quick Notes** |
 | **🎨 Rounded Window Corners** | **Anti-aliased 12px rounded window boundaries and header frames for modern Apple OS / Windows 11 styling** |
 
+---
+
+## 🔌 Unified Integrations (The 10-Repository Suite)
+
+IP Prime OS seamlessly unifies an ecosystem of ten distinct open-source repositories and custom agents. Each integration is fully wired into the central intent router and the glassmorphic shell layout.
+
+### 📊 Integrations & System Triggers
+
+| Repository | Feature / Integration | Trigger & How to Use | Output / Behavior |
+| :--- | :--- | :--- | :--- |
+| **Cobra-AI-2.0** | Core Safety Guard | Runs automatically on boot | Prevents prompt injections and bounds system command execution threads. |
+| **RAVX-OS** | Desktop icons & Yosemite shell | Automatic shell launch | Renders translucent icons, app launch paths, and Apple-inspired layout elements. |
+| **SysDash** | System Telemetry Dashboard | Click `Process` in Dock / Type "sysdash" | Launches horizontal performance pane with live gradients and processes search filter. |
+| **REZ-AI** | Romantic AI Girlfriend Voice | Say `"be rez"`, `"gf mode"`, `"girlfriend mode"` | Switches instructions to a custom supportive companion persona and response voice to `Aoede`. |
+| **XBLT-Web** | Website Design Studio Overlay | Click `⚡` in Dock / Launchpad shortcut | Smoothly opens a floating `QWebEngineView` directly overlaying the desktop pointing to `https://xblt.app`. |
+| **Clara** | Meeting BaaS Assistant Bot | Pass `meeting_url="[LINK]"` to a meeting | Automatically deploys a real recorder bot named `Clara AI (Notetaker)` to join Google Meet/Zoom/Teams. |
+| **Connector** | Job Board Search & Post | Ask Gemini: "search jobs for [role] in [location]" | Connects to `config/connector_jobs.json` to query and post hyper-local jobs. |
+| **Linkedin-Agent** | Personalized Invites Generator | Ask Gemini: "connect with [url] name [name]" | Opens target profile in default browser and compiles a personalized invite note (< 300 chars) using Gemini. |
+| **IRAB** | Agentic Browser Researcher | Ask Gemini: "research [topic]" / `irab_agent` | DuckDuckGo parses, scrapes multiple source pages, synthesizes reports, and writes `.md` to **Desktop**. |
+| **Riven** | Content-based Movie Engine | Ask Gemini: "recommend movie similar to [title]" | Pure-python TF-IDF and Cosine Similarity engine that recommends 3 similar movies from local database. |
+
+### 🛠️ Architecture Flow
+```mermaid
+graph TD
+    User([User Voice / Text]) --> Main[main.py: Voice Triggers & Companion Modes]
+    Main --> Dispatch[tool_dispatcher.py]
+    
+    subgraph UI OS Shell Layout
+        Desktop[desktop.py: RAVX Icons & macOS style Dock]
+        SysDash[desktop.py: SysDash CPU/RAM Telemetry Widget]
+        XBLT[desktop.py: QWebEngineView Overlay for xblt.app]
+    end
+    
+    Dispatch --> Clara[actions/premium_utilities.py: Clara Meeting BaaS Bot]
+    Dispatch --> Connector[actions/connector_jobs.py: Local Job Registry]
+    Dispatch --> Linkedin[actions/linkedin_agent.py: LinkedIn Invite Generator]
+    Dispatch --> IRAB[actions/irab_agent.py: Scrape, Synthesize, Export]
+    Dispatch --> Riven[actions/riven_agent.py: Cosine Similarity Movies]
+```
+
+---
+
+
 ### 👥 The IP AI Army
 IP Prime coordinates an elite team of **12 specialized autonomous agents** (the IP Army) to execute system-level operations, research, coding, and debugging tasks:
 *   **IP Prime (Grand Coordinator & Command Center)** - Ecosystem orchestration, database integration, and state manager.
@@ -269,7 +312,11 @@ ip-prime/
 
 ## 🆕 Changelog — Latest Updates
 
-### v10.x — *macOS-Style Floating Dock, Win11 Start Flyout, Left Widgets Sidebar & Rounded Corners (Current)*
+### v11.x — *10-Repository Unified Integrations & Dock UI Stability (Current)*
+- 🔌 **Unified 10-Repository Ecosystem** — Integrated Cobra-AI-2.0 safety loops, RAVX-OS icons, SysDash performance widget, REZ-AI companion voice triggers (`Aoede`), XBLT-app generative site builder, Clara Meeting BaaS bots, Connector job board, LinkedIn personalized invite note generator, IRAB agentic browser research reporter, and Riven movie similarity recommendation engine.
+- 🎚️ **Dock & MenuBar Layout Correction** — Fixed `resizeEvent` coordinates in `desktop.py` to ensure the macOS floating capsule dock and top menu bar are rendered correctly and remain visible across window resizes.
+
+### v10.x — *macOS-Style Floating Dock, Win11 Start Flyout, Left Widgets Sidebar & Rounded Corners*
 - 🍎 **macOS-Style Centered Floating Dock** — Replaced the full-width flat footer bar with a centered, glassmorphic floating capsule dock housing quick controls for the Start launcher, Widgets Sidebar, dynamic microphone mute status, Console slide-out, and Autopilot toggle.
 - ❖ **Windows 11-Style Start Flyout Launcher** — Created a centered glassmorphic popup dialog (accessible via `F1` or the Dock) containing quick system triggers to organize vault, clean system memory caches, toggle workspace dashboard, and launch Clipboard AI.
 - 🍎 **Apple OS-Style Widgets Sidebar** — Integrated a sliding widgets drawer on the left side of the window (toggled via `F3` or the Dock) containing weather reports, calendar/clock, CPU/RAM progress bars, and a persistent Quick Notes textbox.
