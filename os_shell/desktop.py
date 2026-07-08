@@ -551,6 +551,9 @@ class IPPrimeOSDesktop(QMainWindow):
 
         self.dock_buttons = {}
 
+        # Dock is permanently hidden — user prefers clean desktop without taskbar
+        self.dock.hide()
+
     def setup_windows(self):
         # Setup Draggable Windows
         self.windows = {}

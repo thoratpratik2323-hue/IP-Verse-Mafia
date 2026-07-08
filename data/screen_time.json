@@ -1,10 +1,10 @@
 {
     "date": "2026-07-09",
     "apps": {
-        "antigravity": 40,
-        "explorer": 10,
+        "antigravity": 60,
+        "explorer": 20,
         "firefox": 20,
-        "notepad": 10
+        "notepad": 100
     },
     "limits": {}
 }
