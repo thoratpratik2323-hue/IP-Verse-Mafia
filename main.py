@@ -3,7 +3,6 @@ import threading
 import sys
 import traceback
 import warnings
-import logging
 import webbrowser
 import platform
 import subprocess
@@ -147,7 +146,8 @@ try:
 except Exception as e:
     print(f"[WARN] Failed to start Live HUD Room Server: {e}")
 
-logger = logging.getLogger("ip_prime.main")
+from core.logging_config import setup_logging
+logger = setup_logging("ip_prime.main")
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="google")
 

@@ -24,7 +24,7 @@ import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from threading import Lock
+from concurrent.futures import ThreadPoolExecutor
 
 import sys
 

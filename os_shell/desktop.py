@@ -2347,9 +2347,19 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.menu_bar.setGeometry(0, 0, 0, 0)
-        self.dock.setGeometry(0, 0, 0, 0)
-        self.dock.hide()
+        # Position top menu bar
+        menu_h = 30
+        self.menu_bar.setGeometry(0, 0, self.width(), menu_h)
+        self.menu_bar.show()
+        
+        # Position bottom macOS-style Dock
+        self.dock.adjustSize()
+        dock_w = max(480, self.dock.sizeHint().width())
+        dock_h = 54
+        dock_x = (self.width() - dock_w) // 2
+        dock_y = self.height() - dock_h - 15
+        self.dock.setGeometry(dock_x, dock_y, dock_w, dock_h)
+        self.dock.show()
         
         self._update_cached_bg()
 

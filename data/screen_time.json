@@ -1,10 +1,13 @@
 {
-    "date": "2026-07-06",
+    "date": "2026-07-08",
     "apps": {
-        "python": 1800,
-        "photos": 740,
+        "opencode": 380,
         "startmenuexperiencehost": 10,
-        "shellexperiencehost": 50
+        "python": 1020,
+        "photos": 50,
+        "explorer": 20,
+        "windowsterminal": 10,
+        "cmd": 10
     },
     "limits": {}
 }

@@ -3812,6 +3812,9 @@ class MainWindow(QMainWindow):
         sc_saturday_os_esc = QShortcut(QKeySequence("Esc"), self)
         sc_saturday_os_esc.activated.connect(self._exit_saturday_os_mode_if_active)
 
+        sc_dock = QShortcut(QKeySequence("Ctrl+H"), self)
+        sc_dock.activated.connect(self._toggle_dock)
+
         self._setup_tray_icon(face_path)
 
         # Force panels hidden on startup
@@ -3821,6 +3824,8 @@ class MainWindow(QMainWindow):
         
         self._left_sidebar.setFixedWidth(0)
         self._left_sidebar.hide()
+
+        self._dock_container.hide()
 
         # Apply theme on startup
         try:
@@ -4015,6 +4020,15 @@ class MainWindow(QMainWindow):
             self.showNormal()
         else:
             self.showFullScreen()
+
+    def _toggle_dock(self):
+        if hasattr(self, "_dock_container") and self._dock_container:
+            if self._dock_container.isVisible():
+                self._dock_container.hide()
+                self.write_log("SYS: Bottom Dock hidden. Press Ctrl+H to show it.")
+            else:
+                self._dock_container.show()
+                self.write_log("SYS: Bottom Dock shown.")
 
     # ------------------------------------------------------------------ #
     # SaturdayOS Mode — turns this window into a taskbar-free, fullscreen
