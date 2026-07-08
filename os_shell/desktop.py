@@ -2351,14 +2351,9 @@ class IPPrimeOSDesktop(QMainWindow):
         self.menu_bar.setGeometry(0, 0, 0, 0)
         self.menu_bar.hide()
         
-        # Position bottom macOS-style Dock
-        self.dock.adjustSize()
-        dock_w = max(480, self.dock.sizeHint().width())
-        dock_h = 54
-        dock_x = (self.width() - dock_w) // 2
-        dock_y = self.height() - dock_h - 15
-        self.dock.setGeometry(dock_x, dock_y, dock_w, dock_h)
-        self.dock.show()
+        # Hide the bottom macOS-style Dock
+        self.dock.setGeometry(0, 0, 0, 0)
+        self.dock.hide()
         
         self._update_cached_bg()
 
