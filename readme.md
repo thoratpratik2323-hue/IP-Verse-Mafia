@@ -12,6 +12,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Gemini](https://img.shields.io/badge/Powered%20by-Gemini%20AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Portfolio](https://img.shields.io/badge/Portfolio-Visit%20Website-teal?style=for-the-badge&logo=react&logoColor=white)](https://pratik-pt1908.netlify.app/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge)](https://github.com)
 [![License](https://img.shields.io/badge/License-Private-red?style=for-the-badge)](https://github.com)
 
@@ -415,10 +416,11 @@ export SHODAN_API_KEY="your_shodan_key"
 
 ---
 
-## 👤 Author
+## 👤 Author & Creator
 
 **Pratik Thorat**
-- GitHub: [@thoratpratik2323-hue](https://github.com/thoratpratik2323-hue)
+- 🌐 **Portfolio:** [pratik-pt1908.netlify.app](https://pratik-pt1908.netlify.app/) (Check out my other projects and works!)
+- 🐙 **GitHub:** [@thoratpratik2323-hue](https://github.com/thoratpratik2323-hue)
 
 ---
 
