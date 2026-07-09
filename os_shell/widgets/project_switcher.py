@@ -208,7 +208,7 @@ class ProjectSwitcherWidget(QWidget):
 
         active_id = next((p["id"] for p in self._projects if p.get("active")), None)
         for p in self._projects:
-            card = ProjectCard(p, is_active=p["id"] == active_id, self._list_widget)
+            card = ProjectCard(p, p["id"] == active_id, self._list_widget)
             card.clicked.connect(self._switch_project)
             self._list_layout.addWidget(card)
 
