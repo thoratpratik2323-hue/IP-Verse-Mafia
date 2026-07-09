@@ -2609,50 +2609,43 @@ class IPPrimeOSDesktop(QMainWindow):
 
         # Draw Swarm Queue panel - removed as requested
 
-        # Draw dynamic, stylish greeting message depending on the time of day
+        # Draw elegant centered greeting (moved from top-right to avoid overlap with context pill)
         painter.save()
         now = datetime.datetime.now()
         hour = now.hour
         if 5 <= hour < 12:
-            time_greet = "Morning"
+            time_greet = "Good Morning, Sir"
         elif 12 <= hour < 17:
-            time_greet = "Afternoon"
+            time_greet = "Good Afternoon, Sir"
         elif 17 <= hour < 21:
-            time_greet = "Evening"
+            time_greet = "Good Evening, Sir"
         else:
-            time_greet = "Night"
-            
-        # Bounding box for right-alignment (width=400, ending at w-40)
-        box_w = 400.0
-        box_x = float(self.width() - box_w - 40)
-        
-        # Draw "Good" (spaced and bold/bigger)
-        painter.setFont(QFont("Outfit", 22, QFont.Weight.Bold))
-        painter.setPen(QColor(6, 182, 212, 210)) # Elegant Cyan
-        painter.drawText(QRectF(box_x, 15.0, box_w, 32.0), Qt.AlignmentFlag.AlignRight, "Good")
-        
-        # Draw Time of Day Greeting (bold and prominent)
-        painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
-        painter.setPen(QColor(248, 250, 252, 240)) # Solid white
-        painter.drawText(QRectF(box_x, 48.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
+            time_greet = "Good Night, Sir"
+
+        # Centered at top, below menu bar — subtle, not overlapping anything
+        center_x = float(self.width()) / 2.0
+        painter.setFont(QFont("Outfit", 13, QFont.Weight.Medium))
+        painter.setPen(QColor(6, 182, 212, 100))  # Subtle cyan
+        fm = painter.fontMetrics()
+        tw = fm.horizontalAdvance(time_greet)
+        painter.drawText(int(center_x - tw / 2), 52, time_greet)
         painter.restore()
 
-        # Draw dynamic output log feed directly on the background
+        # Draw dynamic output log feed — bottom-left area, above CPU stats
         if hasattr(self, "log_history") and self.log_history:
             painter.save()
-            log_font = QFont("JetBrains Mono", 9)
+            log_font = QFont("JetBrains Mono", 8)
             painter.setFont(log_font)
-            painter.setPen(QColor(255, 255, 255, 180)) # Semi-transparent white
-            
-            w = self.width()
+            painter.setPen(QColor(255, 255, 255, 90))  # Very subtle
+
             h = self.height()
-            start_x = w - 380
-            
-            # Anchor the bottom line exactly at h - 25 to touch the bottom-right corner
-            start_y = h - 25 - (len(self.log_history) - 1) * 21
-            
-            for i, line in enumerate(self.log_history):
-                painter.drawText(start_x, start_y + (i * 21), line)
+            start_x = 40
+            base_y  = h - 45  # Just above the CPU stats line
+            recent  = self.log_history[-4:]  # Show only last 4 lines
+
+            for i, line in enumerate(recent):
+                y = base_y - (len(recent) - 1 - i) * 16
+                painter.drawText(start_x, y, line[:80])  # Truncate long lines
             painter.restore()
 
         # Draw CPU & RAM stats and IP Verse Verified in the bottom-left corner

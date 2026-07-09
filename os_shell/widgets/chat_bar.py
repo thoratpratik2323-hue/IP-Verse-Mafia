@@ -238,10 +238,11 @@ class FloatingChatBar(QWidget):
         self._input.selectAll()
 
     def anchor_to_bottom(self, parent_width: int, parent_height: int):
-        """Reposition to bottom edge of parent."""
-        w = min(parent_width - 60, 900)
+        """Reposition to bottom edge of parent — full width, centered."""
+        w = min(int(parent_width * 0.85), 1100)   # 85% of screen, max 1100px
         x = (parent_width - w) // 2
-        self.setGeometry(x, parent_height - self.height(), w, self.height())
+        h = self.height()
+        self.setGeometry(x, parent_height - h, w, h)
 
     def show_bar(self):
         self.show()

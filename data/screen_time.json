@@ -1,13 +1,15 @@
 {
     "date": "2026-07-09",
     "apps": {
-        "antigravity": 2560,
-        "explorer": 80,
+        "antigravity": 2740,
+        "explorer": 120,
         "firefox": 20,
         "notepad": 100,
-        "python": 1110,
+        "python": 1120,
         "msedge": 430,
-        "git-credential-manager": 120
+        "git-credential-manager": 120,
+        "windowsterminal": 10,
+        "openwith": 10
     },
     "limits": {}
 }
