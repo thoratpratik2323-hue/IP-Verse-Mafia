@@ -52,6 +52,12 @@ from os_shell.widgets.sleep_mode import SleepModeOverlay
 from os_shell.widgets.task_queue_hud import TaskQueueHUD
 from os_shell.widgets.project_switcher import ProjectSwitcherWidget
 
+# ── Phase 3 UI Upgrades ────────────────────────────────────────────────────────────────
+from os_shell.widgets.chat_bar import FloatingChatBar
+from os_shell.widgets.hotkey_cheatsheet import HotkeyCheatsheet
+from os_shell.widgets.context_pill import ContextPill
+from core.window_memory import WindowMemory
+
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
 _GRAPH_NODES = [
     {"id": "IP PRIME",   "x": 0.5,  "y": 0.5,  "color": QColor("#00c8ff"), "size": 18},
@@ -540,6 +546,19 @@ class IPPrimeOSDesktop(QMainWindow):
         # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
+
+        # ── Phase 3: Floating Chat Bar (always visible at bottom) ─────────────────────
+        self.chat_bar = FloatingChatBar(self)
+        self.chat_bar.message_sent.connect(self._on_chat_bar_message)
+        self.chat_bar.setFixedHeight(200)
+        self.chat_bar.show_bar()
+
+        # ── Phase 3: Hotkey Cheatsheet (press ?) ───────────────────────────────────
+        self.hotkey_sheet = HotkeyCheatsheet(self)
+
+        # ── Phase 3: Context Pill (top-right) ─────────────────────────────────────
+        self.context_pill = ContextPill(self)
+        self.context_pill.show()
 
         # Proactive Suggestion Timer (every 5 min)
         self._proactive_timer = QTimer(self)
@@ -2435,25 +2454,37 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Hide the top menu bar
-        self.menu_bar.setGeometry(0, 0, 0, 0)
-        self.menu_bar.hide()
-        
-        # Hide the bottom macOS-style Dock
+        w, h = self.width(), self.height()
+
+        # ── Menu Bar: show across full top ──
+        self.menu_bar.setGeometry(0, 0, w, 28)
+        self.menu_bar.show()
+
+        # Hide dock (Pratik prefers clean desktop)
         self.dock.setGeometry(0, 0, 0, 0)
         self.dock.hide()
-        
+
         self._update_cached_bg()
 
         if hasattr(self, "orb") and self.orb:
-            self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2 - 60)
+            self.orb.move((w - self.orb.width()) // 2, (h - self.orb.height()) // 2 - 60)
 
         if not getattr(self, "_windows_arranged", False) and hasattr(self, "windows") and self.windows:
-            self._arrange_windows()
+            # Try to restore saved positions first
+            if not WindowMemory.restore(self.windows):
+                self._arrange_windows()
             self._windows_arranged = True
 
         if hasattr(self, "launchpad") and self.launchpad:
-            self.launchpad.setGeometry(0, 0, self.width(), self.height())
+            self.launchpad.setGeometry(0, 0, w, h)
+
+        # Phase 3: anchor floating widgets
+        if hasattr(self, "chat_bar") and self.chat_bar:
+            self.chat_bar.anchor_to_bottom(w, h)
+        if hasattr(self, "context_pill") and self.context_pill:
+            self.context_pill.anchor_top_right(w, margin=16)
+        if hasattr(self, "hotkey_sheet") and self.hotkey_sheet:
+            self.hotkey_sheet.setGeometry(0, 0, w, h)
 
     def _arrange_windows(self):
         w, h = self.width(), self.height()
@@ -2879,6 +2910,17 @@ class IPPrimeOSDesktop(QMainWindow):
             self.project_switcher.open()
             return
 
+        # ── Phase 3 Hotkeys ─────────────────────────────────────────────────────────────────────
+        if key == Qt.Key.Key_Question:
+            # ? → Hotkey Cheatsheet
+            self.hotkey_sheet.toggle()
+            return
+
+        if mods == ctrl and key == Qt.Key.Key_T:
+            # Ctrl+T → Toggle / focus chat bar
+            self.chat_bar.toggle()
+            return
+
         super().keyPressEvent(event)
 
     def _on_wake(self):
@@ -2891,10 +2933,27 @@ class IPPrimeOSDesktop(QMainWindow):
     def _on_project_switched(self, project_id: str, project_name: str):
         """Called when project context is switched."""
         try:
+            # Update context pill
+            self.context_pill.set_project(project_name)
             self._send_to_ai(
                 f"Project switch ho gaya: '{project_name}'. "
                 f"Ab is project se related memory aur tasks load karo."
             )
+        except Exception:
+            pass
+
+    def _on_chat_bar_message(self, text: str):
+        """Relay chat bar message to AI and show thinking state."""
+        try:
+            self.chat_bar.show_thinking()
+            self._send_to_ai(text)
+        except Exception as e:
+            self.chat_bar.show_response(f"❌ Error: {e}")
+
+    def _ai_response_received(self, text: str):
+        """Call this when AI responds to update the chat bar."""
+        try:
+            self.chat_bar.show_response(text)
         except Exception:
             pass
 
@@ -2907,6 +2966,11 @@ class IPPrimeOSDesktop(QMainWindow):
         super().mouseMoveEvent(event)
 
     def closeEvent(self, event):
+        # Save all window positions before closing
+        try:
+            WindowMemory.save(self.windows)
+        except Exception:
+            pass
         show_windows_taskbar()
         super().closeEvent(event)
 
