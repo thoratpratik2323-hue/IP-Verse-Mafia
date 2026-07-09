@@ -147,11 +147,30 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | **📟 Vocal Terminal HUD** | **Glassmorphic floating terminal console streaming live logger output directly in the workspace** |
 | **🔮 Dynamic Multi-Wave Orb** | **Redesigned orb waves with 4 phase-shifted sine layers, dynamic floating particles, and speaking-state voice pulsation** |
 | **🌌 Aurora Wallpaper** | **Animated layered radial gradient background shifting dynamically in real-time** |
-| **⌨️ Global OS Hotkeys** | **Quick overlays toggling via Keyboard shortcuts: Ctrl+Shift+P/L/T/C, F1, F2, F3, F4, F9, F11** |
-| **🎚️ macOS Floating Dock** | **Centered, glassmorphic floating bottom dock hosting launcher, widgets, mic mute, console, and autopilot toggles** |
-| **❖ Windows Start Flyout** | **Centered glassmorphic flyout popup containing quick triggers for vault organizer, memory cleanup, workspace dashboard, and Clipboard AI** |
-| **🍎 Widgets Sidebar Drawer** | **Left-side sliding widgets drawer containing Weather card, Live CPU/RAM progress bars, Calendar/Clock, and persistent Quick Notes** |
+| **⌨️ Global OS Hotkeys** | **Quick overlays toggling via Keyboard shortcuts: Ctrl+Space, Ctrl+F, Ctrl+Shift+N/A/F/P/V/G, F9, F12** |
+| **⚡ Command Palette** | **VS Code-style fuzzy search palette (Ctrl+Space) — instantly trigger any action, agent, or window** |
+| **🔍 Global Desktop Search** | **Spotlight-style search (Ctrl+F) across files, commands, and memory entries** |
+| **📌 Sticky Notes** | **Draggable colored notes directly on the desktop, auto-saved — Ctrl+Shift+N to create** |
+| **🔔 Notification Center** | **Right-side slide-in panel aggregating system alerts, daily digest, and proactive AI suggestions** |
+| **🎯 Pomodoro Focus Timer** | **Floating countdown HUD with ring progress — 25 min work / 5 min break cycles (Ctrl+Shift+F)** |
+| **🎭 Persona Switcher** | **Compact floating pill (top-right) to cycle Dev → Hacker → REZ → Focus personas with one click** |
+| **📋 Clipboard AI** | **Auto-monitors clipboard — shows Summarize / Translate / Explain toast on every new copy** |
+| **📸 Screen Snapshot + AI** | **F12 captures screen → sends to Gemini Vision for instant analysis and annotation** |
+| **💡 Proactive Suggestions** | **5-minute background scan of error logs — proactively offers to investigate repeated issues** |
+| **📅 Daily AI Digest** | **Once-per-day startup card in Notification Center — greeting, date, and system status** |
+| **🎮 Game Mode** | **F9 / Ctrl+Shift+G — hides all overlays, slows timers for max desktop performance** |
 | **🎨 Rounded Window Corners** | **Anti-aliased 12px rounded window boundaries and header frames for modern Apple OS / Windows 11 styling** |
+
+### ⚡ Power Features
+| Feature | Details |
+|---|---|
+| **🗂️ Smart File Organizer** | **Scans Desktop + Downloads, previews and auto-moves files into Images/Videos/Docs/Code/Archives folders** |
+| **📡 Network Monitor HUD** | **Floating live upload/download speed widget with WiFi SSID display (psutil-powered)** |
+| **🔐 Password Vault** | **AES-256 encrypted local credential manager (Ctrl+Shift+V) — never leaves your machine** |
+| **🦙 Ollama Local Fallback** | **When all cloud APIs fail, automatically falls back to local Ollama (llama3/mistral) if installed** |
+| **📋 Auto Meeting Notes** | **Clara bot auto-generates structured `.md` note templates in `memory/meeting_notes/` on deployment** |
+
+
 
 ---
 

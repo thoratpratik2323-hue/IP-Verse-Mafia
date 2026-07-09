@@ -255,6 +255,40 @@ class OpenRouterClient:
 
         return None
 
+    def _try_ollama(self, messages: list[dict]) -> Optional[str]:
+        """Try local Ollama server as last-resort fallback (localhost:11434)."""
+        import shutil
+        try:
+            # Only attempt if ollama binary exists
+            if not shutil.which("ollama"):
+                return None
+            resp = requests.post(
+                "http://localhost:11434/api/chat",
+                json={
+                    "model": "llama3",   # falls back to mistral if not found
+                    "messages": messages,
+                    "stream": False,
+                },
+                timeout=30,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data.get("message", {}).get("content", "")
+                return content.strip() if content else None
+            # Try mistral as secondary local model
+            resp2 = requests.post(
+                "http://localhost:11434/api/chat",
+                json={"model": "mistral", "messages": messages, "stream": False},
+                timeout=30,
+            )
+            if resp2.status_code == 200:
+                data2 = resp2.json()
+                content2 = data2.get("message", {}).get("content", "")
+                return content2.strip() if content2 else None
+        except Exception as e:
+            logger.debug(f"[Ollama] Local fallback unavailable: {e}")
+        return None
+
     def _call_with_fallback(
         self,
         pool: list[str],
@@ -281,6 +315,12 @@ class OpenRouterClient:
             if result:
                 logger.info(f"[OpenRouter] ✓ Success: {m}")
                 return result
+
+        # ── Ollama local LLM last-resort fallback ────────────────────────
+        ollama_result = self._try_ollama(messages)
+        if ollama_result:
+            logger.info("[Ollama] ✓ Local fallback succeeded.")
+            return ollama_result
 
         raise RuntimeError(
             "[OpenRouter] All models failed or are rate-limited. "

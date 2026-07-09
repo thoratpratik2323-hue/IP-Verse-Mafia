@@ -35,6 +35,18 @@ from os_shell.widgets.autopilot_coder import AutopilotCoderWidget
 from os_shell.widgets.nainipix_studio import NainiPixStudioWidget
 from os_shell.shell_manager import hide_windows_taskbar, show_windows_taskbar
 
+# ── New Feature Widgets ────────────────────────────────────────────────────
+from os_shell.widgets.command_palette import CommandPalette
+from os_shell.widgets.focus_timer import FocusTimerWidget
+from os_shell.widgets.sticky_notes import StickyNotesManager
+from os_shell.widgets.notification_center import NotificationCenter
+from os_shell.widgets.clipboard_monitor import ClipboardMonitor
+from os_shell.widgets.persona_switcher import PersonaSwitcher
+from os_shell.widgets.global_search import GlobalSearchWidget
+from os_shell.widgets.network_monitor import NetworkMonitorHUD
+from os_shell.widgets.file_organizer import FileOrganizerWidget
+from os_shell.widgets.password_vault import PasswordVaultWidget
+
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
 _GRAPH_NODES = [
     {"id": "IP PRIME",   "x": 0.5,  "y": 0.5,  "color": QColor("#00c8ff"), "size": 18},
@@ -464,6 +476,57 @@ class IPPrimeOSDesktop(QMainWindow):
         self.stats_timer.timeout.connect(self._refresh_stats)
         self.stats_timer.start(2000)
         self._refresh_stats()
+
+        # ── Feature Widgets Init ──────────────────────────────────────────
+        # Command Palette (Ctrl+Space)
+        self.cmd_palette = CommandPalette(self)
+        self.cmd_palette.command_selected.connect(self._handle_palette_command)
+
+        # Focus Timer (Ctrl+Shift+F)
+        self.focus_timer = FocusTimerWidget(self)
+        self.focus_timer.session_done.connect(self._on_focus_session_done)
+        self.focus_timer.move(self.width() - 180, 60)
+
+        # Sticky Notes Manager (Ctrl+Shift+N)
+        self.sticky_mgr = StickyNotesManager(self)
+
+        # Notification Center (Ctrl+Shift+A)
+        self.notif_center = NotificationCenter(self)
+
+        # Clipboard AI
+        self.clipboard_monitor = ClipboardMonitor(self, self._send_to_ai)
+
+        # Persona Switcher (Ctrl+Shift+P)
+        self.persona_switcher = PersonaSwitcher(self)
+        self.persona_switcher.persona_changed.connect(self._handle_palette_command)
+        self.persona_switcher.show_widget(self.width())
+
+        # Global Search (Ctrl+F)
+        self.global_search = GlobalSearchWidget(self)
+        self.global_search.command_triggered.connect(self._handle_palette_command)
+        self.global_search.file_triggered.connect(self._open_file_path)
+
+        # Network Monitor
+        self.net_monitor = NetworkMonitorHUD(self)
+        self.net_monitor.move(20, 60)
+
+        # File Organizer
+        self.file_organizer = FileOrganizerWidget(self)
+
+        # Password Vault (Ctrl+Shift+V)
+        self.pwd_vault = PasswordVaultWidget(self)
+
+        # Game Mode flag
+        self._game_mode = False
+
+        # Proactive Suggestion Timer (every 5 min)
+        self._proactive_timer = QTimer(self)
+        self._proactive_timer.setInterval(5 * 60 * 1000)
+        self._proactive_timer.timeout.connect(self._proactive_check)
+        self._proactive_timer.start()
+
+        # Daily Digest — show once per day on startup
+        self._show_daily_digest()
 
     def init_ui(self):
         hide_windows_taskbar()
@@ -2555,6 +2618,229 @@ class IPPrimeOSDesktop(QMainWindow):
         painter.setPen(QColor(6, 182, 212, 160)) # Glowing Cyan
         painter.drawText(40 + stats_w + 20, self.height() - 25, "IP Verse Verified")
         painter.restore()
+
+    # ── Palette command router ────────────────────────────────────────────
+    def _handle_palette_command(self, cmd: str):
+        """Route command palette / persona switcher commands."""
+        c = cmd.lower().strip()
+        if c == "focus start":
+            self.focus_timer.start_focus()
+        elif c == "focus stop":
+            self.focus_timer.hide()
+        elif c == "sticky new":
+            self.sticky_mgr.new_note()
+        elif c == "notifications":
+            self.notif_center.toggle()
+        elif c == "search":
+            self.global_search.open()
+        elif c == "open vault":
+            self.pwd_vault.open()
+        elif c == "organize files":
+            self.file_organizer.open()
+        elif c == "network monitor":
+            if self.net_monitor.isVisible():
+                self.net_monitor.hide()
+            else:
+                self.net_monitor.show_widget(20, 60)
+        elif c == "game mode":
+            self._toggle_game_mode()
+        elif c == "clipboard ai":
+            pass  # Already auto-monitors
+        elif c == "daily digest":
+            self._show_daily_digest(force=True)
+        elif c == "screen snapshot":
+            self._take_screen_snapshot()
+        elif c in ("launchpad", "open launchpad"):
+            self._toggle_launchpad()
+        elif c.startswith("open "):
+            key = c.replace("open ", "").strip()
+            win = self.windows.get(key)
+            if win:
+                if win.isVisible():
+                    win.hide_window()
+                else:
+                    win.show_window()
+        elif c in ("voice start", "voice stop", "be rez", "hacker mode", "normal mode",
+                   "focus mode", "gf mode", "girlfriend mode"):
+            self._send_to_ai(c)
+        elif c.startswith("theme "):
+            theme = c.replace("theme ", "").strip().title()
+            self._change_theme(theme)
+
+    def _send_to_ai(self, text: str):
+        """Forward a text command to the AI facade (main player)."""
+        if self.ui_facade and hasattr(self.ui_facade, "process_text_input"):
+            self.ui_facade.process_text_input(text)
+        elif self.ui_facade and hasattr(self.ui_facade, "_dispatch_text"):
+            self.ui_facade._dispatch_text(text)
+
+    def _open_file_path(self, path: str):
+        """Open a file using the OS default application."""
+        import os
+        try:
+            os.startfile(path)
+        except Exception:
+            pass
+
+    def _on_focus_session_done(self, session_type: str):
+        """Called when focus/break session ends — show notification."""
+        if session_type == "work":
+            self.notif_center.add_notification("⏱️", "Focus Session Done!",
+                "25-minute focus session complete. Time for a break! ☕",
+                color="#10b981")
+        else:
+            self.notif_center.add_notification("🎯", "Break Over!",
+                "Break complete. Ready for another focus session?",
+                color="#06b6d4")
+
+    def _toggle_game_mode(self):
+        """Toggle game mode — hides all overlays, stops non-critical timers."""
+        self._game_mode = not self._game_mode
+        if self._game_mode:
+            # Hide all overlay widgets
+            for w in [self.notif_center, self.net_monitor, self.focus_timer,
+                      self.persona_switcher, self.cmd_palette, self.global_search]:
+                w.hide()
+            # Slow down stats refresh
+            self.stats_timer.setInterval(10000)
+            self._proactive_timer.stop()
+            self.notif_center.add_notification("🎮", "Game Mode ON",
+                "All overlays hidden. Performance optimised. Press Ctrl+Shift+G to exit.",
+                color="#f59e0b")
+        else:
+            self.stats_timer.setInterval(2000)
+            self._proactive_timer.start()
+            self.persona_switcher.show_widget(self.width())
+            self.notif_center.add_notification("🖥️", "Game Mode OFF",
+                "Overlays restored. Welcome back!", color="#06b6d4")
+        self.update()
+
+    def _take_screen_snapshot(self):
+        """Capture screen and send to AI vision."""
+        try:
+            screen = QApplication.primaryScreen()
+            pixmap = screen.grabWindow(0)
+            snap_path = Path("data/screen_snap.png")
+            snap_path.parent.mkdir(exist_ok=True)
+            pixmap.save(str(snap_path))
+            self.notif_center.add_notification("📸", "Screen Captured!",
+                "Snapshot saved. Sending to AI for analysis…", color="#06b6d4")
+            self._send_to_ai(f"analyze screen snapshot at {snap_path.resolve()}")
+        except Exception as e:
+            print(f"[Desktop] Screen snapshot failed: {e}")
+
+    def _proactive_check(self):
+        """Check log history for repeated errors and suggest fixes."""
+        if self._game_mode:
+            return
+        if not hasattr(self, "log_history") or not self.log_history:
+            return
+        # Count error-looking entries
+        errors = [l for l in self.log_history if "error" in l.lower() or "exception" in l.lower()]
+        if len(errors) >= 3:
+            self.notif_center.add_notification(
+                "💡", "Proactive Suggestion",
+                f"I noticed {len(errors)} errors recently. Want me to investigate?",
+                color="#f59e0b"
+            )
+
+    def _show_daily_digest(self, force: bool = False):
+        """Show a daily digest card once per day on startup."""
+        import json
+        digest_file = Path("data/digest_date.json")
+        today = datetime.date.today().isoformat()
+        try:
+            if not force and digest_file.exists():
+                saved = json.loads(digest_file.read_text())
+                if saved.get("date") == today:
+                    return  # Already shown today
+        except Exception:
+            pass
+
+        now = datetime.datetime.now()
+        hour = now.hour
+        if 5 <= hour < 12:
+            greeting = "Good Morning"
+        elif 12 <= hour < 17:
+            greeting = "Good Afternoon"
+        elif 17 <= hour < 21:
+            greeting = "Good Evening"
+        else:
+            greeting = "Good Night"
+
+        self.notif_center.add_notification(
+            "📅", f"{greeting}, Pratik Sir!",
+            f"Today is {now.strftime('%A, %d %B %Y')}. IP Prime OS is ready.",
+            now.strftime("%H:%M"), color="#8b5cf6"
+        )
+        try:
+            digest_file.parent.mkdir(exist_ok=True)
+            digest_file.write_text(json.dumps({"date": today}))
+        except Exception:
+            pass
+
+    # ── Global Hotkeys ────────────────────────────────────────────────────
+    def keyPressEvent(self, event):
+        """Handle global keyboard shortcuts for all new features."""
+        key = event.key()
+        mods = event.modifiers()
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        shift = Qt.KeyboardModifier.ShiftModifier
+
+        if mods == ctrl and key == Qt.Key.Key_Space:
+            # Ctrl+Space → Command Palette
+            self.cmd_palette.open()
+            return
+
+        if mods == ctrl and key == Qt.Key.Key_F:
+            # Ctrl+F → Global Search
+            self.global_search.open()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_N:
+            # Ctrl+Shift+N → New Sticky Note
+            self.sticky_mgr.new_note()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_A:
+            # Ctrl+Shift+A → Notification Center
+            self.notif_center.toggle()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_F:
+            # Ctrl+Shift+F → Focus Timer
+            if self.focus_timer.isVisible():
+                self.focus_timer.hide()
+            else:
+                self.focus_timer.start_focus()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_P:
+            # Ctrl+Shift+P → Cycle Persona
+            self.persona_switcher.next_persona()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_V:
+            # Ctrl+Shift+V → Password Vault
+            self.pwd_vault.open()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_G:
+            # Ctrl+Shift+G → Game Mode
+            self._toggle_game_mode()
+            return
+
+        if key == Qt.Key.Key_F12:
+            # F12 → Screen Snapshot + AI
+            self._take_screen_snapshot()
+            return
+
+        if key == Qt.Key.Key_F9:
+            # F9 → Toggle Game Mode
+            self._toggle_game_mode()
+            return
+
+        super().keyPressEvent(event)
 
     def closeEvent(self, event):
         show_windows_taskbar()
