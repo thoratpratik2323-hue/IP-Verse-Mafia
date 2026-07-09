@@ -1,10 +1,5 @@
 [
     {
-        "timestamp": "2026-07-07 11:26",
-        "input": "เอา เอา เลย",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-07 11:27",
         "input": "Pak ya? Pak.",
         "mood": "neutral"
@@ -247,6 +242,11 @@
     {
         "timestamp": "2026-07-09 09:34",
         "input": "?",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-09 09:41",
+        "input": "A pri me are you able to listen.",
         "mood": "neutral"
     }
 ]

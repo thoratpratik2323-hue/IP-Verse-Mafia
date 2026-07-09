@@ -1,12 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-03T09:32:50",
-      "tool": "file_controller",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-03T09:33:07",
       "tool": "file_explorer",
       "tokens": 800,
@@ -2999,12 +2993,18 @@
       "tool": "computer_control",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-09T09:39:14",
+      "tool": "computer_settings",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 588,
-    "est_tokens": 470400,
-    "est_usd": 0.07056
+    "tool_calls": 589,
+    "est_tokens": 471200,
+    "est_usd": 0.07068
   },
   "by_day": {
     "2026-05-29": {
@@ -3101,6 +3101,11 @@
       "tool_calls": 8,
       "est_tokens": 6400,
       "est_usd": 0.00096
+    },
+    "2026-07-09": {
+      "tool_calls": 1,
+      "est_tokens": 800,
+      "est_usd": 0.00012
     }
   }
 }

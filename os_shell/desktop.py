@@ -496,10 +496,9 @@ class IPPrimeOSDesktop(QMainWindow):
         # Clipboard AI
         self.clipboard_monitor = ClipboardMonitor(self, self._send_to_ai)
 
-        # Persona Switcher (Ctrl+Shift+P)
+        # Persona Switcher (Ctrl+Shift+P) — hidden by default
         self.persona_switcher = PersonaSwitcher(self)
         self.persona_switcher.persona_changed.connect(self._handle_palette_command)
-        self.persona_switcher.show_widget(self.width())
 
         # Global Search (Ctrl+F)
         self.global_search = GlobalSearchWidget(self)
@@ -2710,7 +2709,6 @@ class IPPrimeOSDesktop(QMainWindow):
         else:
             self.stats_timer.setInterval(2000)
             self._proactive_timer.start()
-            self.persona_switcher.show_widget(self.width())
             self.notif_center.add_notification("🖥️", "Game Mode OFF",
                 "Overlays restored. Welcome back!", color="#06b6d4")
         self.update()
