@@ -505,9 +505,11 @@ class IPPrimeOSDesktop(QMainWindow):
         self.global_search.command_triggered.connect(self._handle_palette_command)
         self.global_search.file_triggered.connect(self._open_file_path)
 
-        # Network Monitor
+        # Network Monitor — timer paused while widget is hidden
         self.net_monitor = NetworkMonitorHUD(self)
         self.net_monitor.move(20, 60)
+        self.net_monitor._timer.stop()    # Don't run while hidden
+        self.net_monitor._wifi_timer.stop()
 
         # File Organizer
         self.file_organizer = FileOrganizerWidget(self)
@@ -524,8 +526,8 @@ class IPPrimeOSDesktop(QMainWindow):
         self._proactive_timer.timeout.connect(self._proactive_check)
         self._proactive_timer.start()
 
-        # Daily Digest — show once per day on startup
-        self._show_daily_digest()
+        # Daily Digest — show 3 seconds after startup (non-blocking)
+        QTimer.singleShot(3000, self._show_daily_digest)
 
     def init_ui(self):
         hide_windows_taskbar()

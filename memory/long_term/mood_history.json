@@ -1,11 +1,6 @@
 [
     {
         "timestamp": "2026-07-07 11:27",
-        "input": "Pak ya? Pak.",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-07 11:27",
         "input": "ये फै न भी इन का य का नहीं है तुल डोक्या पठान",
         "mood": "neutral"
     },
@@ -247,6 +242,11 @@
     {
         "timestamp": "2026-07-09 09:41",
         "input": "A pri me are you able to listen.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-09 10:26",
+        "input": ".",
         "mood": "neutral"
     }
 ]

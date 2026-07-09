@@ -110,17 +110,20 @@ class ClipboardMonitor:
         self._toast.action_requested.connect(self._handle_action)
 
         self._timer = QTimer()
-        self._timer.setInterval(1500)
+        self._timer.setInterval(4000)   # 4s — much lighter than 1.5s
         self._timer.timeout.connect(self._check_clipboard)
         self._timer.start()
 
     def _check_clipboard(self):
-        cb = QApplication.clipboard()
-        text = cb.text().strip()
-        if text and text != self._last_text and len(text) > 10:
-            self._last_text = text
-            rect = self._parent.rect() if self._parent else None
-            self._toast.show_for(text[:500], rect)
+        try:
+            cb = QApplication.clipboard()
+            text = cb.text().strip()
+            if text and text != self._last_text and len(text) > 10:
+                self._last_text = text
+                rect = self._parent.rect() if self._parent else None
+                self._toast.show_for(text[:500], rect)
+        except Exception:
+            pass
 
     def _handle_action(self, action: str, text: str):
         prompt_map = {
@@ -131,3 +134,4 @@ class ClipboardMonitor:
         prompt = prompt_map.get(action, text)
         if self._on_action:
             self._on_action(prompt)
+
