@@ -52,12 +52,6 @@ from os_shell.widgets.sleep_mode import SleepModeOverlay
 from os_shell.widgets.task_queue_hud import TaskQueueHUD
 from os_shell.widgets.project_switcher import ProjectSwitcherWidget
 
-# ── Phase 3 UI Upgrades ────────────────────────────────────────────────────────────────
-from os_shell.widgets.chat_bar import FloatingChatBar
-from os_shell.widgets.hotkey_cheatsheet import HotkeyCheatsheet
-from os_shell.widgets.context_pill import ContextPill
-from core.window_memory import WindowMemory
-
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
 _GRAPH_NODES = [
     {"id": "IP PRIME",   "x": 0.5,  "y": 0.5,  "color": QColor("#00c8ff"), "size": 18},
@@ -546,19 +540,6 @@ class IPPrimeOSDesktop(QMainWindow):
         # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
-
-        # ── Phase 3: Floating Chat Bar (always visible at bottom) ─────────────────────
-        self.chat_bar = FloatingChatBar(self)
-        self.chat_bar.message_sent.connect(self._on_chat_bar_message)
-        self.chat_bar.setFixedHeight(200)
-        self.chat_bar.show_bar()
-
-        # ── Phase 3: Hotkey Cheatsheet (press ?) ───────────────────────────────────
-        self.hotkey_sheet = HotkeyCheatsheet(self)
-
-        # ── Phase 3: Context Pill (top-right) ─────────────────────────────────────
-        self.context_pill = ContextPill(self)
-        self.context_pill.show()
 
         # Proactive Suggestion Timer (every 5 min)
         self._proactive_timer = QTimer(self)
@@ -2454,37 +2435,25 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        w, h = self.width(), self.height()
-
-        # ── Menu Bar: show across full top ──
-        self.menu_bar.setGeometry(0, 0, w, 28)
-        self.menu_bar.show()
-
-        # Hide dock (Pratik prefers clean desktop)
+        # Hide the top menu bar
+        self.menu_bar.setGeometry(0, 0, 0, 0)
+        self.menu_bar.hide()
+        
+        # Hide the bottom macOS-style Dock
         self.dock.setGeometry(0, 0, 0, 0)
         self.dock.hide()
-
+        
         self._update_cached_bg()
 
         if hasattr(self, "orb") and self.orb:
-            self.orb.move((w - self.orb.width()) // 2, (h - self.orb.height()) // 2 - 60)
+            self.orb.move((self.width() - self.orb.width()) // 2, (self.height() - self.orb.height()) // 2 - 60)
 
         if not getattr(self, "_windows_arranged", False) and hasattr(self, "windows") and self.windows:
-            # Try to restore saved positions first
-            if not WindowMemory.restore(self.windows):
-                self._arrange_windows()
+            self._arrange_windows()
             self._windows_arranged = True
 
         if hasattr(self, "launchpad") and self.launchpad:
-            self.launchpad.setGeometry(0, 0, w, h)
-
-        # Phase 3: anchor floating widgets
-        if hasattr(self, "chat_bar") and self.chat_bar:
-            self.chat_bar.anchor_to_bottom(w, h)
-        if hasattr(self, "context_pill") and self.context_pill:
-            self.context_pill.anchor_top_right(w, margin=16)
-        if hasattr(self, "hotkey_sheet") and self.hotkey_sheet:
-            self.hotkey_sheet.setGeometry(0, 0, w, h)
+            self.launchpad.setGeometry(0, 0, self.width(), self.height())
 
     def _arrange_windows(self):
         w, h = self.width(), self.height()
@@ -2609,43 +2578,50 @@ class IPPrimeOSDesktop(QMainWindow):
 
         # Draw Swarm Queue panel - removed as requested
 
-        # Draw elegant centered greeting (moved from top-right to avoid overlap with context pill)
+        # Draw dynamic, stylish greeting message depending on the time of day
         painter.save()
         now = datetime.datetime.now()
         hour = now.hour
         if 5 <= hour < 12:
-            time_greet = "Good Morning, Sir"
+            time_greet = "Morning"
         elif 12 <= hour < 17:
-            time_greet = "Good Afternoon, Sir"
+            time_greet = "Afternoon"
         elif 17 <= hour < 21:
-            time_greet = "Good Evening, Sir"
+            time_greet = "Evening"
         else:
-            time_greet = "Good Night, Sir"
-
-        # Centered at top, below menu bar — subtle, not overlapping anything
-        center_x = float(self.width()) / 2.0
-        painter.setFont(QFont("Outfit", 13, QFont.Weight.Medium))
-        painter.setPen(QColor(6, 182, 212, 100))  # Subtle cyan
-        fm = painter.fontMetrics()
-        tw = fm.horizontalAdvance(time_greet)
-        painter.drawText(int(center_x - tw / 2), 52, time_greet)
+            time_greet = "Night"
+            
+        # Bounding box for right-alignment (width=400, ending at w-40)
+        box_w = 400.0
+        box_x = float(self.width() - box_w - 40)
+        
+        # Draw "Good" (spaced and bold/bigger)
+        painter.setFont(QFont("Outfit", 22, QFont.Weight.Bold))
+        painter.setPen(QColor(6, 182, 212, 210)) # Elegant Cyan
+        painter.drawText(QRectF(box_x, 15.0, box_w, 32.0), Qt.AlignmentFlag.AlignRight, "Good")
+        
+        # Draw Time of Day Greeting (bold and prominent)
+        painter.setFont(QFont("Outfit", 26, QFont.Weight.ExtraBold))
+        painter.setPen(QColor(248, 250, 252, 240)) # Solid white
+        painter.drawText(QRectF(box_x, 48.0, box_w, 40.0), Qt.AlignmentFlag.AlignRight, f"{time_greet}, Sir")
         painter.restore()
 
-        # Draw dynamic output log feed — bottom-left area, above CPU stats
+        # Draw dynamic output log feed directly on the background
         if hasattr(self, "log_history") and self.log_history:
             painter.save()
-            log_font = QFont("JetBrains Mono", 8)
+            log_font = QFont("JetBrains Mono", 9)
             painter.setFont(log_font)
-            painter.setPen(QColor(255, 255, 255, 90))  # Very subtle
-
+            painter.setPen(QColor(255, 255, 255, 180)) # Semi-transparent white
+            
+            w = self.width()
             h = self.height()
-            start_x = 40
-            base_y  = h - 45  # Just above the CPU stats line
-            recent  = self.log_history[-4:]  # Show only last 4 lines
-
-            for i, line in enumerate(recent):
-                y = base_y - (len(recent) - 1 - i) * 16
-                painter.drawText(start_x, y, line[:80])  # Truncate long lines
+            start_x = w - 380
+            
+            # Anchor the bottom line exactly at h - 25 to touch the bottom-right corner
+            start_y = h - 25 - (len(self.log_history) - 1) * 21
+            
+            for i, line in enumerate(self.log_history):
+                painter.drawText(start_x, start_y + (i * 21), line)
             painter.restore()
 
         # Draw CPU & RAM stats and IP Verse Verified in the bottom-left corner
@@ -2903,17 +2879,6 @@ class IPPrimeOSDesktop(QMainWindow):
             self.project_switcher.open()
             return
 
-        # ── Phase 3 Hotkeys ─────────────────────────────────────────────────────────────────────
-        if key == Qt.Key.Key_Question:
-            # ? → Hotkey Cheatsheet
-            self.hotkey_sheet.toggle()
-            return
-
-        if mods == ctrl and key == Qt.Key.Key_T:
-            # Ctrl+T → Toggle / focus chat bar
-            self.chat_bar.toggle()
-            return
-
         super().keyPressEvent(event)
 
     def _on_wake(self):
@@ -2926,27 +2891,10 @@ class IPPrimeOSDesktop(QMainWindow):
     def _on_project_switched(self, project_id: str, project_name: str):
         """Called when project context is switched."""
         try:
-            # Update context pill
-            self.context_pill.set_project(project_name)
             self._send_to_ai(
                 f"Project switch ho gaya: '{project_name}'. "
                 f"Ab is project se related memory aur tasks load karo."
             )
-        except Exception:
-            pass
-
-    def _on_chat_bar_message(self, text: str):
-        """Relay chat bar message to AI and show thinking state."""
-        try:
-            self.chat_bar.show_thinking()
-            self._send_to_ai(text)
-        except Exception as e:
-            self.chat_bar.show_response(f"❌ Error: {e}")
-
-    def _ai_response_received(self, text: str):
-        """Call this when AI responds to update the chat bar."""
-        try:
-            self.chat_bar.show_response(text)
         except Exception:
             pass
 
@@ -2959,11 +2907,6 @@ class IPPrimeOSDesktop(QMainWindow):
         super().mouseMoveEvent(event)
 
     def closeEvent(self, event):
-        # Save all window positions before closing
-        try:
-            WindowMemory.save(self.windows)
-        except Exception:
-            pass
         show_windows_taskbar()
         super().closeEvent(event)
 
