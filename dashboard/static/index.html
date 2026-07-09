@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Prime Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --accent: #06b6d4; --accent2: #8b5cf6;
+    --bg: #020617; --card: rgba(15,25,50,0.85);
+    --border: rgba(6,182,212,0.2); --text: #f8fafc; --muted: rgba(255,255,255,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none;
+    background: radial-gradient(ellipse 60% 40% at 20% 20%, rgba(6,182,212,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 50% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 70%);
+  }
+  header { padding:24px 40px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; }
+  header h1 { font-size:22px; font-weight:600; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  header .sub { color:var(--muted); font-size:13px; }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  main { max-width:1200px; margin:0 auto; padding:32px 40px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:32px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; backdrop-filter:blur(12px); }
+  .stat-card .label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-family:'JetBrains Mono',monospace; }
+  .stat-card .value { font-size:28px; font-weight:600; color:var(--accent); }
+  .stat-card .unit { font-size:13px; color:var(--muted); }
+  .bar-wrap { margin-top:8px; background:rgba(255,255,255,0.06); border-radius:4px; height:4px; overflow:hidden; }
+  .bar { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 0.5s ease; }
+  .section { margin-bottom:28px; }
+  .section h2 { font-size:14px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; font-family:'JetBrains Mono',monospace; }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; backdrop-filter:blur(12px); }
+  .job-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .job-row:last-child { border-bottom:none; }
+  .badge { font-size:10px; font-family:'JetBrains Mono',monospace; padding:3px 8px; border-radius:4px; font-weight:500; }
+  .badge.running { background:rgba(6,182,212,0.15); color:#06b6d4; border:1px solid rgba(6,182,212,0.3); }
+  .badge.done    { background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
+  .badge.queued  { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.3); }
+  .badge.failed  { background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+  .goal-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .goal-bar-wrap { flex:1; background:rgba(255,255,255,0.06); border-radius:4px; height:6px; }
+  .goal-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 0.6s ease; }
+  .goal-pct { font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; min-width:36px; text-align:right; }
+  .empty { color:var(--muted); font-size:13px; padding:16px 0; text-align:center; }
+  footer { text-align:center; padding:20px; color:var(--muted); font-size:12px; font-family:'JetBrains Mono',monospace; }
+  .refresh-btn { background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); color:var(--accent); font-family:'Outfit',sans-serif; font-size:12px; padding:6px 14px; border-radius:8px; cursor:pointer; transition:all 0.2s; }
+  .refresh-btn:hover { background:rgba(6,182,212,0.2); }
+</style>
+</head>
+<body>
+<header>
+  <div class="live-dot"></div>
+  <div>
+    <h1>⚡ IP Prime Dashboard</h1>
+    <div class="sub">Real-time monitoring · <span id="last-update">--</span></div>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<main>
+  <!-- System Stats -->
+  <div class="section">
+    <h2>System Stats</h2>
+    <div class="grid" id="stats-grid">
+      <div class="stat-card"><div class="label">CPU Usage</div><div class="value" id="cpu">--</div><div class="unit">%</div><div class="bar-wrap"><div class="bar" id="cpu-bar" style="width:0%"></div></div></div>
+      <div class="stat-card"><div class="label">RAM Used</div><div class="value" id="ram">--</div><div class="unit" id="ram-unit">GB</div><div class="bar-wrap"><div class="bar" id="ram-bar" style="width:0%"></div></div></div>
+      <div class="stat-card"><div class="label">Disk Used</div><div class="value" id="disk">--</div><div class="unit" id="disk-unit">GB</div><div class="bar-wrap"><div class="bar" id="disk-bar" style="width:0%"></div></div></div>
+      <div class="stat-card"><div class="label">Active Tasks</div><div class="value" id="active-tasks">--</div><div class="unit">jobs</div></div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px;">
+    <!-- Background Tasks -->
+    <div class="section">
+      <h2>Background Tasks</h2>
+      <div class="panel" id="tasks-panel"><div class="empty">Loading…</div></div>
+    </div>
+
+    <!-- Active Goals -->
+    <div class="section">
+      <h2>Active Goals</h2>
+      <div class="panel" id="goals-panel"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+</main>
+
+<footer>IP Prime OS · localhost:8765 · Auto-refreshes every 5s</footer>
+
+<script>
+async function fetchJSON(url) {
+  try { const r = await fetch(url); return await r.json(); } catch(e) { return null; }
+}
+
+async function loadStats() {
+  const d = await fetchJSON('/api/stats');
+  if (!d) return;
+  document.getElementById('cpu').textContent = d.cpu_percent;
+  document.getElementById('cpu-bar').style.width = d.cpu_percent + '%';
+  document.getElementById('ram').textContent = d.ram_used_gb;
+  document.getElementById('ram-unit').textContent = `/ ${d.ram_total_gb} GB`;
+  document.getElementById('ram-bar').style.width = d.ram_percent + '%';
+  document.getElementById('disk').textContent = d.disk_used_gb;
+  document.getElementById('disk-unit').textContent = `/ ${d.disk_total_gb} GB`;
+  const diskPct = (d.disk_used_gb / d.disk_total_gb * 100).toFixed(0);
+  document.getElementById('disk-bar').style.width = diskPct + '%';
+  document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+}
+
+async function loadTasks() {
+  const d = await fetchJSON('/api/tasks');
+  const panel = document.getElementById('tasks-panel');
+  const jobs = d?.jobs || [];
+  if (!jobs.length) { panel.innerHTML = '<div class="empty">No background tasks</div>'; return; }
+  document.getElementById('active-tasks').textContent = jobs.filter(j => j.status === 'running' || j.status === 'queued').length;
+  panel.innerHTML = jobs.slice(-8).reverse().map(j => `
+    <div class="job-row">
+      <span class="badge ${j.status}">${j.status.toUpperCase()}</span>
+      <span style="flex:1; font-size:13px;">${j.name}</span>
+      <span style="font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace;">${j.finished ? j.finished.slice(11,19) : '--'}</span>
+    </div>`).join('');
+}
+
+async function loadGoals() {
+  const d = await fetchJSON('/api/goals');
+  const panel = document.getElementById('goals-panel');
+  const goals = d?.goals?.filter(g => g.status === 'active') || [];
+  if (!goals.length) { panel.innerHTML = '<div class="empty">No active goals</div>'; return; }
+  panel.innerHTML = goals.map(g => `
+    <div class="goal-row">
+      <span style="font-size:13px; flex:1;">${g.title}</span>
+      <div class="goal-bar-wrap"><div class="goal-bar" style="width:${g.progress||0}%"></div></div>
+      <span class="goal-pct">${g.progress||0}%</span>
+    </div>`).join('');
+}
+
+async function loadAll() {
+  await Promise.all([loadStats(), loadTasks(), loadGoals()]);
+}
+
+loadAll();
+setInterval(loadAll, 5000);
+</script>
+</body>
+</html>

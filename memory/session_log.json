@@ -1,146 +1,6 @@
 {
-  "last_updated": "2026-07-09 10:26",
+  "last_updated": "2026-07-09 11:09",
   "turns": [
-    {
-      "user": "",
-      "assistant": "Perfect, Pratik bhai! Code complete ho gaya hai. Maine `simple_calculator.py` file ko `D:\\primes output\\code\\` mein save kar diya hai. Kya ab usse run karke dekhein?",
-      "ts": "2026-06-28 21:26"
-    },
-    {
-      "user": "यस प्लीज रन वन",
-      "assistant": "",
-      "ts": "2026-06-28 21:26"
-    },
-    {
-      "user": "",
-      "assistant": "Code execution complete ho gaya hai, Pratik bhai! Calculator successfully run ho chuka hai. Ab tum usse operations perform kar sakte ho.",
-      "ts": "2026-06-28 21:27"
-    },
-    {
-      "user": "Hey pri me can you ju st show me that fo lder whe re the co de is saved.",
-      "assistant": "Bilkul, Pratik bhai! Maine File Explorer open kar diya hai. `D:\\primes output\\code\\` folder mein tumhara code dikh raha hoga.",
-      "ts": "2026-06-28 21:29"
-    },
-    {
-      "user": "प्राइम",
-      "assistant": "Haan Pratik bhai, bolo kya hua?",
-      "ts": "2026-06-28 21:29"
-    },
-    {
-      "user": "प्रा इम कै न ज स्ट डि जाइन अ वेब पे ज फॉर माय प्रो टो फो लियो ज स्ट माय नेम इज प्र तीक थो रा त आई एम माय इं जी नियर ए आई इं जी नियर मा स्टर इन ऑ ल लै ंग्वे ज स एंड आई एम कर ंट ली पास आउट फ्रॉम 1 2 थ एंड आई एम ज स्ट इन इं जी नियर िंग इं टी ग्र ेट री एम चे क ए आई एम एल ज स्ट दिस इं फॉर् मेशन आई एम फ्रॉम मु क्कु ल हा उस सि टी में है आ ता है वो गा वा व गैरह व गैरह एंड आई एम स्टै लें टेड इं जीनि यर पर् सन उस की एल",
-      "assistant": "Arey yaar, lagta hai API key validate nahi ho payi, Pratik bhai. Design process complete nahi kar paya. Don't worry, main manual setup try karta hoon.",
-      "ts": "2026-06-28 21:30"
-    },
-    {
-      "user": "Okay, bro.",
-      "assistant": "",
-      "ts": "2026-06-28 21:30"
-    },
-    {
-      "user": "",
-      "assistant": "Arey yaar, yeh dependency issue phir aa gaya. Lagta hai Antigravity context mein configuration mein kuch problem hai. Don't worry, Pratik bhai, main ise manual override karta hoon aur yeh portfolio design complete karke hi dam lunga.",
-      "ts": "2026-06-28 21:31"
-    },
-    {
-      "user": "",
-      "assistant": "Welcome, Pratik Sir. Mainframe initialized successfully. How can I assist you today?",
-      "ts": "2026-06-28 21:51"
-    },
-    {
-      "user": ". You know what",
-      "assistant": "Suno bhai, tumhara ambition aur dedication dekhkar bahut khushi hui! \"Top 1\" ka reward, no doubt, milna hi chahiye tha. Kya chal raha hai exactly?",
-      "ts": "2026-06-28 21:53"
-    },
-    {
-      "user": "",
-      "assistant": "Good day, Pratik Sir. All core modules are fully operational. Standing by for your command.",
-      "ts": "2026-06-28 22:11"
-    },
-    {
-      "user": "",
-      "assistant": "Suno bhai, Pratik, kya plan hai? Batao kaise assist kar sakta hoon?",
-      "ts": "2026-06-28 22:11"
-    },
-    {
-      "user": "O kay pri me ju st co de some thing for me you can co de a comp le x cal cu la tor for me in Pyt hon just make it a goo d loo king cal cu lator for me.",
-      "assistant": "",
-      "ts": "2026-06-28 22:11"
-    },
-    {
-      "user": "",
-      "assistant": "Arey yaar, yeh configuration error phir aa raha hai. Don't worry, Pratik bhai, main isse `terminal_doctor` se diagnose aur fix karta hoon. Hmm, lagta hai `dev_agent` module ko execute karne mein dependency aur API key dono ka problem aa raha hai. Don't sweat it, Pratik bhai. Main `code_helper` use karke manually file write kar deta hoon for a GUI calculator. Sir, aapka complex GUI calculator project `D:\\primes output\\projects\\gui_calculator\\main.py` par successfully generate aur run ho gaya hai. Check kar sakte hain!",
-      "ts": "2026-06-28 22:12"
-    },
-    {
-      "user": "",
-      "assistant": "Pratik bhai, complex calculator code generate aur save ho gaya hai. Maine verification tests bhi run kar diye hain, sab perfect hai. File `D:\\primes output\\projects\\gui_calculator\\main.py` par saved hai. Check kar lo!",
-      "ts": "2026-06-28 22:12"
-    },
-    {
-      "user": "can they just run it for me.",
-      "assistant": "Kyun nahi, bilkul! Tumhare liye run kar diya hai. Calculator window screen par pop-up ho jayegi.",
-      "ts": "2026-06-28 22:12"
-    },
-    {
-      "user": "",
-      "assistant": "Arey, badhiya hai! Calculator successfully run ho gaya hoga screen par. Check karo Pratik bhai.",
-      "ts": "2026-06-28 22:12"
-    },
-    {
-      "user": "",
-      "assistant": "Welcome back, Sir. Secure connection established. Ready to assist with your features.",
-      "ts": "2026-06-28 22:16"
-    },
-    {
-      "user": "ए प्रा इम आयो लिसन मी प्रॉपरली",
-      "assistant": "Suno bhai, Pratik! Haan, main clearly sun raha hoon. Batao, kya instruction hai?",
-      "ts": "2026-06-28 22:17"
-    },
-    {
-      "user": "Let's play chess.",
-      "assistant": "",
-      "ts": "2026-06-28 22:17"
-    },
-    {
-      "user": "",
-      "assistant": "Acha, chalo chess khelte hain! Maine Chrome mein search kar diya hai, abhi screen par load ho jayega. Fatafat khelenge, bro!",
-      "ts": "2026-06-28 22:18"
-    },
-    {
-      "user": "",
-      "assistant": "Suno bhai, Pratik! Kya scene hai? Batao, kaise help karoon?",
-      "ts": "2026-06-28 22:19"
-    },
-    {
-      "user": "",
-      "assistant": "Welcome back, Sir. Secure connection established. Ready to assist with your features.",
-      "ts": "2026-06-28 22:33"
-    },
-    {
-      "user": "pri me ar ray will listen me properly.",
-      "assistant": "Suno bhai, Pratik! Haan, main clearly sun raha hoon. Batao, kya instruction hai?",
-      "ts": "2026-06-28 22:34"
-    },
-    {
-      "user": "นะ ครับ",
-      "assistant": "",
-      "ts": "2026-06-28 22:34"
-    },
-    {
-      "user": "う う う 。",
-      "assistant": "Acha, chalo chess khelte hain! Maine Chrome mein search kar diya hai, abhi screen par load ho jayega. Fatafat khelenge, bro!",
-      "ts": "2026-06-28 22:35"
-    },
-    {
-      "user": "ब्रो आई एल यू टू को ड समथिंग फॉर मी",
-      "assistant": "Chalo bro, fatfat code karte hain! Kya banwana hai exact batao, main Antigravity ko delegate karta hoon.",
-      "ts": "2026-06-28 22:35"
-    },
-    {
-      "user": "नो यू ज डे व ए जे ंट फॉर कोडिंग",
-      "assistant": "Acha, theek hai! Dev Agent ke through karte hain. Kya project build karna hai, bro? Aur kaunse project path mein save karna hai?",
-      "ts": "2026-06-28 22:35"
-    },
     {
       "user": "O kay ca lled a si mple cal cu la tor for me.",
       "assistant": "",
@@ -2500,7 +2360,147 @@
       "user": ".",
       "assistant": "Haan bhai, ekdam clear sun raha hoon! Kya hua, kuch soch rahe ho? Batao, kya execute karna hai ya kya plan hai aaj ka?",
       "ts": "2026-07-09 10:26"
+    },
+    {
+      "user": ".",
+      "assistant": "Acha, college",
+      "ts": "2026-07-09 10:29"
+    },
+    {
+      "user": "పాప",
+      "assistant": "Haan Pratik, college ka plan? Yaad hai, tumne bataya tha ki yearly budget 1 se 1.20 lakh tak hai. Kuch specific colleges ya courses dekh rahe ho",
+      "ts": "2026-07-09 10:29"
+    },
+    {
+      "user": ".",
+      "assistant": "Haha, Pratik bhai, ghar toh apna Ukkalgav mein hai, Ahmednagar ke paas. Aur abhi kya kar rahe ho, woh toh aapke current activities se pata chalta hai. Filhaal toh aap system online karke commands de rahe ho, but generally coding, browsing aur projects par kaam karte ho, right?",
+      "ts": "2026-07-09 10:30"
+    },
+    {
+      "user": "[noise]",
+      "assistant": "",
+      "ts": "2026-07-09 10:31"
+    },
+    {
+      "user": "",
+      "assistant": "Ah, system error! Koi tension nahi bhai, theek karte hain ise. Kaunsa tool fail hua hai aur kya instruction thi? Batao main diagnose karta hoon.",
+      "ts": "2026-07-09 10:31"
+    },
+    {
+      "user": ".",
+      "assistant": "",
+      "ts": "2026-07-09 10:33"
+    },
+    {
+      "user": "Gelen önümüzdeki",
+      "assistant": "Arey, bilkul! Kaunsa tool use kar rahe the? Aur kya command diya tha? Details batao, hum ise sort out karte hain dost.",
+      "ts": "2026-07-09 10:33"
+    },
+    {
+      "user": ".",
+      "assistant": "Samajh gaya, samajh gaya! Tool ka naam define nahi tha, isliye error aaya. Koi nahi, next time sahi tool choose karenge. Ab aage",
+      "ts": "2026-07-09 10:37"
+    },
+    {
+      "user": "ก ก ก",
+      "assistant": "Arey, tool ka naam batao na bhai! 'Lock' naam ka koi tool defined nahi hai, toh exactly kya karne ki koshish kar rahe the? Error details do.",
+      "ts": "2026-07-09 10:37"
+    },
+    {
+      "user": "जा ल सा बा स हि रा छ मा वा बच्चन",
+      "assistant": "",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": ".",
+      "assistant": "Achcha, theek hai. Ho sakta hai koi technical issue hoga. Koi baat nahi, hum fir se try karte hain. Aap mujhe dobara batao ki aap kya karne ki koshish kar rahe the?",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": ".",
+      "assistant": "Koi baat nahi, Pratik bhai. Aap mujhe bas tool ka naam bata do, main usse check karta hoon.",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": "",
+      "assistant": "Arey Pratik bhai, technical issue ho gaya tha! Don't worry, main use fix kar raha hoon. Shayad 'Lock' name define nahi hua. Mera self-healing agent ise theek kar dega. Ek second do bas!",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": ".",
+      "assistant": "Haan, ho gaya theek! 'Lock' module properly define ho gaya hai. Ab batao, kya command try karna chahte ho?",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": ".",
+      "assistant": "Ab sab perfect hai Pratik bhai! Kya command deni hai batao?",
+      "ts": "2026-07-09 10:38"
+    },
+    {
+      "user": "Rồi.",
+      "assistant": "Bolo bhai, main sun raha hoon!",
+      "ts": "2026-07-09 10:39"
+    },
+    {
+      "user": "I",
+      "assistant": "Last time toh hum boot sequence aur technical issues ke baare mein baat kar rahe the, bhai. Koi naya plan ya command hai?",
+      "ts": "2026-07-09 10:41"
+    },
+    {
+      "user": "खाली खाती खाली",
+      "assistant": "Khaali khali? Matlab? Kya kehna chahte ho Pratik bhai?",
+      "ts": "2026-07-09 10:42"
+    },
+    {
+      "user": "",
+      "assistant": "System boot sequence complete. Welcome back, Pratik Sir. All active agents are synchronized with the memory mainframe. How shall we expand the boundaries of the digital space today?",
+      "ts": "2026-07-09 11:02"
+    },
+    {
+      "user": "ए बंदा चबू",
+      "assistant": "Arey Pratik bhai, kya 'banda chabu' kar rahe ho? Seedha bolo kya band karna hai, ya koi naya command chahiye? Your 'elite' assistant is waiting, bro!",
+      "ts": "2026-07-09 11:04"
+    },
+    {
+      "user": "O kay tra in your self by li stening to my back ground noise",
+      "assistant": "Hmm, that's an interesting idea, bhai! Currently, mere paas specifically continuous background noise training ka koi direct tool nahi hai. But, main `focus_mode` activate kar sakta hoon jo binaural beats play karta hai distraction kam karne ke liye. Ya phir, kya tum kisi specific task ya context ke liye training ki baat kar rahe ho?",
+      "ts": "2026-07-09 11:05"
+    },
+    {
+      "user": "खाली बस",
+      "assistant": "Achcha, theek hai. Khaali matlab kuch nahi. Koi task, code, ya system command? Batao, bhai, what's the next move?",
+      "ts": "2026-07-09 11:06"
+    },
+    {
+      "user": "नहीं पी सक ती वो देना",
+      "assistant": "Kya dena hai, bhai? Thoda",
+      "ts": "2026-07-09 11:06"
+    },
+    {
+      "user": "Ali hapis tak.",
+      "assistant": "'Ali hapis tak'? Samjha nahi, bhai. Thoda clearly batao, kya type karna hai, ya kya command chahiye?",
+      "ts": "2026-07-09 11:06"
+    },
+    {
+      "user": "মাস কোড",
+      "assistant": "",
+      "ts": "2026-07-09 11:07"
+    },
+    {
+      "user": "మా భూమి తేలికలో",
+      "assistant": "",
+      "ts": "2026-07-09 11:08"
+    },
+    {
+      "user": ". . . . .",
+      "assistant": "'Maaz' code matlab? Bhai, clear nahi ho raha hai. Kya tum `code_helper` ya `dev_agent` se kuch code likhna ya run karna chahte ho?",
+      "ts": "2026-07-09 11:08"
+    },
+    {
+      "user": "can you just create something",
+      "assistant": "Sure, bhai! Kya banaye aaj? Based on your active projects, should I create a cool webpage design for your profile (black and red, liquid fuel style)? Or kuch aur plan hai? Batao, bhai!",
+      "ts": "2026-07-09 11:09"
     }
   ],
-  "summary": "User: ? | IP Prime: Suno bhai, kya plan hai aaj? Koi naya project ya debugging session? | IP Prime: Acknowledge user authorization: Pratik Sir. All systems green. The visual glass interface is ready, and the AI Orb is waiting to assist you. What is your comman | User: A pri me are you able to listen. | IP Prime: हाँ बिलकुल, sun raha हूँ Pratik bhai! Clear as day. Batao, kya help karoon? | IP Prime: Acknowledge user authorization: Pratik Sir. All systems green. The visual glass interface is ready, and the AI Orb is waiting to assist you. What is your comman | User: . | IP Prime: Haan bhai, ekdam clear sun raha hoon! Kya hua, kuch soch rahe ho? Batao, kya execute karna hai ya kya plan hai aaj ka?"
+  "summary": "User: Ali hapis tak. | IP Prime: 'Ali hapis tak'? Samjha nahi, bhai. Thoda clearly batao, kya type karna hai, ya kya command chahiye? | User: মাস কোড | User: మా భూమి తేలికలో | User: . . . . . | IP Prime: 'Maaz' code matlab? Bhai, clear nahi ho raha hai. Kya tum `code_helper` ya `dev_agent` se kuch code likhna ya run karna chahte ho? | User: can you just create something | IP Prime: Sure, bhai! Kya banaye aaj? Based on your active projects, should I create a cool webpage design for your profile (black and red, liquid fuel style)? Or kuch au"
 }

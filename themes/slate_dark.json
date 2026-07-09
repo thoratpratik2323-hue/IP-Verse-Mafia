@@ -1,0 +1,17 @@
+{
+  "name": "Slate Dark",
+  "accent": "#06b6d4",
+  "accent_secondary": "#8b5cf6",
+  "bg_primary": "rgba(2, 6, 23, 0.95)",
+  "bg_secondary": "rgba(10, 18, 40, 0.90)",
+  "bg_card": "rgba(15, 25, 50, 0.85)",
+  "border": "rgba(6, 182, 212, 0.25)",
+  "text_primary": "#f8fafc",
+  "text_secondary": "rgba(255,255,255,0.55)",
+  "orb_color": "#06b6d4",
+  "orb_glow": "#0891b2",
+  "particle_color": "#06b6d4",
+  "gradient_start": "#020617",
+  "gradient_end": "#0a1628",
+  "aurora_colors": ["#06b6d4", "#8b5cf6", "#0891b2"]
+}

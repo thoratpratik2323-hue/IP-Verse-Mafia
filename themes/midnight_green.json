@@ -1,0 +1,17 @@
+{
+  "name": "Midnight Green",
+  "accent": "#10b981",
+  "accent_secondary": "#059669",
+  "bg_primary": "rgba(2, 12, 8, 0.97)",
+  "bg_secondary": "rgba(5, 20, 14, 0.92)",
+  "bg_card": "rgba(8, 28, 18, 0.88)",
+  "border": "rgba(16, 185, 129, 0.25)",
+  "text_primary": "#ecfdf5",
+  "text_secondary": "rgba(200,255,220,0.55)",
+  "orb_color": "#10b981",
+  "orb_glow": "#059669",
+  "particle_color": "#34d399",
+  "gradient_start": "#020c08",
+  "gradient_end": "#05140e",
+  "aurora_colors": ["#10b981", "#059669", "#065f46"]
+}

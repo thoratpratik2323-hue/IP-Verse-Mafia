@@ -1,24 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-03T09:33:07",
-      "tool": "file_explorer",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-03T09:33:31",
-      "tool": "file_explorer",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-03T09:33:46",
-      "tool": "computer_settings",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-03T09:33:50",
       "tool": "computer_control",
       "tokens": 800,
@@ -2999,12 +2981,30 @@
       "tool": "computer_settings",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-09T10:30:53",
+      "tool": "brain_search",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-09T10:41:22",
+      "tool": "prime_infinite_memory",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-09T11:07:31",
+      "tool": "code_companion",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 589,
-    "est_tokens": 471200,
-    "est_usd": 0.07068
+    "tool_calls": 592,
+    "est_tokens": 473600,
+    "est_usd": 0.07104
   },
   "by_day": {
     "2026-05-29": {
@@ -3103,9 +3103,9 @@
       "est_usd": 0.00096
     },
     "2026-07-09": {
-      "tool_calls": 1,
-      "est_tokens": 800,
-      "est_usd": 0.00012
+      "tool_calls": 4,
+      "est_tokens": 3200,
+      "est_usd": 0.00048
     }
   }
 }

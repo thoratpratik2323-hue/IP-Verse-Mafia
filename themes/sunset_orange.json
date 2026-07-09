@@ -1,0 +1,17 @@
+{
+  "name": "Sunset Orange",
+  "accent": "#f59e0b",
+  "accent_secondary": "#ef4444",
+  "bg_primary": "rgba(15, 8, 2, 0.97)",
+  "bg_secondary": "rgba(30, 12, 4, 0.92)",
+  "bg_card": "rgba(40, 16, 6, 0.88)",
+  "border": "rgba(245, 158, 11, 0.30)",
+  "text_primary": "#fffbeb",
+  "text_secondary": "rgba(255,230,180,0.55)",
+  "orb_color": "#f59e0b",
+  "orb_glow": "#d97706",
+  "particle_color": "#fbbf24",
+  "gradient_start": "#0f0802",
+  "gradient_end": "#1e0c04",
+  "aurora_colors": ["#f59e0b", "#ef4444", "#dc2626"]
+}

@@ -3168,5 +3168,87 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-07-09T10:27:14.164757",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the user's current location.",
+        "parameters": {
+          "city": "Mumbai"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "task_planner",
+        "description": "List the user's scheduled tasks for the day.",
+        "parameters": {
+          "action": "list"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "alert_manager",
+        "description": "Retrieve active alerts and system-wide notifications for the user.",
+        "parameters": {
+          "query_date": "2026-07-09",
+          "scope": "user_and_system"
+        },
+        "critical": true
+      },
+      {
+        "step": 4,
+        "tool": "morning_briefer",
+        "description": "Generate the premium morning overview combining weather, schedule, and alerts.",
+        "parameters": {
+          "action": "generate_overview",
+          "weather_data": "{{step_1_output}}",
+          "schedule_data": "{{step_2_output}}",
+          "alerts_data": "{{step_3_output}}"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-09T10:56:18.259890",
+    "goal": "Run incremental semantic indexing of the workspace in background",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "semantic_indexer",
+        "description": "Perform incremental semantic indexing of the workspace in the background.",
+        "parameters": {
+          "mode": "incremental",
+          "target": "workspace",
+          "run_in_background": true
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-09T10:56:41.371371",
+    "goal": "Run compact_memory to optimize search database during idle time",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "compact_memory",
+        "description": "Run compact_memory to optimize search database.",
+        "parameters": {},
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]

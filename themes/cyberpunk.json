@@ -1,0 +1,17 @@
+{
+  "name": "Cyberpunk",
+  "accent": "#ff006e",
+  "accent_secondary": "#00f5ff",
+  "bg_primary": "rgba(5, 0, 20, 0.97)",
+  "bg_secondary": "rgba(15, 0, 40, 0.92)",
+  "bg_card": "rgba(20, 0, 50, 0.88)",
+  "border": "rgba(255, 0, 110, 0.35)",
+  "text_primary": "#ffffff",
+  "text_secondary": "rgba(255,200,255,0.60)",
+  "orb_color": "#ff006e",
+  "orb_glow": "#cc0055",
+  "particle_color": "#00f5ff",
+  "gradient_start": "#050014",
+  "gradient_end": "#0f0028",
+  "aurora_colors": ["#ff006e", "#00f5ff", "#bf00ff"]
+}

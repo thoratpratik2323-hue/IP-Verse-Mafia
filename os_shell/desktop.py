@@ -47,6 +47,11 @@ from os_shell.widgets.network_monitor import NetworkMonitorHUD
 from os_shell.widgets.file_organizer import FileOrganizerWidget
 from os_shell.widgets.password_vault import PasswordVaultWidget
 
+# ── Phase 2 Widgets ──────────────────────────────────────────────────────────────────────
+from os_shell.widgets.sleep_mode import SleepModeOverlay
+from os_shell.widgets.task_queue_hud import TaskQueueHUD
+from os_shell.widgets.project_switcher import ProjectSwitcherWidget
+
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
 _GRAPH_NODES = [
     {"id": "IP PRIME",   "x": 0.5,  "y": 0.5,  "color": QColor("#00c8ff"), "size": 18},
@@ -519,6 +524,22 @@ class IPPrimeOSDesktop(QMainWindow):
 
         # Game Mode flag
         self._game_mode = False
+
+        # ── Phase 2: Sleep Mode ───────────────────────────────────────────────────────────────
+        self.sleep_overlay = SleepModeOverlay(self)
+        self.sleep_overlay.wake_requested.connect(self._on_wake)
+
+        # ── Phase 2: Task Queue HUD (Ctrl+Shift+J) ────────────────────────────────────
+        try:
+            from core.task_queue_manager import TaskQueue
+            self.task_queue_hud = TaskQueueHUD(TaskQueue, self)
+        except Exception:
+            self.task_queue_hud = TaskQueueHUD(None, self)
+        self.task_queue_hud.move(20, 180)
+
+        # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
+        self.project_switcher = ProjectSwitcherWidget(self)
+        self.project_switcher.project_switched.connect(self._on_project_switched)
 
         # Proactive Suggestion Timer (every 5 min)
         self._proactive_timer = QTimer(self)
@@ -2840,8 +2861,52 @@ class IPPrimeOSDesktop(QMainWindow):
             self._toggle_game_mode()
             return
 
+        if mods == (ctrl | shift) and key == Qt.Key.Key_S:
+            # Ctrl+Shift+S → Toggle Sleep Mode
+            if self.sleep_overlay.is_sleeping():
+                self.sleep_overlay.wake_up()
+            else:
+                self.sleep_overlay.enter_sleep()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_J:
+            # Ctrl+Shift+J → Toggle Task Queue HUD
+            self.task_queue_hud.toggle()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_W:
+            # Ctrl+Shift+W → Project Switcher
+            self.project_switcher.open()
+            return
+
         super().keyPressEvent(event)
+
+    def _on_wake(self):
+        """Called when sleep mode overlay exits — notify AI."""
+        try:
+            self._send_to_ai("Pratik wapas aa gaya! Welcome back bhai. 👋")
+        except Exception:
+            pass
+
+    def _on_project_switched(self, project_id: str, project_name: str):
+        """Called when project context is switched."""
+        try:
+            self._send_to_ai(
+                f"Project switch ho gaya: '{project_name}'. "
+                f"Ab is project se related memory aur tasks load karo."
+            )
+        except Exception:
+            pass
+
+    def mouseMoveEvent(self, event):
+        """Reset sleep inactivity timer on mouse movement."""
+        try:
+            self.sleep_overlay.reset_inactivity()
+        except Exception:
+            pass
+        super().mouseMoveEvent(event)
 
     def closeEvent(self, event):
         show_windows_taskbar()
         super().closeEvent(event)
+
