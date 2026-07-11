@@ -3250,5 +3250,103 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-07-11T08:30:20.040796",
+    "goal": "Generate and send the daily morning briefing email to Pratik Sir",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "morning_briefer",
+        "description": "Generate the daily morning briefing",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "send_message",
+        "description": "Send the generated briefing to Pratik Sir via email",
+        "parameters": {
+          "receiver": "Pratik Sir",
+          "message_text": "Here is your daily morning briefing.",
+          "platform": "Email"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-11T08:30:37.458857",
+    "goal": "Check all pending reminders and tasks for today",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "reminder",
+        "description": "List all pending reminders.",
+        "action": "list",
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "task_planner",
+        "description": "List all pending tasks for today.",
+        "action": "list",
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-11T08:32:15.037359",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the user's current location.",
+        "parameters": {
+          "city": "Mumbai"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "action": "briefing",
+        "description": "Get the morning briefing which includes schedule breakdown and active alerts.",
+        "parameters": {},
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-11T08:44:45.775444",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the current city (inferred).",
+        "parameters": {},
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "action": "briefing",
+        "description": "Get the morning briefing, which includes schedule breakdown and active alerts.",
+        "parameters": {},
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]

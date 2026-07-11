@@ -1,20 +1,5 @@
 [
     {
-        "timestamp": "2026-07-07 11:47",
-        "input": "اربعه عم تسوي",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-07 11:57",
-        "input": ".",
-        "mood": "neutral"
-    },
-    {
-        "timestamp": "2026-07-07 11:59",
-        "input": "ลักษณะ",
-        "mood": "neutral"
-    },
-    {
         "timestamp": "2026-07-07 18:54",
         "input": "I am able to listen me.",
         "mood": "neutral"
@@ -247,6 +232,21 @@
     {
         "timestamp": "2026-07-09 15:59",
         "input": "up to relax.",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-09 16:05",
+        "input": ".",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-11 08:31",
+        "input": "are you able to listen?",
+        "mood": "neutral"
+    },
+    {
+        "timestamp": "2026-07-11 08:44",
+        "input": "ครับ <noise>",
         "mood": "neutral"
     }
 ]
