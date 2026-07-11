@@ -542,9 +542,6 @@ class IPPrimeOSDesktop(QMainWindow):
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
 
-        # ── Visual Subtitles Overlay ──
-        self.subtitles_widget = VoiceSubtitlesWidget(self)
-
         # Proactive Suggestion Timer (every 5 min)
         self._proactive_timer = QTimer(self)
         self._proactive_timer.setInterval(5 * 60 * 1000)
@@ -2289,9 +2286,6 @@ class IPPrimeOSDesktop(QMainWindow):
                     
             import threading
             threading.Thread(target=store_vector, daemon=True).start()
-
-        if role in ["Prime", "Fallback"] and hasattr(self, "subtitles_widget"):
-            self.subtitles_widget.show_speech(clean_text)
 
         if role not in ["Prime", "Fallback"]:
             return

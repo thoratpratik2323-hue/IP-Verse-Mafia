@@ -867,10 +867,7 @@ class IPRayLive:
         sample_greeting = random.choice(sweet_samples)
         
         # Just greet — no auto briefing on startup
-        self.speak(
-            f"[SYSTEM_EVENT] System online. {disclaimer_prefix}Greet Pratik in natural friendly Hinglish, "
-            f"just say this exact phrase and nothing else: '{sample_greeting}'"
-        )
+        self.speak(sample_greeting)
 
     def _amplify_pcm(self, block: bytes, gain: float = 1.8) -> bytes:
         try:
