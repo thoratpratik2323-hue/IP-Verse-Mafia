@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from threading import Lock
 from datetime import datetime
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor

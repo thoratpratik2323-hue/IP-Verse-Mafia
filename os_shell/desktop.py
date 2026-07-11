@@ -16,7 +16,7 @@ import re
 import threading
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QPoint, QPointF, QRectF, QTimer, pyqtSignal, QSize
+from PyQt6.QtCore import Qt, QPoint, QPointF, QRectF, QTimer, pyqtSignal, QSize, QThread
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QApplication, QGraphicsDropShadowEffect,
@@ -2246,6 +2246,11 @@ class IPPrimeOSDesktop(QMainWindow):
             self._typewriter_char_idx = 0
 
     def add_conversation_line(self, role: str, text: str, skip_typewriter=False):
+        # Thread safety guard: redirect to main GUI thread if called from a background thread
+        if QThread.currentThread() != QApplication.instance().thread():
+            self.conversation_added.emit(role, text, skip_typewriter)
+            return
+
         if not hasattr(self, "log_history"):
             self.log_history = []
         if not hasattr(self, "_typewriter_queue"):

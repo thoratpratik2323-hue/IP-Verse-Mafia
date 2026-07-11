@@ -105,9 +105,9 @@ class VoiceSubtitlesWidget(QWidget):
         for i in range(start, end):
             word = self.words[i]
             if i == self.word_idx:
-                formatted.append(f"<font color='#06b6d4'><b>{word}</b></font>")
+                formatted.append(f"<font color='#00f0ff'><b>{word}</b></font>")
             else:
-                formatted.append(f"<font color='rgba(255,255,255,0.45)'>{word}</font>")
+                formatted.append(f"<font color='#8899a6'>{word}</font>")
                 
         prefix = "... " if start > 0 else ""
         suffix = " ..." if end < len(self.words) else ""
