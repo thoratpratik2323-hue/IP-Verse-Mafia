@@ -2293,6 +2293,9 @@ class IPPrimeOSDesktop(QMainWindow):
         if role in ["Prime", "Fallback"] and hasattr(self, "subtitles_widget"):
             self.subtitles_widget.show_speech(clean_text)
 
+        if role not in ["Prime", "Fallback"]:
+            return
+
         if skip_typewriter:
             return
 
