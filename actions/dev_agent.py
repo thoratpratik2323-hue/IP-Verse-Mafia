@@ -39,6 +39,9 @@ def _get_api_key() -> str:
 
 def _get_model(model_name: str):
     from google import genai
+    from actions.model_switcher import get_preferred_model
+    if model_name == "gemini-2.5-flash":
+        model_name = get_preferred_model("fast")
     genai.configure(api_key=_get_api_key())
     return genai.GenerativeModel(model_name)
 

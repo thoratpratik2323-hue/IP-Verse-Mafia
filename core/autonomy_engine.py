@@ -391,8 +391,10 @@ Be conservative — only propose actions clearly necessary for this goal."""
 
         try:
             from google.genai import types
+            from actions.model_switcher import get_preferred_model
+            model_name = get_preferred_model("fast")
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model=model_name,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.2,

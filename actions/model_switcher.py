@@ -20,11 +20,11 @@ CONFIG_DIR = BASE_DIR / "config"
 MODEL_CONFIG_FILE = CONFIG_DIR / "model_config.json"
 
 DEFAULT_MODELS = {
-    "gemini": "gemini-3.1-flash-live-preview",
+    "gemini": "gemini-2.5-pro",
     "claude": "claude-3-5-sonnet-20241022",
     "gpt-4o": "gpt-4o",
     "ollama": "llama3",
-    "freellmapi": "gemini-2.5-flash"
+    "freellmapi": "gemini-2.5-pro"
 }
 
 def _ensure_config_dir():

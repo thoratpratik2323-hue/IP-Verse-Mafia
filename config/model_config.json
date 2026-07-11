@@ -1,7 +1,7 @@
 {
     "active_provider": "gemini",
-    "active_model": "gemini-3.1-flash-live-preview",
+    "active_model": "gemini-2.5-pro",
     "routing_mode": "gemini",
-    "coding_model": "nvidia/llama-3.1-nemotron-70b-instruct",
+    "coding_model": "gemini-2.5-pro",
     "hacker_mode": false
 }
