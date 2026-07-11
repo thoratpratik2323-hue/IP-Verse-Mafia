@@ -2050,7 +2050,7 @@ class IPPrimeOSDesktop(QMainWindow):
             # Try psutil first
             try:
                 import psutil as _ps
-                cpu_val = int(_ps.cpu_percent(interval=0.1))
+                cpu_val = int(_ps.cpu_percent(interval=None))
                 ram_val = int(_ps.virtual_memory().percent)
             except Exception:
                 # Fallback to ctypes for Windows native API

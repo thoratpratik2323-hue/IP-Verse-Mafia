@@ -63,7 +63,7 @@ def create_app() -> "FastAPI":
 
     @app.get("/api/stats")
     def get_stats():
-        cpu = psutil.cpu_percent(interval=0.1)
+        cpu = psutil.cpu_percent(interval=None)
         ram = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
         return {
@@ -137,7 +137,7 @@ def create_app() -> "FastAPI":
         async def send_stats_loop():
             while True:
                 try:
-                    cpu = psutil.cpu_percent(interval=0.5)
+                    cpu = psutil.cpu_percent(interval=None)
                     ram = psutil.virtual_memory()
                     stats = {
                         "type": "stats",
