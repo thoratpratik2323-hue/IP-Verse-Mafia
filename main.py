@@ -181,10 +181,10 @@ LIVE_MODEL          = "gemini-2.5-flash-native-audio-latest"
 CHANNELS            = 1
 SEND_SAMPLE_RATE    = 16000
 RECEIVE_SAMPLE_RATE = 24000
-CHUNK_SIZE          = 2048   # smaller = lower mic→API latency (~64ms @ 16kHz)
-PLAY_BUFFER_SAMPLES = 1024   # smaller = voice starts sooner (~43ms @ 24kHz)
+CHUNK_SIZE          = 512    # Optimized for ultra-low latency (~32ms @ 16kHz)
+PLAY_BUFFER_SAMPLES = 256    # Play audio instantly (~10ms buffer @ 24kHz)
 VOICE_OUTPUT_GAIN   = 1.2
-LOW_LATENCY_PLAYBACK = True  # stream TTS chunks immediately (overridden by config)
+LOW_LATENCY_PLAYBACK = True
 
 from core.session import _get_api_key, _load_system_prompt, _clean_transcript
 
