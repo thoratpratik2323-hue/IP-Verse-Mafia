@@ -442,10 +442,10 @@ class IPPrimeOSDesktop(QMainWindow):
         self.current_theme = "dark"
         self.current_dir = Path(".").resolve()
         self.log_history = [
-            "System: IP Prime OS Yosemite Glass Desktop loaded.",
-            "System: Core 3D Particle AI Orb active.",
-            "Prime: Welcome back, Pratik Sir! Standing by.",
-            "System: Speak or say wake up words to start conversation."
+            "IP Prime OS Yosemite Glass Desktop loaded.",
+            "Core 3D Particle AI Orb active.",
+            "Welcome back, Pratik Sir! Standing by.",
+            "Speak or say wake up words to start conversation."
         ]
 
         # Start Web HUD backend server on port 5000 asynchronously if not running
@@ -2292,16 +2292,7 @@ class IPPrimeOSDesktop(QMainWindow):
         if skip_typewriter:
             return
 
-        if role == "User":
-            prefix = "User: "
-        elif role == "Prime":
-            prefix = "Prime: "
-        elif role == "Fallback":
-            prefix = "Fallback: "
-        else:
-            prefix = "System: "
-
-        formatted_line = f"{prefix}{clean_text}"
+        formatted_line = clean_text
         words = formatted_line.split()
         lines = []
         current_line = ""
@@ -2332,18 +2323,15 @@ class IPPrimeOSDesktop(QMainWindow):
             self.log_history = []
             
         if not self.log_history:
-            self.log_history.append("Prime: " + text_fragment)
+            self.log_history.append(text_fragment)
         else:
             last_line = self.log_history[-1]
-            if not last_line.startswith("Prime: "):
-                self.log_history.append("Prime: " + text_fragment)
+            separator = " " if not last_line.endswith(" ") and not text_fragment.startswith(" ") else ""
+            new_text = last_line + separator + text_fragment
+            if len(new_text) <= 45:
+                self.log_history[-1] = new_text
             else:
-                separator = " " if not last_line.endswith(" ") and not text_fragment.startswith(" ") else ""
-                new_text = last_line + separator + text_fragment
-                if len(new_text) <= 45:
-                    self.log_history[-1] = new_text
-                else:
-                    self.log_history.append("Prime: " + text_fragment)
+                self.log_history.append(text_fragment)
                     
         if len(self.log_history) > 18:
             self.log_history = self.log_history[-18:]
