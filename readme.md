@@ -44,6 +44,7 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | Dynamic Welcome Greetings | Custom AI-generated audio greetings on every launch |
 | Hybrid Input Mode | Seamlessly switch between voice and keyboard |
 | Multi-language Support | Understands and responds in any language |
+| **Synchronized Subtitles** | **Glassmorphic subtitle panel highlighting spoken words word-by-word in real-time** |
 
 ### 🖥️ System Control
 | Feature | Details |
@@ -54,6 +55,8 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | Audio Mixer | App-level volume control via `pycaw` |
 | Terminal Execution | Run shell commands, scripts, and programs |
 | Desktop Control | Interact with any open window or the desktop |
+| **Keyboard Autopilot** | **Executes natural-language keyboard shortcuts ('ctrl+s', 'win+d') via pyautogui/pywinauto** |
+| **Spotify Autopilot** | **Searches and plays Spotify songs/playlists using native app protocol URIs** |
 
 ### 🧠 AI & Intelligence
 | Feature | Details |
@@ -160,6 +163,7 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | **📅 Daily AI Digest** | **Once-per-day startup card in Notification Center — greeting, date, and system status** |
 | **🎮 Game Mode** | **F9 / Ctrl+Shift+G — hides all overlays, slows timers for max desktop performance** |
 | **🎨 Rounded Window Corners** | **Anti-aliased 12px rounded window boundaries and header frames for modern Apple OS / Windows 11 styling** |
+| **🔍 Screen OCR Highlighter** | **Locates text matching search queries and flashes concentric neon cyan/purple pulsing boxes on screen** |
 
 ### ⚡ Power Features
 | Feature | Details |
@@ -169,6 +173,7 @@ Engineered from the ground up by **Pratik Thorat** as a personal powerhouse digi
 | **🔐 Password Vault** | **AES-256 encrypted local credential manager (Ctrl+Shift+V) — never leaves your machine** |
 | **🦙 Ollama Local Fallback** | **When all cloud APIs fail, automatically falls back to local Ollama (llama3/mistral) if installed** |
 | **📋 Auto Meeting Notes** | **Clara bot auto-generates structured `.md` note templates in `memory/meeting_notes/` on deployment** |
+| **📡 Mobile Companion WS** | **WebSocket connection channel (/api/ws) on port 8765 for streaming voice commands and telemetry from phone app** |
 
 
 

@@ -12,6 +12,8 @@ Routes:
 from __future__ import annotations
 import sys
 import json
+import time
+import asyncio
 import psutil
 from pathlib import Path
 from datetime import datetime
@@ -102,6 +104,96 @@ def create_app() -> "FastAPI":
         if html_path.exists():
             return html_path.read_text(encoding="utf-8")
         return "<h1>IP Prime Dashboard — index.html not found</h1>"
+
+    # WebSocket route for mobile companion app integration
+    from fastapi import WebSocket, WebSocketDisconnect
+    
+    class ConnectionManager:
+        def __init__(self):
+            self.active_connections: list[WebSocket] = []
+
+        async def connect(self, websocket: WebSocket):
+            await websocket.accept()
+            self.active_connections.append(websocket)
+
+        def disconnect(self, websocket: WebSocket):
+            if websocket in self.active_connections:
+                self.active_connections.remove(websocket)
+
+        async def broadcast(self, message: dict):
+            for connection in self.active_connections:
+                try:
+                    await connection.send_json(message)
+                except Exception:
+                    pass
+
+    manager = ConnectionManager()
+
+    @app.websocket("/api/ws")
+    async def websocket_endpoint(websocket: WebSocket):
+        await manager.connect(websocket)
+        
+        # Start a background task to periodically send system stats to this client
+        async def send_stats_loop():
+            while True:
+                try:
+                    cpu = psutil.cpu_percent(interval=0.5)
+                    ram = psutil.virtual_memory()
+                    stats = {
+                        "type": "stats",
+                        "cpu_percent": cpu,
+                        "ram_percent": ram.percent,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    await websocket.send_json(stats)
+                    await asyncio.sleep(2.0)
+                except Exception:
+                    break
+                    
+        stats_task = asyncio.create_task(send_stats_loop())
+        
+        try:
+            while True:
+                data = await websocket.receive_json()
+                cmd_text = data.get("command", "").strip()
+                if cmd_text:
+                    # Route to standard IP Prime IPC json file so main process executes it
+                    ipc_file = Path(r"C:\Users\thora\Downloads\output\ip_prime_ipc.json")
+                    req_id = f"mobile_{int(time.time())}"
+                    
+                    ipc_payload = {
+                        "status": "pending",
+                        "command": cmd_text,
+                        "request_id": req_id
+                    }
+                    try:
+                        ipc_file.write_text(json.dumps(ipc_payload, indent=4), encoding="utf-8")
+                        
+                        # Wait for execution response in background, then send back
+                        async def wait_for_response():
+                            for _ in range(30): # 30 seconds timeout
+                                await asyncio.sleep(1.0)
+                                if ipc_file.exists():
+                                    try:
+                                        res_data = json.loads(ipc_file.read_text(encoding="utf-8"))
+                                        if res_data.get("request_id") == req_id and res_data.get("status") in ("completed", "failed"):
+                                            response_msg = {
+                                                "type": "response",
+                                                "status": res_data.get("status"),
+                                                "response": res_data.get("response", ""),
+                                                "error": res_data.get("error", "")
+                                            }
+                                            await websocket.send_json(response_msg)
+                                            break
+                                    except Exception:
+                                        pass
+                        asyncio.create_task(wait_for_response())
+                    except Exception as e:
+                        await websocket.send_json({"type": "response", "status": "failed", "error": str(e)})
+        except WebSocketDisconnect:
+            manager.disconnect(websocket)
+        finally:
+            stats_task.cancel()
 
     return app
 

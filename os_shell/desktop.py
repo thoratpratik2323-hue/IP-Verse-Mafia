@@ -51,6 +51,7 @@ from os_shell.widgets.password_vault import PasswordVaultWidget
 from os_shell.widgets.sleep_mode import SleepModeOverlay
 from os_shell.widgets.task_queue_hud import TaskQueueHUD
 from os_shell.widgets.project_switcher import ProjectSwitcherWidget
+from os_shell.widgets.voice_subtitles import VoiceSubtitlesWidget
 
 # ─── Native Mind Graph Canvas (Knowledge Graph with QPainter) ─────────────
 _GRAPH_NODES = [
@@ -540,6 +541,9 @@ class IPPrimeOSDesktop(QMainWindow):
         # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
+
+        # ── Visual Subtitles Overlay ──
+        self.subtitles_widget = VoiceSubtitlesWidget(self)
 
         # Proactive Suggestion Timer (every 5 min)
         self._proactive_timer = QTimer(self)
@@ -2280,6 +2284,9 @@ class IPPrimeOSDesktop(QMainWindow):
                     
             import threading
             threading.Thread(target=store_vector, daemon=True).start()
+
+        if role in ["Prime", "Fallback"] and hasattr(self, "subtitles_widget"):
+            self.subtitles_widget.show_speech(clean_text)
 
         if skip_typewriter:
             return

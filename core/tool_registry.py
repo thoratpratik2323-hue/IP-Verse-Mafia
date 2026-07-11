@@ -3408,5 +3408,49 @@ TOOL_DECLARATIONS: list[dict] = [
             },
             "required": []
         }
+    },
+    {
+        "name": "press_keys",
+        "description": "Executes keyboard shortcuts on the computer autonomously (e.g. 'ctrl+s', 'win+d', 'alt+tab').",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "keys": {"type": "STRING", "description": "Keyboard shortcut combination (e.g., 'ctrl+s', 'win+d')"}
+            },
+            "required": ["keys"]
+        }
+    },
+    {
+        "name": "play_spotify_track",
+        "description": "Launches the Spotify app and searches/plays the requested song/playlist query.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Song title or artist query (e.g., 'Arijit Singh hits')"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "open_system_app",
+        "description": "Opens a system application using Registry, StartApps, or windows search fallback chains.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "app_name": {"type": "STRING", "description": "Name of the app to launch (e.g. 'notepad', 'chrome')"}
+            },
+            "required": ["app_name"]
+        }
+    },
+    {
+        "name": "screen_ocr_highlight",
+        "description": "Captures the screen, runs OCR, finds text matching the query, and flashes a neon highlight overlay around it.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "query": {"type": "STRING", "description": "Text query to locate and highlight on screen"}
+            },
+            "required": ["query"]
+        }
     }
 ]

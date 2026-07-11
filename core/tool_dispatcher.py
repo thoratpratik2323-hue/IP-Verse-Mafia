@@ -1485,6 +1485,30 @@ async def dispatch_tool(name: str, args: dict, player, speak, loop) -> str:
             r = await loop.run_in_executor(None, lambda: autonomy_engine_action(parameters=args, player=player))
             result = r or "Done, sir."
 
+        elif name == "press_keys":
+            from actions.autopilot_agent import press_shortcut
+            keys = args.get("keys", "")
+            r = await loop.run_in_executor(None, lambda: press_shortcut(keys))
+            result = r or "Done."
+
+        elif name == "play_spotify_track":
+            from actions.autopilot_agent import play_spotify_track
+            query = args.get("query", "")
+            r = await loop.run_in_executor(None, lambda: play_spotify_track(query))
+            result = r or "Done."
+
+        elif name == "open_system_app":
+            from actions.autopilot_agent import open_system_app
+            app_name = args.get("app_name", "")
+            r = await loop.run_in_executor(None, lambda: open_system_app(app_name))
+            result = r or "Done."
+
+        elif name == "screen_ocr_highlight":
+            from os_shell.widgets.screen_highlighter import highlight_text_on_screen
+            query = args.get("query", "")
+            r = await loop.run_in_executor(None, lambda: highlight_text_on_screen(query))
+            result = r or "Done."
+
         else:
             result = f"Unknown tool: {name}"
 
