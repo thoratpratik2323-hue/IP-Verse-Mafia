@@ -1,6 +1,7 @@
 """
 os_shell/widgets/voice_subtitles.py — Active Speech Subtitles Panel.
 Sequentially highlights spoken words in cyan, keeping user in sync with voice output.
+Supports both offline TTS timers and real-time Live API streaming tokens.
 """
 from __future__ import annotations
 import re
@@ -17,14 +18,23 @@ class VoiceSubtitlesWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Widget)
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowStaysOnTopHint |
+            Qt.WindowType.SubWindow |
+            Qt.WindowType.WindowTransparentForInput
+        )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
         
         self.words: list[str] = []
         self.word_idx = 0
         
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._advance_word)
+        
+        self._inactivity_timer = QTimer(self)
+        self._inactivity_timer.timeout.connect(self.hide)
         
         self._setup_ui()
         self.hide()
@@ -57,7 +67,7 @@ class VoiceSubtitlesWidget(QWidget):
         layout.addWidget(self.label)
 
     def show_speech(self, text: str):
-        """Prepares and starts word-by-word subtitle highlighting."""
+        """Prepares and starts word-by-word subtitle highlighting (Offline TTS)."""
         # Clean text
         clean = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
         clean = re.sub(r'\[.*?\]', '', clean)
@@ -72,18 +82,36 @@ class VoiceSubtitlesWidget(QWidget):
         self.show()
         self.raise_()
         
-        # Calculate interval dynamically based on word length (average 260ms per word)
+        # Calculate interval dynamically based on word length
         self._update_text()
         self._start_word_timer()
+
+    def append_streamed_text(self, text: str):
+        """Appends and highlights incoming speech tokens in real-time from Gemini Live stream."""
+        clean = re.sub(r'\[.*?\]', '', text)
+        clean = re.sub(r'[*#_\-`]', '', clean)
+        new_words = [w for w in clean.split() if w.strip()]
+        if not new_words:
+            return
+            
+        # Reset word list if we were hidden or buffer gets too long
+        if not self.isVisible() or len(self.words) > 40:
+            self.words = []
+            
+        self.words.extend(new_words)
+        self.word_idx = len(self.words) - 1 # Highlight the newest word
+        
+        self.show()
+        self.raise_()
+        self._update_text()
+        self._inactivity_timer.start(2500) # Reset inactivity timer (2.5 seconds)
 
     def _start_word_timer(self):
         if self.word_idx < len(self.words):
             word = self.words[self.word_idx]
-            # Give longer words slightly more time
             duration = max(180, min(500, len(word) * 45))
             self._timer.start(duration)
         else:
-            # Done speaking, hide subtitles after a brief pause
             QTimer.singleShot(1000, self.hide)
 
     def _advance_word(self):
@@ -118,5 +146,4 @@ class VoiceSubtitlesWidget(QWidget):
         if self.parent():
             pw = self.parent().width()
             ph = self.parent().height()
-            # Center horizontally, place slightly above bottom stats panel (h - 130)
             self.setGeometry((pw - self.width()) // 2, ph - 140, self.width(), self.height())
