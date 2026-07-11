@@ -63,8 +63,8 @@ class WakeWordSpotterThread(threading.Thread):
                         continue
                         
                     print("[WakeWord] Listening for trigger phrase...")
-                    # Listen with 4s timeout to avoid getting stuck if no audio
-                    audio = r.listen(source, timeout=4.0, phrase_time_limit=3.0)
+                    # Listen with 0.8s timeout to quickly release the mic lock when paused
+                    audio = r.listen(source, timeout=0.8, phrase_time_limit=2.0)
                     
                 if not self._running or self._stop_event.is_set():
                     continue
