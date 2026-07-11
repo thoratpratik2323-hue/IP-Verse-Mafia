@@ -550,6 +550,18 @@ class IPPrimeOSDesktop(QMainWindow):
         # Daily Digest — show 3 seconds after startup (non-blocking)
         QTimer.singleShot(3000, self._show_daily_digest)
 
+        # Background Workspace RAG Indexing (Option 4)
+        import threading
+        from actions.semantic_store import index_directory
+        def bg_index():
+            try:
+                print(f"[IP PRIME RAG] Starting background codebase indexing for {self.current_dir.resolve()}...")
+                res = index_directory(str(self.current_dir.resolve()))
+                print(f"[IP PRIME RAG] Indexing completed: {res}")
+            except Exception as e:
+                print(f"[IP PRIME RAG] Background indexing failed: {e}")
+        threading.Thread(target=bg_index, daemon=True).start()
+
     def init_ui(self):
         hide_windows_taskbar()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
@@ -2687,7 +2699,10 @@ class IPPrimeOSDesktop(QMainWindow):
 
     def _send_to_ai(self, text: str):
         """Forward a text command to the AI facade (main player)."""
-        if self.ui_facade and hasattr(self.ui_facade, "process_text_input"):
+        if self.ui_facade and hasattr(self.ui_facade, "on_text_command") and callable(self.ui_facade.on_text_command):
+            import threading
+            threading.Thread(target=self.ui_facade.on_text_command, args=(text,), daemon=True).start()
+        elif self.ui_facade and hasattr(self.ui_facade, "process_text_input"):
             self.ui_facade.process_text_input(text)
         elif self.ui_facade and hasattr(self.ui_facade, "_dispatch_text"):
             self.ui_facade._dispatch_text(text)
@@ -2745,6 +2760,31 @@ class IPPrimeOSDesktop(QMainWindow):
             self._send_to_ai(f"analyze screen snapshot at {snap_path.resolve()}")
         except Exception as e:
             print(f"[Desktop] Screen snapshot failed: {e}")
+
+    def start_screen_crop(self):
+        """Take a screenshot of desktop and start neon crop tool overlay."""
+        self.notif_center.add_notification("👁️", "Multimodal Eyes Mode",
+            "Click and drag to select a region to analyze.", color="#a855f7")
+        # Temporarily hide desktop UI for a clean screen grab
+        self.hide()
+        QApplication.processEvents()
+        import time
+        time.sleep(0.15)
+        
+        # Grab full screen
+        screen = QApplication.primaryScreen()
+        if screen:
+            pixmap = screen.grabWindow(0)
+        else:
+            from PyQt6.QtGui import QPixmap
+            pixmap = QPixmap()
+            
+        self.show()
+        self.raise_()
+        
+        from os_shell.widgets.screen_crop import ScreenCropOverlay
+        self.crop_overlay = ScreenCropOverlay(pixmap, self)
+        self.crop_overlay.showFullScreen()
 
     def _proactive_check(self):
         """Check log history for repeated errors and suggest fixes."""
@@ -2873,6 +2913,11 @@ class IPPrimeOSDesktop(QMainWindow):
         if mods == (ctrl | shift) and key == Qt.Key.Key_W:
             # Ctrl+Shift+W → Project Switcher
             self.project_switcher.open()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_E:
+            # Ctrl+Shift+E → Multimodal Eyes Crop Mode
+            self.start_screen_crop()
             return
 
         super().keyPressEvent(event)

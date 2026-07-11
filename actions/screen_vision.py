@@ -28,15 +28,21 @@ def _get_gemini_client() -> genai.Client:
 
 def capture_and_analyze_screen(prompt: str = "Explain what is currently on my screen.") -> str:
     """Captures a fullscreen screenshot and uses Gemini 2.5 Flash's multimodal model to analyze it."""
-    TEMP_DIR.mkdir(parents=True, exist_ok=True)
-    temp_path = TEMP_DIR / "temp_screen.png"
-    
-    try:
-        # Take screenshot
-        screenshot = pyautogui.screenshot()
-        screenshot.save(temp_path)
-    except Exception as e:
-        return f"Error capturing screenshot: {e}"
+    crop_path = Path("data/crop_snap.png")
+    has_crop = False
+    if crop_path.exists():
+        print(f"[Screen Vision] Found cropped snapshot: {crop_path}. Analyzing crop...")
+        temp_path = crop_path
+        has_crop = True
+    else:
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        temp_path = TEMP_DIR / "temp_screen.png"
+        try:
+            # Take screenshot
+            screenshot = pyautogui.screenshot()
+            screenshot.save(temp_path)
+        except Exception as e:
+            return f"Error capturing screenshot: {e}"
         
     try:
         client = _get_gemini_client()
@@ -47,8 +53,11 @@ You will be provided with a screenshot of the user's desktop/application and a p
 Analyze the image with absolute precision. Describe what you see, transcribe any errors, and offer clear, concise solutions or insights. 
 Use clean markdown to present your answer."""
         
+        from actions.model_switcher import get_preferred_model
+        model_name = get_preferred_model("fast")
+        
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=model_name,
             contents=[image, prompt],
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,

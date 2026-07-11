@@ -474,8 +474,16 @@ def screen_clicker(element_description: str) -> str:
 def screen_explainer(description: str = "") -> str:
     """Feature 6: Smart Screen Annotator & Explainer"""
     try:
-        from actions.prime_utils import UnifiedModelClient
-        image_bytes, mime_type = _capture_screen()
+        from pathlib import Path
+        crop_path = Path("data/crop_snap.png")
+        if crop_path.exists():
+            print(f"[Screen Explainer] Found cropped snapshot: {crop_path}. Analyzing crop...")
+            image_bytes = crop_path.read_bytes()
+            mime_type = "image/png"
+            try: crop_path.unlink()
+            except: pass
+        else:
+            image_bytes, mime_type = _capture_screen()
 
         client = UnifiedModelClient(category="vision")
         prompt = (
