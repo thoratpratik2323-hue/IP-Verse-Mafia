@@ -50,12 +50,34 @@ def play_spotify_track(query: str) -> str:
                 if _PYAUTOGUI:
                     # Press enter or space to play first result
                     pyautogui.press('enter')
-            threading.Thread(target=_play_delay, daemon=True).start()
+            # Update local desktop HUD info
+            update_desktop_media_info(query)
             return f"✅ Spotify launched and searched for '{query}'."
         else:
             return "Spotify automation is only supported on Windows."
     except Exception as e:
         return f"❌ Spotify launch failed: {e}"
+
+def update_desktop_media_info(query: str):
+    """Searches top-level widgets for desktop window to update media details."""
+    try:
+        from PyQt6.QtWidgets import QApplication
+        for w in QApplication.topLevelWidgets():
+            if w.inherits("QMainWindow") or w.__class__.__name__ == "IPPrimeOSDesktop":
+                if hasattr(w, "media_hud") and w.media_hud:
+                    parts = query.split("by")
+                    if len(parts) > 1:
+                        title = parts[0].strip().title()
+                        artist = parts[1].strip().title()
+                    else:
+                        title = query.strip().title()
+                        artist = "Spotify Playback"
+                    
+                    from PyQt6.QtCore import QTimer
+                    QTimer.singleShot(0, lambda: w.media_hud.set_track_info(title, artist))
+                    break
+    except Exception as e:
+        print(f"[Autopilot] Failed to update Media HUD: {e}")
 
 def open_system_app(app_name: str) -> str:
     """

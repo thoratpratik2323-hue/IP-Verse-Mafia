@@ -537,6 +537,12 @@ class IPPrimeOSDesktop(QMainWindow):
             self.task_queue_hud = TaskQueueHUD(None, self)
         self.task_queue_hud.move(20, 180)
 
+        # ── Universal Media Control HUD (Option 2) ───────────────────────────
+        from os_shell.widgets.media_hud import MediaControlHUD
+        self.media_hud = MediaControlHUD(self)
+        self.media_hud.move(20, 290)
+        self.media_hud.show()
+
         # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
