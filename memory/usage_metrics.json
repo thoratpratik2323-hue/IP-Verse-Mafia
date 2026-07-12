@@ -1,24 +1,6 @@
 {
   "sessions": [
     {
-      "ts": "2026-06-03T09:36:46",
-      "tool": "computer_settings",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-03T09:36:55",
-      "tool": "browser_control",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
-      "ts": "2026-06-03T09:39:04",
-      "tool": "file_controller",
-      "tokens": 800,
-      "usd": 0.00012
-    },
-    {
       "ts": "2026-06-03T09:39:10",
       "tool": "file_controller",
       "tokens": 800,
@@ -2999,12 +2981,30 @@
       "tool": "spotify_dj_mode",
       "tokens": 800,
       "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-11T08:58:43",
+      "tool": "youtube_video",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-11T09:10:51",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
+    },
+    {
+      "ts": "2026-07-11T09:19:50",
+      "tool": "open_app",
+      "tokens": 800,
+      "usd": 0.00012
     }
   ],
   "totals": {
-    "tool_calls": 594,
-    "est_tokens": 475200,
-    "est_usd": 0.07128
+    "tool_calls": 597,
+    "est_tokens": 477600,
+    "est_usd": 0.07164
   },
   "by_day": {
     "2026-05-29": {
@@ -3106,6 +3106,11 @@
       "tool_calls": 6,
       "est_tokens": 4800,
       "est_usd": 0.00072
+    },
+    "2026-07-11": {
+      "tool_calls": 3,
+      "est_tokens": 2400,
+      "est_usd": 0.00036
     }
   }
 }

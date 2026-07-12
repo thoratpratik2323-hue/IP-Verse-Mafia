@@ -3348,5 +3348,85 @@
     ],
     "result": "Task completed successfully",
     "success": true
+  },
+  {
+    "timestamp": "2026-07-11T09:09:21.777098",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for a specific city.",
+        "parameters": {
+          "city": "Mumbai"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Get the schedule breakdown for the day.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List all active alerts and pending tasks for today.",
+        "parameters": {
+          "action": "list"
+        },
+        "critical": true
+      },
+      {
+        "step": 4,
+        "tool": "overview_generator",
+        "description": "Compile the retrieved weather forecast, schedule breakdown, and active alerts into a premium morning overview for the specified date.",
+        "parameters": {
+          "format": "premium_morning_overview",
+          "date": "2026-07-11"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
+  },
+  {
+    "timestamp": "2026-07-11T09:21:39.928180",
+    "goal": "Generate a premium morning overview containing weather forecast, schedule breakdown, and active alerts.",
+    "plan_steps": [
+      {
+        "step": 1,
+        "tool": "weather_report",
+        "description": "Get the weather forecast for the user's current location.",
+        "parameters": {
+          "city": "current"
+        },
+        "critical": true
+      },
+      {
+        "step": 2,
+        "tool": "morning_briefer",
+        "description": "Get the schedule breakdown for the day.",
+        "parameters": {
+          "action": "briefing"
+        },
+        "critical": true
+      },
+      {
+        "step": 3,
+        "tool": "task_planner",
+        "description": "List active alerts for the day.",
+        "parameters": {
+          "action": "active"
+        },
+        "critical": true
+      }
+    ],
+    "result": "Task completed successfully",
+    "success": true
   }
 ]

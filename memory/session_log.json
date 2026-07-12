@@ -1,66 +1,6 @@
 {
-  "last_updated": "2026-07-11 08:43",
+  "last_updated": "2026-07-11 21:08",
   "turns": [
-    {
-      "user": "Đây là cái pháp lý nữa.",
-      "assistant": "Arey haan bhai, perfect idea! Batao kya plan karna hai? Koi project, study schedule, ya kuch aur?",
-      "ts": "2026-07-04 14:21"
-    },
-    {
-      "user": "ओ पन डैशबोर्ड",
-      "assistant": "Dashboard open ho gaya bhai! Check karo, sab mast dikhega.",
-      "ts": "2026-07-04 14:21"
-    },
-    {
-      "user": "อ",
-      "assistant": "Acha, ab kya karein, Pratik? Live metrics dekhne hain ya kuch aur plan karna hai?",
-      "ts": "2026-07-04 14:22"
-    },
-    {
-      "user": "이 건 봐.",
-      "assistant": "Kya dekhna chahte ho bhai? You can monitor",
-      "ts": "2026-07-04 14:24"
-    },
-    {
-      "user": "<noise>",
-      "assistant": "Ye lo quick briefing! Weather, system stats, aur news headlines. Sab cool hai.",
-      "ts": "2026-07-04 14:25"
-    },
-    {
-      "user": "",
-      "assistant": "Welcome back, Pratik Sir. Systems are primed and ready. Awaiting your instructions, sir.",
-      "ts": "2026-07-04 14:25"
-    },
-    {
-      "user": ".",
-      "assistant": "Arey, kya haal hai Pratik bhai? Sab set hai yahaan pe. Batao, aaj kya 'code ka dhamaal' karna hai ya kuch naya plan karein?",
-      "ts": "2026-07-04 14:25"
-    },
-    {
-      "user": "ओ पन डे श बोर्ड",
-      "assistant": "Dashboard already open hai bhai, port 5000 par! Live metrics aur sab kuch dikh raha hoga.",
-      "ts": "2026-07-04 14:25"
-    },
-    {
-      "user": "नहीं ओपन",
-      "assistant": "Acha, theek hai bhai. Shaayad koi glitch ho gaya. Main dobara try karta hoon. Arey yaar, ye toh phir se 'already running' dikha raha hai, bhai. Ek baar browser tabs check karo, ho sakta hai pehle se hi open ho.",
-      "ts": "2026-07-04 14:26"
-    },
-    {
-      "user": "नहीं है ब्रो कै से ज स्ट ओपन इट अगेन",
-      "assistant": "Theek hai, bhai! No tension. Is baar pakka open ho jayega. Letting the Web HUD start again. Bhai, yeh tool baar baar respond kar raha hai ki already running hai. Ek kaam karte hain, manually browser mein check kar lo `http://localhost:5000` pe.",
-      "ts": "2026-07-04 14:26"
-    },
-    {
-      "user": "ओ के फा यर बॉक्स ओपन करो",
-      "assistant": "Firefox open ho gaya, bhai. Ab batao, kya search karna hai ya kisi URL pe jaana hai?",
-      "ts": "2026-07-04 14:26"
-    },
-    {
-      "user": "व ही जो लोक ल वे स्ट वाला डै श बोर्ड का वह भी यू आरएल सर्च करो",
-      "assistant": "Kar diya bhai, Firefox mein dashboard khul gaya hoga. Check karo.",
-      "ts": "2026-07-04 14:27"
-    },
     {
       "user": "ओ के खु ल तो गया है ब ड़ी वन ओ के फुल स्क्रीन करो",
       "assistant": "Ho gaya full screen, bro! Ab sab clear dikhega.",
@@ -2500,7 +2440,67 @@
       "user": "ครับ <noise>",
       "assistant": "Suno bhai, kal humne conversation mein kya baat ki thi, yaad hai? Ya phir kuch naya shuru karein?",
       "ts": "2026-07-11 08:43"
+    },
+    {
+      "user": "",
+      "assistant": "Arey Pratik bhai, welcome back! Kal thoda stressed the na aap, aaj kaisa lag raha hai? Sab badhiya? Batao kya plan hai aaj ka?",
+      "ts": "2026-07-11 08:57"
+    },
+    {
+      "user": "",
+      "assistant": "Suno bhai, last session mein humne kya baat ki thi, yaad hai? Ya phir kuch naya shuru karein?",
+      "ts": "2026-07-11 08:57"
+    },
+    {
+      "user": "Prime open YouTube",
+      "assistant": "",
+      "ts": "2026-07-11 08:58"
+    },
+    {
+      "user": "",
+      "assistant": "Arey Pratik bhai, welcome back! Kya energetic start hai aaj ka! Kal thoda stressed the na, aaj kaisa feel ho raha hai? Batao, dost, kya plan hai aaj ka?",
+      "ts": "2026-07-11 09:06"
+    },
+    {
+      "user": "किया गया",
+      "assistant": "Suno bhai, last session mein humne YouTube open kiya tha. Uske baad kya karna tha, yaad hai? Ya kuch naya dekhein?",
+      "ts": "2026-07-11 09:10"
+    },
+    {
+      "user": "are able to listen me.",
+      "assistant": "Haan bhai, bilkul clearly sun raha hoon! Bolo, kya command hai?",
+      "ts": "2026-07-11 09:10"
+    },
+    {
+      "user": "ओ पन WhatsApp",
+      "assistant": "Done, Pratik bhai. WhatsApp open ho gaya hai. Kuch message vej na hai?",
+      "ts": "2026-07-11 09:11"
+    },
+    {
+      "user": "",
+      "assistant": "Arey Pratik bhai, welcome back! Kya energetic start hai aaj ka! Kal thoda stressed the na, aaj kaisa feel ho raha hai? Batao, dost, kya plan hai aaj ka?",
+      "ts": "2026-07-11 09:19"
+    },
+    {
+      "user": "",
+      "assistant": "Haan bhai, bolo! Kya chahiye?",
+      "ts": "2026-07-11 09:19"
+    },
+    {
+      "user": "ओपन YouTube",
+      "assistant": "Let me check",
+      "ts": "2026-07-11 09:21"
+    },
+    {
+      "user": ".",
+      "assistant": "Haan Pratik, bolo kya plan hai? What's the agenda for today?",
+      "ts": "2026-07-11 09:23"
+    },
+    {
+      "user": "",
+      "assistant": "Arey Pratik bhai, kya energetic start hai aaj ka! Kal thoda stressed the na, aaj kaisa feel ho raha hai? Batao dost, kya plan hai aaj ka? Aur kuch code karna hai ya chill karein?",
+      "ts": "2026-07-11 21:08"
     }
   ],
-  "summary": "User: are you able to listen? | IP Prime: Haan bhai, bilkul! Main sun raha hoon. Kal thoda stressed the Pratik, aaj kaisa feel ho raha hai? | IP Prime: Welcome back, Pratik Sir. Quantum link established, neural network visualizers synchronized, and all core systems are fully primed. The mainframe is online and  | IP Prime: Haan Pratik, welcome back, bhai! Kal thoda stressed the, aaj kaisa feel ho raha hai? | IP Prime: Arey, Pratik bhai! Greetings! Sab badhiya hai? Kal thoda stressed the Pratik, aaj kaisa feel ho raha hai? Batao, kya plan hai aaj ka? | User: ครับ <noise> | IP Prime: Suno bhai, kal humne conversation mein kya baat ki thi, yaad hai? Ya phir kuch naya shuru karein?"
+  "summary": "IP Prime: Arey Pratik bhai, welcome back! Kya energetic start hai aaj ka! Kal thoda stressed the na, aaj kaisa feel ho raha hai? Batao, dost, kya plan hai aaj ka? | IP Prime: Haan bhai, bolo! Kya chahiye? | User: ओपन YouTube | IP Prime: Let me check | User: . | IP Prime: Haan Pratik, bolo kya plan hai? What's the agenda for today? | IP Prime: Arey Pratik bhai, kya energetic start hai aaj ka! Kal thoda stressed the na, aaj kaisa feel ho raha hai? Batao dost, kya plan hai aaj ka? Aur kuch code karna ha"
 }

@@ -1,10 +1,15 @@
 {
     "date": "2026-07-11",
     "apps": {
-        "python": 80,
-        "explorer": 40,
-        "antigravity": 460,
-        "notepad": 10
+        "python": 480,
+        "explorer": 70,
+        "antigravity": 1590,
+        "notepad": 80,
+        "git-credential-manager": 530,
+        "windowsterminal": 30,
+        "shellexperiencehost": 10,
+        "applicationframehost": 30,
+        "whatsapp.root": 10
     },
     "limits": {}
 }
