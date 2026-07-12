@@ -48,6 +48,14 @@ class KanbanTaskBoardHUD(QWidget):
         
         self.refresh_ui()
 
+        # File Watcher for Real-time Sync
+        from PyQt6.QtCore import QFileSystemWatcher
+        self.watcher = QFileSystemWatcher(self)
+        if not GOALS_PATH.exists():
+            self._save_tasks()
+        self.watcher.addPath(str(GOALS_PATH))
+        self.watcher.fileChanged.connect(self._on_file_changed)
+
     def _load_tasks(self):
         """Loads tasks from goals.json with fallback default goals."""
         try:
@@ -137,8 +145,13 @@ class KanbanTaskBoardHUD(QWidget):
             
         self.layout_tasks.addStretch()
 
+    def _on_file_changed(self):
+        self._load_tasks()
+        self.refresh_ui()
+
     def toggle_task(self, task_id: int, state: int):
         """Update task progress dynamically."""
+        self.watcher.blockSignals(True)
         for t in self.tasks:
             if t["id"] == task_id:
                 if state == 2: # Checked
@@ -149,8 +162,8 @@ class KanbanTaskBoardHUD(QWidget):
                     t["progress"] = 0
                 break
         self._save_tasks()
+        self.watcher.blockSignals(False)
         # Non-blocking single shot UI refresh to allow checkbox state animation to render
-        QTimer = pyqtSignal
         from PyQt6.QtCore import QTimer as QtTimer
         QtTimer.singleShot(100, self.refresh_ui)
 

@@ -208,6 +208,11 @@ def index_file(client: genai.Client, file_path: Path) -> bool:
 
 def index_directory(dir_path_str: str) -> str:
     """Walks the directory and indexes new or modified text/source files."""
+    try:
+        from actions.autopilot_agent import highlight_swarm_node
+        highlight_swarm_node("Architect", "RAG: Indexing codebase...")
+    except Exception:
+        pass
     init_db()
     client = _get_gemini_client()
     

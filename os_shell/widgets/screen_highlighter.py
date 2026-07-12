@@ -160,6 +160,62 @@ def highlight_text_on_screen(query: str) -> str:
             except Exception as e:
                 print(f"[Highlighter OCR Err] {e}")
                 
+        # Gemini Vision Fallback if Tesseract failed or found no local matches
+        if not found_matches and os.path.exists(temp_img_path):
+            try:
+                print(f"[Highlighter Fallback] Local OCR returned no matches. Querying Gemini Vision RAG...")
+                from actions.prime_utils import UnifiedModelClient
+                from google.genai import types as gtypes
+                
+                try:
+                    from actions.autopilot_agent import highlight_swarm_node
+                    highlight_swarm_node("Fallback", f"OCR Fallback to Gemini: {query}")
+                except:
+                    pass
+                
+                with open(temp_img_path, "rb") as f:
+                    img_bytes = f.read()
+                
+                client = UnifiedModelClient(category="vision")
+                prompt = (
+                    f"Find the pixel coordinates [x, y, width, height] of the text '{query}' on this screenshot image. "
+                    f"Return a JSON object containing keys 'x', 'y', 'w', 'h'. "
+                    f"If multiple instances exist, return a JSON object with a list of coordinates under key 'matches'. "
+                    f"Return ONLY valid raw JSON, nothing else."
+                )
+                
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[
+                        gtypes.Part.from_bytes(data=img_bytes, mime_type="image/png"),
+                        prompt
+                    ]
+                )
+                
+                import re
+                import json
+                txt = response.text or ""
+                match = re.search(r"\{.*\}|\[.*\]", txt, re.DOTALL)
+                if match:
+                    parsed = json.loads(match.group(0))
+                    if "matches" in parsed and isinstance(parsed["matches"], list):
+                        for item in parsed["matches"]:
+                            found_matches.append({
+                                "x": int(item.get("x", 0)),
+                                "y": int(item.get("y", 0)),
+                                "w": int(item.get("w", 50)),
+                                "h": int(item.get("h", 20))
+                            })
+                    elif "x" in parsed:
+                        found_matches.append({
+                            "x": int(parsed.get("x", 0)),
+                            "y": int(parsed.get("y", 0)),
+                            "w": int(parsed.get("w", 50)),
+                            "h": int(parsed.get("h", 20))
+                        })
+            except Exception as ex:
+                print(f"[Highlighter Fallback Error] {ex}")
+
         # Clean up temp image
         try: os.remove(temp_img_path)
         except: pass
