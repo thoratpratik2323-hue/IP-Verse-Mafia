@@ -543,6 +543,17 @@ class IPPrimeOSDesktop(QMainWindow):
         self.media_hud.move(20, 290)
         self.media_hud.show()
 
+        # ── Glassmorphic Kanban Board HUD & Cyber Radar HUD ──────────────────
+        from os_shell.widgets.kanban_hud import KanbanTaskBoardHUD
+        from os_shell.widgets.cyber_radar_hud import CyberRadarHUD
+        self.kanban_hud = KanbanTaskBoardHUD(self)
+        self.kanban_hud.move(self.width() - 320, 180)
+        self.kanban_hud.show()
+
+        self.radar_hud = CyberRadarHUD(self)
+        self.radar_hud.move(self.width() - 320, 440)
+        self.radar_hud.show()
+
         # ── Phase 2: Project Switcher (Ctrl+Shift+W) ────────────────────────────────
         self.project_switcher = ProjectSwitcherWidget(self)
         self.project_switcher.project_switched.connect(self._on_project_switched)
@@ -2924,6 +2935,22 @@ class IPPrimeOSDesktop(QMainWindow):
         if mods == (ctrl | shift) and key == Qt.Key.Key_E:
             # Ctrl+Shift+E → Multimodal Eyes Crop Mode
             self.start_screen_crop()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_K:
+            # Ctrl+Shift+K → Toggle Kanban HUD
+            if self.kanban_hud.isVisible():
+                self.kanban_hud.hide()
+            else:
+                self.kanban_hud.show()
+            return
+
+        if mods == (ctrl | shift) and key == Qt.Key.Key_R:
+            # Ctrl+Shift+R → Toggle Cyber Radar HUD
+            if self.radar_hud.isVisible():
+                self.radar_hud.hide()
+            else:
+                self.radar_hud.show()
             return
 
         super().keyPressEvent(event)
